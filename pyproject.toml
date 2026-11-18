@@ -31,6 +31,7 @@ dev = [
     "duckdb>=1",
     "sqlglot>=25",
     "check-jsonschema>=0.29",
+    "types-jsonschema>=4.26.0.20261006",
 ]
 
 [tool.hatch.build.targets.wheel]

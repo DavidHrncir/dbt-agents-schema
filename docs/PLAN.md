@@ -51,7 +51,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
 
 ## Phase 1 — Core logic (pure, no warehouse)
 
-- [ ] **T04 Config loader.** Ship `schemas/agents_schema.schema.json`; load and validate
+- [x] **T04 Config loader.** Ship `schemas/agents_schema.schema.json`; load and validate
   `agents_schema.yml`, apply defaults, resolve the default `project`, render
   `schema`/`database` templates (SPEC section 3).
   **Done when:** tests cover defaults with no file, every validation rule, each template

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agents_schema.yml",
+  "description": "Project config for dbt-agents-schema (spec v1, section 3).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version"],
+  "properties": {
+    "version": {"const": 1},
+    "project": {"type": "string"},
+    "owner": {"type": "string"},
+    "description": {"type": "string"},
+    "include_packages": {"type": "boolean"},
+    "exclude_packages": {"type": "array", "items": {"type": "string"}},
+    "skills_dir": {"type": "string", "minLength": 1},
+    "environments": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]{0,30}$"},
+      "additionalProperties": {"$ref": "#/$defs/environment"}
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description_scope": {"enum": ["public", "all"]},
+        "external_schemas": {"type": "array", "items": {"type": "string"}},
+        "rules": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "config_missing": {"$ref": "#/$defs/severity"},
+            "missing_model_description": {"$ref": "#/$defs/severity"},
+            "missing_column_description": {"$ref": "#/$defs/severity"},
+            "sampled_values_in_description": {"$ref": "#/$defs/severity"},
+            "skill_without_uses": {"$ref": "#/$defs/severity"},
+            "skill_unresolved_uses": {"$ref": "#/$defs/severity"}
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "severity": {"enum": ["error", "warning", "off"]},
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["credentials", "schema"],
+      "properties": {
+        "credentials": {"enum": ["env", "dbt_profile"]},
+        "database": {"type": "string", "minLength": 1},
+        "schema": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
