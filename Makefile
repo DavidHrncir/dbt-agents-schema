@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test test-live validate-ci verify fixtures
+.PHONY: install lint typecheck test test-live validate-ci docs-check verify fixtures
 
 # CI workflow and template files validated by validate-ci (SPEC 10.4). Missing files are
 # skipped until the tasks that create them land.
@@ -34,7 +34,11 @@ endif
 		echo "actionlint not installed; skipping"; \
 	fi
 
-verify: lint typecheck test validate-ci
+# The config reference in docs/partner-guide.md is generated from the JSON Schema.
+docs-check:
+	uv run python scripts/gen_config_reference.py --check
+
+verify: lint typecheck test validate-ci docs-check
 
 fixtures:
 	bash scripts/build_fixtures.sh

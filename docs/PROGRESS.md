@@ -319,3 +319,11 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 - Problem: SPEC 10.2 asks for "the same inputs as GitHub", where `mode` is `check | publish`. A GitLab `include` creates both jobs at once, and including the template twice with different inputs would collide on job names.
 - Options: (a) allow `mode: auto | check | publish` (default `auto`: check on merge requests, publish on the default branch) (current behaviour); (b) drop `mode` from the GitLab template and rely on rules only.
 - Recommendation: (a). It keeps the input names aligned and the common case a single include.
+
+## T27 Partner guide — done
+- Changed: docs/partner-guide.md (new), scripts/gen_config_reference.py (new), src/dbt_agents_schema/schemas/agents_schema.schema.json (annotations only), Makefile (`docs-check` in `verify`), README.md (points to the guide), tests/test_partner_guide.py (new)
+- Evidence: `make verify` exit 0 (`634 passed, 18 deselected`; `config reference up to date`). Tests: test_guide_exists_and_readme_points_to_it, test_guide_has_section[*] (10 sections), test_every_command_appears, test_every_cli_flag_from_help_appears (flags parsed from each subcommand's `--help`), test_every_choice_value_appears, test_every_config_key_appears (key paths walked from the schema), test_every_exit_code_is_troubleshot, test_config_reference_has_no_drift, test_generator_detects_drift, test_generator_requires_markers.
+- Decisions:
+  - The config reference is generated from the shipped schema, between markers in the guide. To make that possible, the schema gained `description`/`default` annotations, which do not change validation. Prose defaults that are not valid instances (`project`, `environments`, `database`) use a custom `x-default` annotation, so editors never offer them as values.
+  - Install instructions show both `pip install "dbt-agents-schema[<extra>]==0.1.0"` and a git URL. Where partners install from is H2's decision, and the CI wrappers assume an index that serves the pinned version.
+  - The guide mentions the T26-deferred lineage depth-20 note under Troubleshooting.

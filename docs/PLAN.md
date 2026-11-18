@@ -209,7 +209,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
 
 ## Phase 5 — Partner-ready
 
-- [ ] **T27 Partner guide.** `docs/partner-guide.md`: what it does, install, config
+- [x] **T27 Partner guide.** `docs/partner-guide.md`: what it does, install, config
   reference (generated from the JSON Schema by a script, checked in `make verify` for
   drift), GitHub setup, GitLab setup, developer workflow (`publish --env dev`),
   dbt platform projects (`fetch-manifest`), migrating from the dbt Labs tool, warehouse

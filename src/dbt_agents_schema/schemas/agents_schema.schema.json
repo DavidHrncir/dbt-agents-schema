@@ -6,35 +6,99 @@
   "additionalProperties": false,
   "required": ["version"],
   "properties": {
-    "version": {"const": 1},
-    "project": {"type": "string"},
-    "owner": {"type": "string"},
-    "description": {"type": "string"},
-    "include_packages": {"type": "boolean"},
-    "exclude_packages": {"type": "array", "items": {"type": "string"}},
-    "skills_dir": {"type": "string", "minLength": 1},
+    "version": {
+      "const": 1,
+      "description": "Config format version. Only 1 is valid."
+    },
+    "project": {
+      "type": "string",
+      "description": "Key that owns this project's rows. Pattern ^[a-z][a-z0-9_]{0,62}$. Must be unique within an agents schema.",
+      "x-default": "manifest metadata.project_name, lowercased, - replaced by _"
+    },
+    "owner": {
+      "type": "string",
+      "description": "Free text, for example a team email. Published to DBT_PROJECT."
+    },
+    "description": {
+      "type": "string",
+      "description": "Free text. Published to DBT_PROJECT and the project/<project> ROOT row."
+    },
+    "include_packages": {
+      "type": "boolean",
+      "description": "Also publish models from installed dbt packages.",
+      "default": true
+    },
+    "exclude_packages": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Package names never published, even when include_packages is true.",
+      "default": []
+    },
+    "skills_dir": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Directory of markdown skill files, relative to the project. A missing directory means no skills.",
+      "default": "agents/skills"
+    },
     "environments": {
       "type": "object",
       "minProperties": 1,
       "propertyNames": {"pattern": "^[a-z][a-z0-9_]{0,30}$"},
-      "additionalProperties": {"$ref": "#/$defs/environment"}
+      "additionalProperties": {"$ref": "#/$defs/environment"},
+      "description": "Named publish targets. Names match ^[a-z][a-z0-9_]{0,30}$.",
+      "x-default": "prod (credentials: env, schema: AGENTS) and dev (credentials: dbt_profile, schema: \"{{ target_schema }}_AGENTS\")"
     },
     "check": {
       "type": "object",
       "additionalProperties": false,
+      "description": "Settings for `dbt-agents-schema check` (also run by publish).",
       "properties": {
-        "description_scope": {"enum": ["public", "all"]},
-        "external_schemas": {"type": "array", "items": {"type": "string"}},
+        "description_scope": {
+          "enum": ["public", "all"],
+          "description": "Models the description rules apply to: public = models with access: public; all = every published model.",
+          "default": "public"
+        },
+        "external_schemas": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Schemas skills may reference in uses that dbt does not build.",
+          "default": []
+        },
         "rules": {
           "type": "object",
           "additionalProperties": false,
+          "description": "Severity per configurable rule.",
           "properties": {
-            "config_missing": {"$ref": "#/$defs/severity"},
-            "missing_model_description": {"$ref": "#/$defs/severity"},
-            "missing_column_description": {"$ref": "#/$defs/severity"},
-            "sampled_values_in_description": {"$ref": "#/$defs/severity"},
-            "skill_without_uses": {"$ref": "#/$defs/severity"},
-            "skill_unresolved_uses": {"$ref": "#/$defs/severity"}
+            "config_missing": {
+              "$ref": "#/$defs/severity",
+              "description": "No agents_schema.yml found.",
+              "default": "warning"
+            },
+            "missing_model_description": {
+              "$ref": "#/$defs/severity",
+              "description": "A model in description_scope has an empty description.",
+              "default": "warning"
+            },
+            "missing_column_description": {
+              "$ref": "#/$defs/severity",
+              "description": "A column of a model in description_scope has an empty description.",
+              "default": "warning"
+            },
+            "sampled_values_in_description": {
+              "$ref": "#/$defs/severity",
+              "description": "A description looks like data profiling output (min/max, null rates, sample values, row counts).",
+              "default": "error"
+            },
+            "skill_without_uses": {
+              "$ref": "#/$defs/severity",
+              "description": "A skill file has no uses frontmatter.",
+              "default": "warning"
+            },
+            "skill_unresolved_uses": {
+              "$ref": "#/$defs/severity",
+              "description": "A uses.schemas or uses.tables entry matches no published model and is not in external_schemas.",
+              "default": "error"
+            }
           }
         }
       }
@@ -47,9 +111,21 @@
       "additionalProperties": false,
       "required": ["credentials", "schema"],
       "properties": {
-        "credentials": {"enum": ["env", "dbt_profile"]},
-        "database": {"type": "string", "minLength": 1},
-        "schema": {"type": "string", "minLength": 1}
+        "credentials": {
+          "enum": ["env", "dbt_profile"],
+          "description": "env = WAREHOUSE_CREDENTIALS from the environment (CI); dbt_profile = the project's dbt profile (developers)."
+        },
+        "database": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Snowflake database, BigQuery project, Databricks catalog or DuckDB catalog. Template allowed.",
+          "x-default": "from the credentials"
+        },
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Agents schema (BigQuery dataset). Template allowed: {{ target_schema }}, {{ target_database }} (dbt_profile only), {{ project }}, {{ env }}."
+        }
       }
     }
   }
