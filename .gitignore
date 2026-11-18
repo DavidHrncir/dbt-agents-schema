@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+logs/
+*.duckdb
+*.duckdb.wal
+.env
+.env.*
+tests/fixtures/projects/*/target/
+tests/fixtures/projects/*/dbt_packages/
+tests/fixtures/projects/*/logs/
+gl-code-quality-report.json
