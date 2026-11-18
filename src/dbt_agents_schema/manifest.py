@@ -144,7 +144,7 @@ def read_models(
     known_ids = set(nodes) | (set(sources) if isinstance(sources, dict) else set())
 
     models: list[ModelRecord] = []
-    columns: list[ColumnRecord] = []
+    columns: dict[tuple[str, str], ColumnRecord] = {}
     deps: dict[tuple[str, str], DependencyRecord] = {}
     for unique_id, node in nodes.items():
         if not isinstance(node, dict) or node.get("resource_type") != "model":
@@ -159,7 +159,8 @@ def read_models(
         models.append(_model(project, unique_id, node, config))
         for col_name, col in (node.get("columns") or {}).items():
             if isinstance(col, dict):
-                columns.append(_column(project, unique_id, str(col.get("name") or col_name), col))
+                name = str(col.get("name") or col_name)
+                columns.setdefault((unique_id, name), _column(project, unique_id, name, col))
         depends_on = node.get("depends_on") or {}
         for upstream_id in depends_on.get("nodes") or ():
             upstream = str(upstream_id)
@@ -174,7 +175,9 @@ def read_models(
 
     return ManifestContent(
         models=tuple(sorted(models, key=lambda m: (m.project, m.unique_id))),
-        columns=tuple(sorted(columns, key=lambda c: (c.project, c.model_id, c.column_name))),
+        columns=tuple(
+            sorted(columns.values(), key=lambda c: (c.project, c.model_id, c.column_name))
+        ),
         dependencies=tuple(
             sorted(deps.values(), key=lambda d: (d.project, d.upstream_id, d.downstream_id))
         ),

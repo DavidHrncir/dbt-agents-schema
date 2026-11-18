@@ -92,7 +92,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   0 with warnings printed; `bad` exits 1; missing manifest exits 2 with the
   "run `dbt parse` first" message; `--parse` calls the subprocess (mocked).
 
-- [ ] **T10 Phase 1 review.** Run the `spec-reviewer` subagent on Phase 1. Fix
+- [x] **T10 Phase 1 review.** Run the `spec-reviewer` subagent on Phase 1. Fix
   correctness findings. Log the result.
 
 ## Phase 2 — Writer and the multi-project guarantee (DuckDB)

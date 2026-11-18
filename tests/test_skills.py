@@ -219,3 +219,13 @@ def test_deterministic_order(tmp_path: Path) -> None:
     assert first == second
     keys = [s.key for s in first.skills]
     assert keys == sorted(keys)
+
+
+def test_non_utf8_file_is_finding_not_crash(tmp_path: Path) -> None:
+    path = tmp_path / "agents" / "skills" / "latin1.md"
+    path.parent.mkdir(parents=True)
+    path.write_bytes("# caf\xe9\n".encode("latin-1"))
+    result = load(tmp_path)
+    assert rules(result) == ["skill_frontmatter_invalid"]
+    assert "UTF-8" in result.findings[0].message
+    assert result.findings[0].file == path

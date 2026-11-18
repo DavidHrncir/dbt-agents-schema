@@ -117,3 +117,14 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - With `--format gitlab`, `--output` is the Code Quality report path (default `gl-code-quality-report.json`, relative to cwd) and text goes to stdout. With text, json or github, `--output` writes the rendered output to that file instead of stdout.
   - Common options (`--project-dir`, `--config`, `--manifest`) live on each subcommand through a shared parent parser. Finding paths keep the `--project-dir` form as given, so running from the repo root yields repo-relative paths for annotations.
   - Running with no command still prints help and exits 0, as in T01.
+
+## T10 Phase 1 review — done
+- Reviewer: Phase 1 review: 0 blockers, 3 should-fix, 3 nits
+- Fixed (should-fix):
+  - A manifest without `metadata.project_name` crashed `check` with a traceback. The root package now falls back to the `dbt_project.yml` name (`config.dbt_project_name`, now public). `check_project` catches `ManifestError` from `read_models` and reports `manifest_missing` (exit 2). `CheckResult.root_package` carries the value, and `build_plan(..., root_package=)` accepts it for publish.
+  - `uses.schemas` and `external_schemas` are now compared case-insensitively, like `uses.tables`. The SPEC 8 frontmatter example (`schemas: [FINANCE_MARTS]`) failed against lowercase DuckDB schemas. This supersedes the case-sensitive schema decision in T03/T08.
+  - A skill file that cannot be read (not UTF-8, or an OS error) is now a `skill_frontmatter_invalid` finding naming the file and the fix, not an uncaught exception.
+- Fixed (nits): `RunMetadata.published_at` is normalized to UTC. `DBT_COLUMN` records are deduplicated by primary key. `test_gitlab_report_stable_fingerprints` now asserts fingerprint equality across two checkouts that use the same relative `--project-dir`.
+- Changed: src/dbt_agents_schema/{config,manifest,skills,plan,check}.py, tests/test_{check,skills,manifest,plan}.py
+- Evidence: `make verify` exit 0 (`282 passed`); new tests: test_manifest_without_project_name_falls_back_to_dbt_project_yml, test_manifest_without_any_project_name_is_manifest_finding, test_uppercase_schema_entry_resolves, test_uppercase_external_schema_resolves, test_non_utf8_skill_is_finding, test_non_utf8_file_is_finding_not_crash, test_duplicate_column_names_collapse, test_root_package_override_when_metadata_lacks_name, test_published_at_normalized_to_utc; strengthened: test_gitlab_report_stable_fingerprints
+- Decisions: none beyond the fixes above.

@@ -19,6 +19,7 @@ from dbt_agents_schema.config import (
     CONFIG_FILENAME,
     Config,
     ConfigError,
+    dbt_project_name,
     default_config,
     load_config,
     validate_project_key,
@@ -79,6 +80,7 @@ class CheckResult:
     manifest: Manifest | None = field(default=None, compare=False)
     skills: SkillSet | None = field(default=None, compare=False)
     manifest_missing: bool = False
+    root_package: str | None = None
 
     @property
     def has_errors(self) -> bool:
@@ -147,6 +149,7 @@ def check_project(
             )
 
     skills: SkillSet | None = None
+    root_package: str | None = None
     if config is not None:
         key_problem = validate_project_key(config.project)
         if key_problem is not None:
@@ -161,14 +164,25 @@ def check_project(
         broken = {f.node for f in skills.findings if f.rule == "skill_frontmatter_invalid"}
         findings.extend(_skill_without_uses(skills.skills, broken))
         if manifest is not None:
-            content = read_models(
-                manifest,
-                project=config.project,
-                include_packages=config.include_packages,
-                exclude_packages=config.exclude_packages,
-            )
-            findings.extend(_description_findings(project_dir, manifest, content, config))
-            findings.extend(_unresolved_uses(skills.skills, content, config))
+            root_package = manifest.project_name or dbt_project_name(project_dir)
+            try:
+                content = read_models(
+                    manifest,
+                    project=config.project,
+                    include_packages=config.include_packages,
+                    exclude_packages=config.exclude_packages,
+                    root_package=root_package,
+                )
+            except ManifestError as exc:
+                findings.append(
+                    Finding("manifest_missing", "error", str(exc), file=str(manifest_file))
+                )
+                manifest = None
+            else:
+                findings.extend(
+                    _description_findings(project_dir, root_package, content, manifest, config)
+                )
+                findings.extend(_unresolved_uses(skills.skills, content, config))
 
     return CheckResult(
         findings=_apply_severities(findings, config),
@@ -176,6 +190,7 @@ def check_project(
         manifest=manifest,
         skills=skills,
         manifest_missing=manifest is None,
+        root_package=root_package,
     )
 
 
@@ -197,7 +212,11 @@ def _skill_without_uses(skills: Iterable[Skill], broken: set[str]) -> Iterable[F
 
 
 def _description_findings(
-    project_dir: Path, manifest: Manifest, content: ManifestContent, config: Config
+    project_dir: Path,
+    root_package: str | None,
+    content: ManifestContent,
+    manifest: Manifest,
+    config: Config,
 ) -> Iterable[Finding]:
     nodes: dict[str, Any] = dict(manifest.raw["nodes"])
     scope_all = config.check.description_scope == "all"
@@ -213,7 +232,7 @@ def _description_findings(
         )
     models = {m.unique_id: m for m in content.models}
     for model in content.models:
-        file = _model_file(project_dir, manifest.project_name, nodes.get(model.unique_id), model)
+        file = _model_file(project_dir, root_package, nodes.get(model.unique_id), model)
         if model.unique_id in in_scope and not model.description.strip():
             yield Finding(
                 "missing_model_description",
@@ -235,7 +254,7 @@ def _description_findings(
             )
     for column in content.columns:
         model = models[column.model_id]
-        file = _model_file(project_dir, manifest.project_name, nodes.get(model.unique_id), model)
+        file = _model_file(project_dir, root_package, nodes.get(model.unique_id), model)
         node = f"{column.model_id}.{column.column_name}"
         if column.model_id in in_scope and not column.description.strip():
             yield Finding(
@@ -275,9 +294,8 @@ def _model_file(project_dir: Path, root_package: str | None, node: Any, model: M
 def _unresolved_uses(
     skills: Iterable[Skill], content: ManifestContent, config: Config
 ) -> Iterable[Finding]:
-    schemas = {m.schema_name for m in content.models if m.schema_name}
-    external = set(config.check.external_schemas)
-    external_ci = {s.lower() for s in external}
+    schemas = {m.schema_name.lower() for m in content.models if m.schema_name}
+    external_ci = {s.lower() for s in config.check.external_schemas}
     tables: set[str] = set()
     for m in content.models:
         if m.schema_name:
@@ -286,7 +304,7 @@ def _unresolved_uses(
                 tables.add(f"{m.database_name}.{m.schema_name}.{m.alias}".lower())
     for skill in skills:
         for ref in skill.uses_schemas:
-            if ref not in schemas and ref not in external:
+            if ref.lower() not in schemas and ref.lower() not in external_ci:
                 yield _unresolved(skill, "schemas", ref, "is not the schema of any published model")
         for ref in skill.uses_tables:
             parts = ref.split(".")

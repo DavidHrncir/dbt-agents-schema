@@ -282,3 +282,26 @@ def test_marketing_has_shared_pkg_models() -> None:
     content = read_models(m, project="marketing")
     assert {x.unique_id for x in content.models} >= SHARED
     assert all(x.project == "marketing" for x in content.models)
+
+
+def test_duplicate_column_names_collapse(tmp_path: Path) -> None:
+    raw = json.loads((MANIFESTS / "finance.json").read_text())
+    cols = raw["nodes"]["model.finance.fct_revenue"]["columns"]
+    cols["revenue_usd_copy"] = dict(cols["revenue_usd"])  # `name` is still revenue_usd
+    path = tmp_path / "manifest.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    content = read_models(load_manifest(path), project="finance")
+    keys = [(c.model_id, c.column_name) for c in content.columns]
+    assert len(keys) == len(set(keys))
+
+
+def test_root_package_override_when_metadata_lacks_name(tmp_path: Path) -> None:
+    raw = json.loads((MANIFESTS / "finance.json").read_text())
+    raw["metadata"].pop("project_name")
+    path = tmp_path / "manifest.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    manifest = load_manifest(path)
+    with pytest.raises(ManifestError):
+        read_models(manifest, project="finance")
+    content = read_models(manifest, project="finance", root_package="finance")
+    assert "model.finance.fct_revenue" in {m.unique_id for m in content.models}

@@ -105,7 +105,17 @@ def _skill_path(relative_path: str) -> str:
 
 
 def _load_one(file: Path, key: str, path: str) -> tuple[Skill, SkillFinding | None]:
-    content = file.read_text(encoding="utf-8-sig")
+    try:
+        content = file.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeDecodeError) as exc:
+        reason = "is not valid UTF-8" if isinstance(exc, UnicodeDecodeError) else str(exc)
+        return Skill(key=key, path=path, file=file, content=""), SkillFinding(
+            rule="skill_frontmatter_invalid",
+            message=f"{file}: cannot read skill file ({reason}); save it as UTF-8 text",
+            file=file,
+            line=None,
+            node=key,
+        )
     plain = Skill(key=key, path=path, file=file, content=content)
 
     def invalid(message: str, line: int | None) -> tuple[Skill, SkillFinding]:

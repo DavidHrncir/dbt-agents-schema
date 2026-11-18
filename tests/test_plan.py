@@ -292,3 +292,14 @@ def test_plan_to_json_is_json_serializable() -> None:
     assert '"published_at": "2026-01-02T03:04:05+00:00"' in text
     assert set(data["tables"]) == set(TABLES)
     assert data["project"] == "finance"
+
+
+def test_published_at_normalized_to_utc() -> None:
+    from datetime import timedelta, timezone
+
+    local = datetime(2026, 1, 2, 5, 4, 5, tzinfo=timezone(timedelta(hours=2)))
+    run = RunMetadata(environment="prod", warehouse="duckdb", published_at=local)
+    assert run.published_at == RUN.published_at
+    assert run.published_at.utcoffset() == timedelta(0)
+    (row,) = build("finance", run=run).rows("DBT_PROJECT")
+    assert row["published_at"].isoformat() == "2026-01-02T03:04:05+00:00"

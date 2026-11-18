@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import cache
 from importlib import resources
 from typing import Any
@@ -156,6 +156,7 @@ class RunMetadata:
     def __post_init__(self) -> None:
         if self.published_at.tzinfo is None:
             raise ValueError("RunMetadata.published_at must be timezone-aware (UTC)")
+        object.__setattr__(self, "published_at", self.published_at.astimezone(UTC))
         if self.warehouse not in WAREHOUSES:
             raise ValueError(
                 f"unsupported warehouse {self.warehouse!r}; expected one of: "
@@ -192,11 +193,21 @@ def _analyst_skill_text(warehouse: str) -> str:
     )
 
 
-def build_plan(config: Config, manifest: Manifest, skills: SkillSet, run: RunMetadata) -> Plan:
+def build_plan(
+    config: Config,
+    manifest: Manifest,
+    skills: SkillSet,
+    run: RunMetadata,
+    *,
+    root_package: str | None = None,
+) -> Plan:
+    """`root_package` overrides `metadata.project_name` as the root package (pass the
+    `dbt_project.yml` name when the manifest has none; see `CheckResult.root_package`)."""
     project = config.project
     content = read_models(
         manifest,
         project=project,
+        root_package=root_package,
         include_packages=config.include_packages,
         exclude_packages=config.exclude_packages,
     )

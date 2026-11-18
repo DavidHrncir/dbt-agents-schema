@@ -673,10 +673,14 @@ def test_gitlab_report_validates(tmp_path: Path) -> None:
     assert {item["severity"] for item in report} >= {"major", "minor"}
 
 
-def test_gitlab_report_stable_fingerprints(tmp_path: Path) -> None:
-    a = gitlab_report(bad_result(tmp_path / "a"))
-    b = gitlab_report(bad_result(tmp_path / "b"))
-    assert [x["check_name"] for x in a] == [x["check_name"] for x in b]
+def test_gitlab_report_stable_fingerprints(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    reports = []
+    for run in ("a", "b"):
+        (tmp_path / run).mkdir()
+        copy_project(tmp_path / run, "bad")
+        monkeypatch.chdir(tmp_path / run)
+        reports.append(gitlab_report(check(Path("bad"), manifest_path=MANIFESTS / "bad.json")))
+    assert [x["fingerprint"] for x in reports[0]] == [x["fingerprint"] for x in reports[1]]
 
 
 def test_gitlab_report_without_file() -> None:
@@ -691,3 +695,45 @@ def test_findings_sorted_deterministically(tmp_path: Path) -> None:
     a = bad_result(tmp_path / "a")
     keys = [(f.file or "", f.line or 0, f.rule, f.node or "", f.message) for f in a.findings]
     assert keys == sorted(keys)
+
+
+# --- Phase 1 review regressions ------------------------------------------------------
+
+
+def test_manifest_without_project_name_falls_back_to_dbt_project_yml(finance: Path) -> None:
+    edit_manifest(finance, lambda d: d["metadata"].pop("project_name"))
+    result = check(finance)
+    assert not result.has_errors
+    assert rules(result) == {"skill_without_uses"}
+    assert result.root_package == "finance"
+
+
+def test_manifest_without_any_project_name_is_manifest_finding(finance: Path) -> None:
+    edit_manifest(finance, lambda d: d["metadata"].pop("project_name"))
+    (finance / "dbt_project.yml").unlink()
+    result = check(finance)
+    assert "manifest_missing" in rules(result)
+    assert result.manifest_missing
+
+
+def test_uppercase_schema_entry_resolves(finance: Path) -> None:
+    # The SPEC 8 frontmatter example uses uppercase names; DuckDB schemas are lowercase.
+    write_skill(
+        finance, "x.md", uses(schemas=["FINANCE_MARTS"], tables=["FINANCE_MARTS.FCT_REVENUE"])
+    )
+    assert unresolved(finance) == []
+
+
+def test_uppercase_external_schema_resolves(finance: Path) -> None:
+    write_skill(finance, "x.md", uses(schemas=["raw_erp"], tables=["raw_erp.invoices"]))
+    write_config(finance, "version: 1\nproject: finance\ncheck:\n  external_schemas: [RAW_ERP]\n")
+    assert unresolved(finance) == []
+
+
+def test_non_utf8_skill_is_finding(finance: Path) -> None:
+    path = finance / "agents" / "skills" / "latin1.md"
+    path.write_bytes("# caf\xe9\n".encode("latin-1"))
+    result = check(finance)
+    (f,) = of(result, "skill_frontmatter_invalid")
+    assert f.file == str(path)
+    assert "UTF-8" in f.message

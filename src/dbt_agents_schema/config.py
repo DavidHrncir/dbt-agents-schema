@@ -403,7 +403,7 @@ def _resolve_project(
         return str(data["project"]), "config"
     if manifest_project_name:
         return normalize_project_name(manifest_project_name), "manifest"
-    dbt_name = _dbt_project_name(project_dir)
+    dbt_name = dbt_project_name(project_dir)
     if dbt_name:
         return normalize_project_name(dbt_name), "dbt_project"
     raise ConfigError(
@@ -419,7 +419,8 @@ def _resolve_project(
     )
 
 
-def _dbt_project_name(project_dir: Path) -> str | None:
+def dbt_project_name(project_dir: Path) -> str | None:
+    """`name` from `<project_dir>/dbt_project.yml`, or None if absent or unreadable."""
     path = project_dir / "dbt_project.yml"
     if not path.is_file():
         return None
