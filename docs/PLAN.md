@@ -145,7 +145,7 @@ only when its env var is set (`LIVE_SNOWFLAKE_CREDENTIALS`, `LIVE_BIGQUERY_CREDE
 `LIVE_DATABRICKS_CREDENTIALS`, each holding a `WAREHOUSE_CREDENTIALS`-style document),
 using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops afterwards.
 
-- [ ] **T16 Snowflake writer.** Transactional swap (`BEGIN` … `COMMIT`, `ROLLBACK` on
+- [x] **T16 Snowflake writer.** Transactional swap (`BEGIN` … `COMMIT`, `ROLLBACK` on
   error), batched parameterized inserts, `VARIANT` via `PARSE_JSON`, uppercase
   identifiers, key-pair auth.
   **Done when:** fake-connection tests assert statement order, binding (no values in SQL
