@@ -67,7 +67,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   `relation_name`; dependency edges to sources and seeds carry this project as
   `upstream_project`.
 
-- [ ] **T06 Skills loader.** Walk `skills_dir`, compute keys `skill/<project>/<path>`,
+- [x] **T06 Skills loader.** Walk `skills_dir`, compute keys `skill/<project>/<path>`,
   parse `uses` frontmatter, keep malformed `uses` as a finding rather than a crash.
   **Done when:** tests cover nested folders, Windows-style path separators, no
   frontmatter, invalid YAML frontmatter, and duplicate keys differing only by case.

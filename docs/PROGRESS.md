@@ -74,3 +74,13 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - `upstream_project` = this project when the upstream id is a key in `nodes` or `sources` (package models included); duplicate `depends_on` entries collapse to one row per PK.
   - `generated_at` is parsed to an aware UTC datetime; a naive value is taken as UTC.
   - `ManifestMissingError` (subclass of `ManifestError`) carries the "run `dbt parse` first" message for check's `manifest_missing` and exit 2.
+
+## T06 Skills loader — done
+- Changed: src/dbt_agents_schema/skills.py, tests/test_skills.py
+- Evidence: `make verify` exit 0 (`146 passed`); tests: test_nested_folders, test_skill_key_windows_separators[*], test_windows_separator_in_file_name, test_no_frontmatter, test_invalid_yaml_frontmatter_is_finding, test_unclosed_frontmatter_is_finding, test_malformed_uses_is_finding_not_crash[*], test_duplicate_keys_differing_only_by_case, test_bad_fixture_duplicate_in_tmp_copy, test_bad_fixture_broken_frontmatter, test_finance_fixture_keys_and_uses, test_crlf_frontmatter, test_deterministic_order
+- Decisions:
+  - Malformed `uses` (not a mapping, unknown keys, values not lists of strings), non-mapping frontmatter, and a `---` block with no closing line are all reported as `skill_frontmatter_invalid` (hard error). SPEC 8 only names "not valid YAML"; these shapes are the same kind of problem, and a hard error stops a skill from silently publishing without its `uses`.
+  - A skill with invalid frontmatter is still loaded (with no `uses`), so other checks and the key-duplicate check still see it.
+  - `uses: null`, `uses: {}` and empty lists count as "no uses" (`skill_without_uses` applies, no finding here). Entries are stripped; empty strings are dropped.
+  - Files match `*.md` case-insensitively. Keys keep their on-disk case. On a case-insensitive key collision, the first file in POSIX-path order is kept and each later one gets a `skill_key_duplicate` finding naming both files.
+  - `content` is the full file text (BOM stripped), frontmatter included, for the ROOT row.
