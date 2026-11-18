@@ -1,9 +1,9 @@
 """T13 acceptance scenarios against a real warehouse (Phase 3 live tests).
 
 Each warehouse's live module builds a `LiveTarget` for a throwaway schema named
-`DBT_AGENTS_SCHEMA_TEST_<random>` and calls the `scenario_*` functions. Scenario 4
-(dbt Labs table migration) needs warehouse-specific DDL and is covered by each writer's
-fake-connection tests instead.
+`DBT_AGENTS_SCHEMA_TEST_<random>` and calls the `scenario_*` functions (T13 scenarios
+1-6). Scenario 4 creates dbt Labs-shaped tables with the target's `schema_ref` and
+`json_type`.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from fakes import MANIFESTS, PROJECTS
+from fakes import DBT_LABS_TABLES, MANIFESTS, PROJECTS
 
 from dbt_agents_schema.config import ResolvedTarget
 from dbt_agents_schema.plan import PROJECT_TABLES, TABLES
@@ -47,6 +47,8 @@ class LiveTarget:
     table: Callable[[str], str]
     col: Callable[[str], str]
     starts_with: Callable[[str], str]
+    schema_ref: str
+    json_type: str
 
     def factory(self, _target: ResolvedTarget) -> Writer:
         return self.open_writer()
@@ -139,6 +141,38 @@ def scenario_3_ownership_guard(lt: LiveTarget) -> None:
     assert lt.column_set("DBT_PROJECT", "repo_url", "finance") == {other}
 
 
+def scenario_4_migrates_dbt_labs_tables(lt: LiveTarget) -> None:
+    lt.query(f"CREATE SCHEMA IF NOT EXISTS {lt.schema_ref}", [])
+    legacy = 0
+    for table, columns in DBT_LABS_TABLES.items():
+        defs = ", ".join(
+            f"{lt.col(c)} {lt.json_type if c in ('tags', 'meta') else 'STRING'}" for c in columns
+        )
+        lt.query(f"CREATE TABLE {lt.table(table)} ({defs})", [])
+        text_cols = [c for c in columns if c not in ("tags", "meta")]
+        if table == "ROOT":
+            rows = [["dbt", "skill/legacy", "kept"], ["dbt", "overview", "old"]]
+        else:
+            rows = [[f"legacy_{c}_{i}" for c in text_cols] for i in range(2)]
+            legacy += 2
+        for row in rows:
+            names = ", ".join(lt.col(c) for c in text_cols)
+            marks = ", ".join("?" for _ in text_cols)
+            lt.query(f"INSERT INTO {lt.table(table)} ({names}) VALUES ({marks})", row)
+    outcome, text = lt.publish("finance")
+    assert outcome.exit_code == 0
+    assert outcome.ensure is not None
+    assert "project" in outcome.ensure.columns_added["DBT_MODEL"]
+    assert outcome.swap is not None
+    assert outcome.swap.total_legacy_removed == legacy
+    assert f"legacy rows removed: {legacy}" in text
+    for t in PROJECT_TABLES:
+        assert lt.projects_in(t) == {"finance"}, t
+    keys = lt.root_keys()
+    assert "skill/legacy" in keys
+    assert lt.column_set("DBT_MODEL", "unique_id", "finance")
+
+
 def scenario_5_newer_spec_version_refuses(lt: LiveTarget) -> None:
     lt.publish("marketing")
     # BigQuery requires a WHERE clause on UPDATE.
@@ -174,6 +208,7 @@ SCENARIOS: dict[str, Callable[[LiveTarget], None]] = {
     "1_two_projects_share_one_schema": scenario_1_two_projects_share_one_schema,
     "2_republish_leaves_other_untouched": scenario_2_republish_leaves_other_untouched,
     "3_ownership_guard": scenario_3_ownership_guard,
+    "4_migrates_dbt_labs_tables": scenario_4_migrates_dbt_labs_tables,
     "5_newer_spec_version_refuses": scenario_5_newer_spec_version_refuses,
     "6_unpublish_removes_only_that_project": scenario_6_unpublish_removes_only_that_project,
 }

@@ -339,3 +339,86 @@ def test_factory_opens_databricks_writer(fake_sql: FakeDatabricksSQL) -> None:
     w = open_writer(connection, ResolvedTarget(environment="prod", database=None, schema="s"))
     assert isinstance(w, DatabricksWriter)
     assert w._schema == "s"  # type: ignore[attr-defined]
+
+
+# --- T20 review fixes ---------------------------------------------------------------------
+
+
+def test_new_tables_declare_primary_keys() -> None:
+    con = FakeConnection()
+    make(con).ensure_structure()
+    model = next(s.sql for s in con.matching(r"^CREATE TABLE IF NOT EXISTS \S+`DBT_MODEL`"))
+    assert "`project` STRING NOT NULL" in model and "`unique_id` STRING NOT NULL" in model
+    assert "`name` STRING," in model
+    assert model.endswith(", CONSTRAINT `pk_dbt_model` PRIMARY KEY (`project`, `unique_id`))")
+    # Stage tables carry no constraints.
+    con2 = FakeConnection()
+    make(con2).swap(fixture_plan("finance", warehouse="databricks"))
+    assert not [s for s in con2.matching(r"^CREATE TABLE \S+_STAGE_") if "CONSTRAINT" in s.sql]
+
+
+def test_replace_follows_migrated_column_order(plan: Plan) -> None:
+    # A dbt Labs table migrated in place: `project` and the other new columns were
+    # appended last, and an extra legacy column exists that this tool does not know.
+    migrated = [
+        "unique_id",
+        "name",
+        "database_name",
+        "schema_name",
+        "materialization",
+        "description",
+        "file_path",
+        "tags",
+        "meta",
+        "legacy_owner",
+        "project",
+        "package_name",
+        "alias",
+        "relation_name",
+        "access",
+    ]
+    con = FakeConnection(results=[(INFO, [("dbt_model", c) for c in migrated])])
+    make(con).swap(plan)
+    stmt = next(s for s in replaces(con) if "`DBT_MODEL` REPLACE" in s.sql)
+    select = re.search(r" SELECT (.*) FROM ", stmt.sql).group(1)  # type: ignore[union-attr]
+    expected = ", ".join(
+        "NULL AS `legacy_owner`" if c == "legacy_owner" else f"`{c}`" for c in migrated
+    )
+    assert select == expected
+
+
+def test_concurrent_modification_is_retried(plan: Plan) -> None:
+    sleeps: list[float] = []
+    con = FakeConnection(
+        fail_on=r"^INSERT INTO \S+`DBT_MODEL` REPLACE",
+        fail_times=1,
+        fail_message="[DELTA_CONCURRENT_APPEND] ConcurrentAppendException: files were added",
+    )
+    result = make(con, sleep=sleeps.append).swap(plan)
+    assert result.rows_written == plan.counts()
+    assert len(sleeps) == 1
+    created = con.matching(r"^CREATE TABLE \S+_STAGE_")
+    dropped = con.matching(r"^DROP TABLE IF EXISTS \S+_STAGE_")
+    assert len(created) == len(dropped) == 2 * len(TABLES)
+    assert len(replaces(con)) == 1 + len(TABLES) + 1  # first try failed at DBT_MODEL
+
+
+def test_databricks_retries_are_bounded(plan: Plan) -> None:
+    sleeps: list[float] = []
+    con = FakeConnection(
+        fail_on=r"^INSERT INTO \S+`ROOT` REPLACE",
+        fail_message="ConcurrentDeleteReadException: a concurrent transaction deleted data",
+    )
+    with pytest.raises(WarehouseError, match="ConcurrentDeleteReadException"):
+        make(con, sleep=sleeps.append, conflict_retries=1).swap(plan)
+    assert len(sleeps) == 1
+
+
+def test_databricks_other_errors_not_retried(plan: Plan) -> None:
+    sleeps: list[float] = []
+    con = FakeConnection(
+        fail_on=r"^INSERT INTO \S+`ROOT` REPLACE", fail_message="PARSE_SYNTAX_ERROR"
+    )
+    with pytest.raises(WarehouseError):
+        make(con, sleep=sleeps.append).swap(plan)
+    assert not sleeps

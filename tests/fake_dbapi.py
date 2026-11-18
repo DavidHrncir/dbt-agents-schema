@@ -3,7 +3,8 @@
 Used by the warehouse writer tests (Phase 3). Results are scripted by regular expression:
 the first rule whose pattern matches the SQL text (case-insensitive search) supplies the
 rows, either as a list or as a callable taking the bound parameters.
-`fail_on` makes matching statements raise `FakeDBError`.
+`fail_on` makes matching statements raise `FakeDBError` (only the first `fail_times`
+matches when set, with `fail_message` as the error text when set).
 """
 
 from __future__ import annotations
@@ -32,6 +33,8 @@ class Statement:
 class FakeConnection:
     results: list[tuple[str, Rows]] = field(default_factory=list)
     fail_on: str | None = None
+    fail_times: int | None = None
+    fail_message: str | None = None
     statements: list[Statement] = field(default_factory=list)
     closed: bool = False
     rowcount: int = 0
@@ -66,8 +69,12 @@ class FakeCursor:
 
     def _run(self, sql: str, params: Any, many: bool) -> None:
         self._con.statements.append(Statement(sql, params, many))
-        if self._con.fail_on and re.search(self._con.fail_on, sql, re.IGNORECASE):
-            raise FakeDBError(f"scripted failure for: {sql[:60]}")
+        con = self._con
+        failing = con.fail_on and re.search(con.fail_on, sql, re.IGNORECASE)
+        if failing and (con.fail_times is None or con.fail_times > 0):
+            if con.fail_times is not None:
+                con.fail_times -= 1
+            raise FakeDBError(con.fail_message or f"scripted failure for: {sql[:60]}")
         self._rows = []
         for pattern, rows in self._con.results:
             if re.search(pattern, sql, re.IGNORECASE):

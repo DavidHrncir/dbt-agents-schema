@@ -56,6 +56,8 @@ def target() -> Iterator[LiveTarget]:
             table=table,
             col=col,
             starts_with=lambda c: f"STARTSWITH({c}, ?)",
+            schema_ref=DIALECT.qualified(database, schema),
+            json_type="VARIANT",
         )
     finally:
         query(f"DROP SCHEMA IF EXISTS {DIALECT.qualified(database, schema)}", [])

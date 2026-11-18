@@ -12,10 +12,13 @@ pure modules never depend on one.
 from __future__ import annotations
 
 import importlib
-from collections.abc import Mapping
+import logging
+import re
+import time
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from types import ModuleType
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Protocol, TypeVar, runtime_checkable
 
 from dbt_agents_schema.plan import ANALYST_SKILL_KEY, PROVIDER, SHARED_ROOT_KEYS, Plan
 
@@ -28,7 +31,13 @@ __all__ = [
     "WarehouseError",
     "Writer",
     "import_extra",
+    "retry_on_conflict",
 ]
+
+_log = logging.getLogger(__name__)
+_R = TypeVar("_R")
+
+CONFLICT_RETRIES = 3
 
 
 class WarehouseError(Exception):
@@ -170,3 +179,34 @@ class Writer(Protocol):
     def close(self) -> None:
         """Release the connection. Safe to call more than once."""
         ...
+
+
+def retry_on_conflict(
+    fn: Callable[[], _R],
+    *,
+    errors: tuple[type[BaseException], ...],
+    conflict: re.Pattern[str],
+    retries: int = CONFLICT_RETRIES,
+    sleep: Callable[[float], None] = time.sleep,
+) -> _R:
+    """Run `fn`, re-running it up to `retries` times when it fails with one of `errors`
+    whose message matches `conflict` (a concurrent write by another publish).
+
+    Only for operations that are safe to repeat from the start (a whole swap).
+    """
+    attempt = 0
+    while True:
+        try:
+            return fn()
+        except errors as exc:
+            if attempt >= retries or not conflict.search(str(exc)):
+                raise
+            attempt += 1
+            delay = float(2 ** (attempt - 1))
+            _log.warning(
+                "concurrent write by another publish; retrying in %.0fs (attempt %d of %d)",
+                delay,
+                attempt,
+                retries,
+            )
+            sleep(delay)

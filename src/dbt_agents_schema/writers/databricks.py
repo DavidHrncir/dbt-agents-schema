@@ -17,28 +17,36 @@ statement (SPEC 6 step 7):
 - `REPLACE WHERE` takes no column list, so the SELECT follows the target table's
   actual column order from `information_schema` (migrated tables have `project` last)
   and fills columns this tool does not know with NULL.
+- A Delta concurrent-modification conflict (another publish writing the same table)
+  re-runs the whole swap, a bounded number of times.
 - Values use native named parameters (`:name`). JSON columns are STRING holding JSON text.
+- New tables declare an informational `CONSTRAINT pk_<table> PRIMARY KEY (...)` with
+  `NOT NULL` key columns (Unity Catalog, SPEC 5). Migrated tables are left as they are.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import re
 import secrets
+import time
 from collections.abc import Callable, Mapping, Sequence
 from types import ModuleType
 from typing import Any, TypeVar
 
 from dbt_agents_schema.dialects import LOGICAL_TYPES
 from dbt_agents_schema.dialects.databricks import DIALECT
-from dbt_agents_schema.plan import PROJECT_TABLES, TABLE_COLUMNS, TABLES, Plan, Row
+from dbt_agents_schema.plan import PRIMARY_KEYS, PROJECT_TABLES, TABLE_COLUMNS, TABLES, Plan, Row
 from dbt_agents_schema.writers import (
+    CONFLICT_RETRIES,
     EnsureResult,
     RootScope,
     SwapResult,
     UnpublishResult,
     WarehouseError,
     import_extra,
+    retry_on_conflict,
 )
 
 log = logging.getLogger(__name__)
@@ -48,6 +56,8 @@ _T = TypeVar("_T")
 BATCH_ROWS = 500
 _MAX_PARAMS = 2000
 STAGE_PREFIX = "_DBT_AGENTS_SCHEMA_STAGE_"
+# Delta optimistic-concurrency conflicts (another publish wrote the same table).
+_CONFLICT = re.compile(r"Concurrent\w*Exception|DELTA_CONCURRENT")
 
 
 def _sql() -> ModuleType:
@@ -65,11 +75,15 @@ class DatabricksWriter:
         schema: str,
         error_types: tuple[type[BaseException], ...] | None = None,
         batch_rows: int = BATCH_ROWS,
+        conflict_retries: int = CONFLICT_RETRIES,
+        sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self._con = connection
         self._catalog = catalog
         self._schema = schema
         self._batch_rows = batch_rows
+        self._conflict_retries = conflict_retries
+        self._sleep = sleep
         self._owns_connection = False
         self._closed = False
         self._error_types = error_types if error_types is not None else (_sql().exc.Error,)
@@ -113,11 +127,18 @@ class DatabricksWriter:
             for table in TABLES:
                 have = existing.get(table)
                 if have is None:
+                    keys = PRIMARY_KEYS[table]
                     defs = ", ".join(
                         f"{DIALECT.quote(c)} {DIALECT.column_type(table, c)}"
+                        + (" NOT NULL" if c in keys else "")
                         for c in TABLE_COLUMNS[table]
                     )
-                    self._exec(f"CREATE TABLE IF NOT EXISTS {self._table(table)} ({defs})")
+                    pk = ", ".join(DIALECT.quote(c) for c in keys)
+                    constraint = DIALECT.quote(f"pk_{table.lower()}")
+                    self._exec(
+                        f"CREATE TABLE IF NOT EXISTS {self._table(table)} "
+                        f"({defs}, CONSTRAINT {constraint} PRIMARY KEY ({pk}))"
+                    )
                     continue
                 missing = tuple(c for c in TABLE_COLUMNS[table] if c.lower() not in have)
                 for column in missing:
@@ -195,7 +216,18 @@ class DatabricksWriter:
                 self._drop_stages(stages.values())
             return SwapResult(rows_written=plan.counts(), legacy_rows_removed=legacy)
 
-        return self._guard(f"replace the rows of project {plan.project!r}", run)
+        def retried() -> SwapResult:
+            # Re-running the whole swap is safe: every replace is idempotent for the
+            # same plan, and stages are rebuilt.
+            return retry_on_conflict(
+                run,
+                errors=self._error_types,
+                conflict=_CONFLICT,
+                retries=self._conflict_retries,
+                sleep=self._sleep,
+            )
+
+        return self._guard(f"replace the rows of project {plan.project!r}", retried)
 
     def unpublish(self, project: str) -> UnpublishResult:
         def run() -> UnpublishResult:

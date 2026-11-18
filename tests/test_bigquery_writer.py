@@ -53,6 +53,8 @@ class FakeJob:
 class FakeClient:
     results: list[tuple[str, Any]] = field(default_factory=list)
     fail_on: str | None = None
+    fail_times: int | None = None
+    fail_message: str = "scripted failure"
     not_found_on: str | None = None
     queries: list[Query] = field(default_factory=list)
     loads: list[Load] = field(default_factory=list)
@@ -65,8 +67,11 @@ class FakeClient:
         self.events.append(sql.split()[0] if sql.split() else "")
         if self.not_found_on and re.search(self.not_found_on, sql):
             raise FakeNotFound("Not found: Dataset")
-        if self.fail_on and re.search(self.fail_on, sql):
-            raise FakeAPIError("scripted failure")
+        failing = self.fail_on and re.search(self.fail_on, sql)
+        if failing and (self.fail_times is None or self.fail_times > 0):
+            if self.fail_times is not None:
+                self.fail_times -= 1
+            raise FakeAPIError(self.fail_message)
         for pattern, rows in self.results:
             if re.search(pattern, sql):
                 return FakeJob(rows(params) if callable(rows) else list(rows))
@@ -473,3 +478,70 @@ def test_factory_opens_bigquery_writer(captured: Captured, monkeypatch: pytest.M
     assert isinstance(writer, BigQueryWriter)
     assert writer._project == "p"  # type: ignore[attr-defined]
     assert writer._dataset == "D"  # type: ignore[attr-defined]
+
+
+# --- T20 review fixes ---------------------------------------------------------------------
+
+
+def test_new_tables_declare_primary_keys() -> None:
+    client = FakeClient()
+    make(client).ensure_structure()
+    model = next(
+        q.sql
+        for q in client.queries
+        if q.sql.startswith("CREATE TABLE IF NOT EXISTS") and "`DBT_MODEL`" in q.sql
+    )
+    assert model.endswith(", PRIMARY KEY (`project`, `unique_id`) NOT ENFORCED)")
+
+
+def test_default_threshold_large_plan_is_staged(plan: Plan) -> None:
+    template = plan.rows("DBT_COLUMN")[0]
+    rows = tuple(dict(template, column_name=f"col_{i:05d}") for i in range(2100))
+    tables = {**plan.tables, "DBT_COLUMN": rows}
+    big = Plan(project=plan.project, warehouse=plan.warehouse, tables=tables)
+    client = FakeClient()
+    make(client).swap(big)  # default staging thresholds
+    [load] = client.loads
+    assert "_STAGE_DBT_COLUMN_" in load.destination
+    assert len(load.rows) == 2100
+    [script] = scripts(client)
+    assert "rows_DBT_COLUMN" not in script.params
+    assert "rows_DBT_MODEL" in script.params
+
+
+def test_total_inline_budget_spans_tables(plan: Plan) -> None:
+    client = FakeClient()
+    make(client, inline_budget_bytes=1).swap(plan)
+    assert len(client.loads) == sum(1 for t in TABLES if plan.rows(t))
+    [script] = scripts(client)
+    assert not [n for n in script.params if n.startswith("rows_")]
+
+
+CONFLICT = "Transaction is aborted due to concurrent update against table my-proj.AGENTS.ROOT"
+
+
+def test_concurrent_update_is_retried(plan: Plan) -> None:
+    sleeps: list[float] = []
+    client = FakeClient(fail_on=r"^BEGIN\n", fail_times=1, fail_message=CONFLICT)
+    result = make(client, sleep=sleeps.append).swap(plan)
+    assert result.rows_written == plan.counts()
+    assert len(scripts(client)) == 2
+    assert len(sleeps) == 1
+
+
+def test_retries_are_bounded(plan: Plan) -> None:
+    sleeps: list[float] = []
+    client = FakeClient(fail_on=r"^BEGIN\n", fail_message=CONFLICT)
+    with pytest.raises(WarehouseError, match="concurrent update"):
+        make(client, sleep=sleeps.append, conflict_retries=2).swap(plan)
+    assert len(scripts(client)) == 3
+    assert len(sleeps) == 2
+
+
+def test_other_errors_are_not_retried(plan: Plan) -> None:
+    sleeps: list[float] = []
+    client = FakeClient(fail_on=r"^BEGIN\n", fail_times=1, fail_message="Syntax error")
+    with pytest.raises(WarehouseError):
+        make(client, sleep=sleeps.append).swap(plan)
+    assert len(scripts(client)) == 1
+    assert not sleeps

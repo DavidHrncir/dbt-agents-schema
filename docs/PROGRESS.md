@@ -223,3 +223,18 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - dbt-snowflake's `private_key` may be PEM text or base64 PKCS#8 DER. DER is wrapped as PEM (`ENCRYPTED PRIVATE KEY` when a passphrase is set), so the writer has one key loader.
   - BigQuery `method` is required (dbt requires it too). Databricks `catalog` is optional, giving `target_database` None, so the session default catalog is used.
   - Errors name `<profiles.yml path>: outputs.<target>.<key>`, never values (each error test also asserts the secret is absent).
+
+## T20 Phase 3 review — done
+- Reviewer: Phase 3 review: 0 blockers, 3 should-fix, 4 nits
+- Fixed (should-fix):
+  - **Informational primary keys** (SPEC 5) on newly created tables: Snowflake `PRIMARY KEY (...)`, BigQuery `PRIMARY KEY (...) NOT ENFORCED`, Databricks `CONSTRAINT pk_<table> PRIMARY KEY (...)` with `NOT NULL` key columns. Migrated tables and stage tables are left without them. Tests: test_new_tables_declare_primary_keys in each of test_{snowflake,bigquery,databricks}_writer.py.
+  - **Migrated column order.** The Databricks `REPLACE WHERE` SELECT following `information_schema` order is now tested with a dbt Labs-shaped table (`project` last, plus an unknown legacy column filled with `NULL AS`): test_replace_follows_migrated_column_order. The live harness gained T13 scenario 4 (dbt Labs migration) for Snowflake, BigQuery and Databricks, using legacy DDL built from `fakes.DBT_LABS_TABLES`, so each live module now runs scenarios 1–6.
+  - **Concurrent publishes.** A new shared `writers.retry_on_conflict` re-runs a whole swap up to 3 times, backing off 1s, 2s, 4s, only when the error matches a concurrency conflict. BigQuery: "concurrent update" / "could not serialize access"; the script is all-or-nothing, so a re-run is clean. Databricks: `Concurrent*Exception` / `DELTA_CONCURRENT*`; each replace is idempotent for the same plan and stages are rebuilt. Snowflake waits on locks and needs none. Tests: test_concurrent_update_is_retried, test_retries_are_bounded, test_other_errors_are_not_retried, test_concurrent_modification_is_retried, test_databricks_retries_are_bounded, test_databricks_other_errors_not_retried.
+- Fixed (nits):
+  - The Snowflake connect error now also scrubs the decrypted PKCS#8 DER key bytes (repr, str, hex). Test: test_connect_failure_hides_private_key.
+  - BigQuery gained a total inline budget (`inline_budget_bytes`, 4 MB) across all `@rows_<TABLE>` parameters; tables past it are staged. A test at the default thresholds stages a 2100-row DBT_COLUMN: test_default_threshold_large_plan_is_staged, test_total_inline_budget_spans_tables.
+- Not fixed (nits, deferred):
+  - A Databricks profile without `catalog` on a `hive_metastore`-default workspace fails with a generic exit 3 (no `information_schema`). Recommend documenting "Unity Catalog required" in the partner guide (T27).
+  - A Databricks stage table left behind by a killed process is not swept automatically. Its name `_DBT_AGENTS_SCHEMA_STAGE_<TABLE>_<hex>` makes it identifiable; T27's guide should document cleanup.
+- Changed: src/dbt_agents_schema/writers/{__init__,snowflake,bigquery,databricks}.py, tests/fake_dbapi.py (`fail_times`, `fail_message`), tests/test_{snowflake,bigquery,databricks}_writer.py, tests/live/harness.py, tests/live/test_{snowflake,bigquery,databricks}_live.py
+- Evidence: `make verify` exit 0 (`539 passed, 18 deselected`); `uv run pytest -m live` → `18 skipped` (each LIVE_* variable unset).

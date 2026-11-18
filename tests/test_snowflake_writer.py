@@ -447,3 +447,34 @@ def test_statement_dataclass_is_recorded() -> None:
     con = FakeConnection()
     con.cursor().execute("SELECT 1", [1])
     assert con.statements == [Statement("SELECT 1", [1], False)]
+
+
+# --- T20 review fixes ---------------------------------------------------------------------
+
+
+def test_new_tables_declare_primary_keys() -> None:
+    con = FakeConnection()
+    make(con).ensure_structure()
+    model = next(s.sql for s in con.matching(r'^CREATE TABLE IF NOT EXISTS \S+"DBT_MODEL"'))
+    assert model.endswith(', PRIMARY KEY ("PROJECT", "UNIQUE_ID"))')
+    root = next(s.sql for s in con.matching(r'^CREATE TABLE IF NOT EXISTS \S+"ROOT"'))
+    assert root.endswith(', PRIMARY KEY ("PROVIDER", "KEY"))')
+
+
+def test_connect_failure_hides_private_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    pem, der = _pem(b"pass")
+    fake = FakeSnowflake()
+
+    def boom(**kwargs: Any) -> None:
+        raise FakeDBError(f"login failed; connect({kwargs!r})")
+
+    fake.connect = boom  # type: ignore[method-assign,assignment]
+    monkeypatch.setattr("dbt_agents_schema.writers.snowflake._connector", lambda: fake)
+    with pytest.raises(WarehouseError) as info:
+        SnowflakeWriter.connect(
+            {**BASE, "private_key_pem": pem, "private_key_passphrase": "pass"}, schema="AGENTS"
+        )
+    message = str(info.value)
+    assert repr(der)[2:40] not in message
+    assert "pass'" not in message
+    assert "acme-xy123" in message

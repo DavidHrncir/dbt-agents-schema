@@ -51,6 +51,8 @@ def target() -> Iterator[LiveTarget]:
             table=lambda name: DIALECT.qualified(catalog, schema, name),
             col=DIALECT.quote,
             starts_with=lambda c: f"startswith({c}, ?)",
+            schema_ref=DIALECT.qualified(catalog, schema),
+            json_type="STRING",
         )
     finally:
         query(f"DROP SCHEMA IF EXISTS {DIALECT.qualified(catalog, schema)} CASCADE", [])

@@ -170,7 +170,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   **Done when:** tests cover each auth method in the SPEC table, `env_var` with and
   without default, a missing env var, unsupported Jinja and an unsupported adapter.
 
-- [ ] **T20 Phase 3 review.** Run the `spec-reviewer` subagent on Phase 3. Fix
+- [x] **T20 Phase 3 review.** Run the `spec-reviewer` subagent on Phase 3. Fix
   correctness findings. Log the result.
 
 - [H] **H1 Live warehouse run.** Human sets the `LIVE_*` variables and runs

@@ -10,17 +10,24 @@
   EXCEPTION WHEN ERROR THEN ROLLBACK TRANSACTION; RAISE ...; END;`
 - Rows reach the script one of two ways, chosen per table by volume: small tables as a
   query parameter holding an `ARRAY<STRUCT>` read with `UNNEST`; tables above
-  `staging_rows` rows or `staging_bytes` bytes are first loaded with a load job into a
+  `staging_rows` rows or `staging_bytes` bytes, or that would push all inline row
+  parameters past `inline_budget_bytes` together (the request limit is 10 MB), are
+  first loaded with a load job into a
   staging table (expires after one day, dropped after the swap). The swap is the atomic
   step either way. JSON values travel as text and are converted with `PARSE_JSON`.
 - Values are always query parameters or load-job data, never SQL text.
+- New tables declare `PRIMARY KEY (...) NOT ENFORCED` (informational, SPEC 5).
+- A swap aborted by a concurrent update from another publish to the same tables is
+  re-run from the start, a bounded number of times (the script is all-or-nothing).
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import re
 import secrets
+import time
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from types import ModuleType
@@ -28,14 +35,16 @@ from typing import Any, TypeVar
 
 from dbt_agents_schema.dialects import LOGICAL_TYPES
 from dbt_agents_schema.dialects.bigquery import DIALECT
-from dbt_agents_schema.plan import PROJECT_TABLES, TABLE_COLUMNS, TABLES, Plan, Row
+from dbt_agents_schema.plan import PRIMARY_KEYS, PROJECT_TABLES, TABLE_COLUMNS, TABLES, Plan, Row
 from dbt_agents_schema.writers import (
+    CONFLICT_RETRIES,
     EnsureResult,
     RootScope,
     SwapResult,
     UnpublishResult,
     WarehouseError,
     import_extra,
+    retry_on_conflict,
 )
 
 log = logging.getLogger(__name__)
@@ -44,6 +53,8 @@ _T = TypeVar("_T")
 
 STAGING_ROWS = 2000
 STAGING_BYTES = 1_000_000
+INLINE_BUDGET_BYTES = 4_000_000
+_CONFLICT = re.compile(r"concurrent update|could not serialize access", re.IGNORECASE)
 STAGE_PREFIX = "_DBT_AGENTS_SCHEMA_STAGE_"
 
 # Parameter / load-job type per logical type (JSON travels as text).
@@ -83,6 +94,9 @@ class BigQueryWriter:
         not_found_types: tuple[type[BaseException], ...] | None = None,
         staging_rows: int = STAGING_ROWS,
         staging_bytes: int = STAGING_BYTES,
+        inline_budget_bytes: int = INLINE_BUDGET_BYTES,
+        conflict_retries: int = CONFLICT_RETRIES,
+        sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self._client = client
         self._project = project
@@ -90,6 +104,9 @@ class BigQueryWriter:
         self._location = location
         self._staging_rows = staging_rows
         self._staging_bytes = staging_bytes
+        self._inline_budget = inline_budget_bytes
+        self._conflict_retries = conflict_retries
+        self._sleep = sleep
         self._bigquery = _bq()
         if error_types is None or not_found_types is None:
             default_errors, default_not_found = _default_errors()
@@ -139,7 +156,11 @@ class BigQueryWriter:
                         f"{DIALECT.quote(c)} {DIALECT.column_type(table, c)}"
                         for c in TABLE_COLUMNS[table]
                     )
-                    self._run(f"CREATE TABLE IF NOT EXISTS {self._table(table)} ({defs})")
+                    pk = ", ".join(DIALECT.quote(c) for c in PRIMARY_KEYS[table])
+                    self._run(
+                        f"CREATE TABLE IF NOT EXISTS {self._table(table)} "
+                        f"({defs}, PRIMARY KEY ({pk}) NOT ENFORCED)"
+                    )
                     continue
                 missing = tuple(c for c in TABLE_COLUMNS[table] if c.lower() not in have)
                 for column in missing:
@@ -195,15 +216,22 @@ class BigQueryWriter:
             ]
             statements.append(self._root_delete())
             stages: list[str] = []
+            inline_bytes = 0
             try:
                 for table in TABLES:
                     rows = plan.rows(table)
                     if not rows:
                         continue
-                    if self._should_stage(rows):
+                    size = _size(rows)
+                    if (
+                        len(rows) > self._staging_rows
+                        or size > self._staging_bytes
+                        or inline_bytes + size > self._inline_budget
+                    ):
                         stage = self._stage(table, rows, stages)
                         source = f"{self._table(stage)} AS r"
                     else:
+                        inline_bytes += size
                         params.append(self._rows_param(table, rows))
                         source = f"UNNEST(@rows_{table}) AS r"
                     statements.append(self._insert(table, source))
@@ -212,7 +240,16 @@ class BigQueryWriter:
                 self._drop_stages(stages)
             return SwapResult(rows_written=plan.counts(), legacy_rows_removed=legacy)
 
-        return self._guard(f"replace the rows of project {plan.project!r}", run)
+        def retried() -> SwapResult:
+            return retry_on_conflict(
+                run,
+                errors=self._error_types,
+                conflict=_CONFLICT,
+                retries=self._conflict_retries,
+                sleep=self._sleep,
+            )
+
+        return self._guard(f"replace the rows of project {plan.project!r}", retried)
 
     def unpublish(self, project: str) -> UnpublishResult:
         def run() -> UnpublishResult:
@@ -313,12 +350,6 @@ class BigQueryWriter:
             counts[str(row[0])] = int(row[1] or 0)
         return counts
 
-    def _should_stage(self, rows: Sequence[Row]) -> bool:
-        if len(rows) > self._staging_rows:
-            return True
-        size = len(json.dumps([dict(r) for r in rows], default=str))
-        return size > self._staging_bytes
-
     def _insert(self, table: str, source: str) -> str:
         cols = TABLE_COLUMNS[table]
         select = ", ".join(
@@ -384,6 +415,10 @@ class BigQueryWriter:
                 self._run(f"DROP TABLE IF EXISTS {self._table(name)}")
             except self._error_types as exc:
                 log.warning("could not drop staging table %s (it expires in a day): %s", name, exc)
+
+
+def _size(rows: Sequence[Row]) -> int:
+    return len(json.dumps([dict(r) for r in rows], default=str))
 
 
 def _script(statements: Sequence[str]) -> str:

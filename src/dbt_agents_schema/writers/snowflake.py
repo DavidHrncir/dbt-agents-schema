@@ -9,7 +9,8 @@
   Snowflake does not allow `PARSE_JSON` inside a `VALUES` clause. JSON values are bound
   as JSON text; timestamps as ISO-8601 text through `TO_TIMESTAMP_TZ`.
 - The swap runs between `BEGIN` and `COMMIT`; any failure issues `ROLLBACK`.
-- Primary keys are not declared: the writer guarantees uniqueness (SPEC 5).
+- Primary keys are declared on new tables (informational, not enforced by Snowflake);
+  the writer guarantees uniqueness (SPEC 5). Migrated tables are left as they are.
 """
 
 from __future__ import annotations
@@ -25,7 +26,7 @@ from typing import Any, TypeVar
 
 from dbt_agents_schema.dialects import LOGICAL_TYPES
 from dbt_agents_schema.dialects.snowflake import DIALECT
-from dbt_agents_schema.plan import PROJECT_TABLES, TABLE_COLUMNS, TABLES, Plan, Row
+from dbt_agents_schema.plan import PRIMARY_KEYS, PROJECT_TABLES, TABLE_COLUMNS, TABLES, Plan, Row
 from dbt_agents_schema.writers import (
     EnsureResult,
     RootScope,
@@ -104,10 +105,11 @@ class SnowflakeWriter:
         try:
             con = connector.connect(**kwargs)
         except connector.Error as exc:
+            detail = _scrub(str(exc), settings, kwargs)
             raise WarehouseError(
                 f"Snowflake: cannot connect to account {settings['account']!r} as user "
-                f"{settings['user']!r}: {_scrub(str(exc), settings)}. Fix the account, user, "
-                "role, warehouse and authentication keys in the credentials"
+                f"{settings['user']!r}: {detail}. Fix the account, user, role, warehouse and "
+                "authentication keys in the credentials"
             ) from None
         writer = cls(con, database=db, schema=schema, error_types=(connector.Error,))
         writer._owns_connection = True
@@ -127,7 +129,11 @@ class SnowflakeWriter:
                     defs = ", ".join(
                         f"{_ident(c)} {DIALECT.column_type(table, c)}" for c in TABLE_COLUMNS[table]
                     )
-                    self._exec(f"CREATE TABLE IF NOT EXISTS {self._table(table)} ({defs})")
+                    pk = ", ".join(_ident(c) for c in PRIMARY_KEYS[table])
+                    self._exec(
+                        f"CREATE TABLE IF NOT EXISTS {self._table(table)} "
+                        f"({defs}, PRIMARY KEY ({pk}))"
+                    )
                     continue
                 missing = tuple(c for c in TABLE_COLUMNS[table] if c.lower() not in existing)
                 for column in missing:
@@ -345,9 +351,12 @@ def _load_private_key(settings: Mapping[str, Any]) -> bytes:
     return der
 
 
-def _scrub(text: str, settings: Mapping[str, Any]) -> str:
-    for key in _SECRET_KEYS:
-        value = settings.get(key)
-        if value:
-            text = text.replace(str(value), "<redacted>")
+def _scrub(text: str, settings: Mapping[str, Any], kwargs: Mapping[str, Any]) -> str:
+    """Remove secrets from a driver message, including the decrypted key bytes."""
+    secrets_ = [str(settings[k]) for k in _SECRET_KEYS if settings.get(k)]
+    key = kwargs.get("private_key")
+    if isinstance(key, bytes):
+        secrets_ += [repr(key), str(key), key.hex()]
+    for value in sorted(secrets_, key=len, reverse=True):
+        text = text.replace(value, "<redacted>")
     return text
