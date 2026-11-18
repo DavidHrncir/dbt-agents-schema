@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import logging
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -202,6 +203,9 @@ def test_writer_not_available_exit_2(
         "token": SECRET,
     }
     monkeypatch.setenv("WAREHOUSE_CREDENTIALS", json.dumps(creds))
+    # Every warehouse has a writer since T18; a writer is unavailable when its extra
+    # (client library) is not installed.
+    monkeypatch.setitem(sys.modules, "databricks.sql", None)
     assert main(["publish", "--env", "prod", *finance_args()]) == 2
     captured = capsys.readouterr()
     assert "databricks" in captured.err

@@ -6,8 +6,8 @@ from dbt_agents_schema.config import ResolvedTarget
 from dbt_agents_schema.credentials import Connection, CredentialError
 from dbt_agents_schema.writers import Writer
 
-# Warehouses with a writer in this version. Phase 3 adds databricks.
-AVAILABLE_WRITERS: tuple[str, ...] = ("duckdb", "snowflake", "bigquery")
+# Warehouses with a writer in this version.
+AVAILABLE_WRITERS: tuple[str, ...] = ("duckdb", "snowflake", "bigquery", "databricks")
 
 
 def ensure_writer_available(warehouse: str) -> None:
@@ -31,6 +31,12 @@ def open_writer(connection: Connection, target: ResolvedTarget) -> Writer:
 
         return BigQueryWriter.connect(
             connection.settings, database=target.database, dataset=target.schema
+        )
+    if connection.warehouse == "databricks":
+        from dbt_agents_schema.writers.databricks import DatabricksWriter
+
+        return DatabricksWriter.connect(
+            connection.settings, database=target.database, schema=target.schema
         )
     from dbt_agents_schema.writers.duckdb import DuckDBWriter
 

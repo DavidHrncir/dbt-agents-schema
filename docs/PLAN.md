@@ -159,7 +159,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   **Done when:** fake-client tests assert the script shape and parameters; a test
   covers a plan large enough to force the staging path; live test exists and skips.
 
-- [ ] **T18 Databricks writer.** Per-table atomic `INSERT INTO … REPLACE WHERE …`
+- [x] **T18 Databricks writer.** Per-table atomic `INSERT INTO … REPLACE WHERE …`
   from a staged temporary view; ROOT replaced with a predicate covering the shared keys,
   `project/<p>` and `skill/<p>/%`.
   **Done when:** fake-connection tests assert one replace statement per table and the

@@ -34,3 +34,8 @@ def _no_warehouse_network(request: pytest.FixtureRequest, monkeypatch: pytest.Mo
         monkeypatch.setattr(google_auth, "default", _offline(auth_errors.DefaultCredentialsError))
     except ImportError:
         pass
+    try:
+        databricks_sql = importlib.import_module("databricks.sql")
+        monkeypatch.setattr(databricks_sql, "connect", _offline(databricks_sql.exc.Error))
+    except ImportError:
+        pass
