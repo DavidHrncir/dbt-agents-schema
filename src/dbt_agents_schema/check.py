@@ -204,7 +204,7 @@ def _skill_without_uses(skills: Iterable[Skill], broken: set[str]) -> Iterable[F
                 "skill_without_uses",
                 "warning",
                 f"skill {skill.key} declares no `uses` frontmatter; add `uses: {{schemas: "
-                "[...], tables: [...]}}` so agents know which data it covers",
+                "[...], tables: [...]}` so agents know which data it covers",
                 file=str(skill.file),
                 line=1,
                 node=skill.key,

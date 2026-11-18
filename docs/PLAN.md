@@ -222,7 +222,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   analyst-skill queries and print the results.
   **Done when:** the script exits 0 from a clean checkout after `make install`.
 
-- [ ] **T29 Final review.** Run the `spec-reviewer` subagent over the whole repo against
+- [x] **T29 Final review.** Run the `spec-reviewer` subagent over the whole repo against
   SPEC.md. Fix correctness findings, update CHANGELOG.md with `0.1.0`, and make a local
   commit `release: 0.1.0`. Do not tag or push.
 

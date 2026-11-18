@@ -337,3 +337,23 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - The three queries come out of the published `skill/dbt-agents-schema-analyst` ROOT row, the same way an agent would read them: projects, downstream lineage of `model.shared_pkg.dim_calendar` across both projects, and the skills list. The script exits non-zero if any of them returns no rows.
   - The DuckDB file goes to `$DEMO_DIR` (default: a new temp dir). Nothing is written in the checkout.
   - Noticed for T29: the `skill_without_uses` message prints `{schemas: [...], tables: [...]}}` (one `}` too many).
+
+## T29 Final review — done
+- Reviewer: Final review: 1 blockers, 1 should-fix, 5 nits
+- Fixed (blocker):
+  - **`unpublish` accepted any project key.** `--project 'finance/payments'` widened the ROOT `skill/<project>/` prefix delete into finance's skills, which the reviewer reproduced. `publish.unpublish` now calls `validate_project_key` before connecting and exits 2. An empty `--project ""` no longer falls back to the config key (`is None` instead of `or`, also in `cli._cmd_unpublish`). The `RootScope` docstring now says where the key is validated. Test: test_unpublish_rejects_invalid_project_key[finance/payments|Finance|fin%|] (exit 2, row counts unchanged).
+- Fixed (should-fix):
+  - The partner guide no longer says a failed publish always leaves the previous rows. Databricks is atomic per table, so the guide says to publish again (What it does, Exit 3).
+- Fixed (nits):
+  - The `skill_without_uses` message had an extra `}`. Test: test_finance_is_clean_except_skill_without_uses now asserts the exact text.
+  - The guide says `publish` reports an invalid config with exit 2. The pre-commit snippet pins `dbt-core>=1.8,<2`, as `init` prints. The Databricks section says Unity Catalog is required and leftover `_DBT_AGENTS_SCHEMA_STAGE_*` tables must be dropped by hand.
+  - Snowflake uppercase column names: logged as SPEC CHANGE PROPOSAL D (no code change).
+- Release: CHANGELOG.md `0.1.0` added. Local commit `release: 0.1.0`. No tag, no push (H2).
+- Changed: src/dbt_agents_schema/{publish,cli,check}.py, src/dbt_agents_schema/writers/__init__.py, tests/test_cli_publish.py, tests/test_check.py, docs/partner-guide.md, CHANGELOG.md (new)
+- Evidence: see the `make verify` and `bash scripts/demo_duckdb.sh` runs recorded at commit time (both exit 0).
+
+### SPEC CHANGE PROPOSAL D — Snowflake column name case (SPEC 5)
+- Problem: SPEC 5 says "Column names are lowercase". The Snowflake writer creates quoted, uppercased table and column names (T16), because the dbt Labs tool's Snowflake tables use uppercase columns and unquoted queries (`SELECT project FROM DBT_MODEL`) resolve to uppercase. Quoted lowercase columns would force agents to write `"project"` and would clash with migrated dbt Labs tables.
+- Options: (a) SPEC 5 says column names are lowercase except on Snowflake, where they are stored uppercase so unquoted SQL works (current behaviour); (b) quoted lowercase on Snowflake too.
+- Recommendation: (a). The analyst skill's unquoted SQL works on every warehouse.
+- Evidence (T29, recorded): `make verify` exit 0 (`640 passed, 18 deselected`; `config reference up to date`). `bash scripts/demo_duckdb.sh` exit 0 (prod: finance, marketing; dev: finance; analyst queries return 2, 2 and 5 rows).

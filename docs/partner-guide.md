@@ -26,7 +26,9 @@ its analyst skill keep working. They just see every project.
 A publish goes: load config and manifest, check, plan, connect, ensure tables, ownership
 guard, swap, report. On Snowflake, BigQuery and DuckDB the swap runs in one transaction.
 On Databricks each table is replaced with one atomic `INSERT INTO ... REPLACE WHERE`
-statement. A failed publish leaves the previous rows in place.
+statement. A failed publish on Snowflake, BigQuery or DuckDB leaves the previous rows in
+place. On Databricks some tables may already hold the new rows; publishing again
+completes the swap.
 
 ## Install
 
@@ -268,7 +270,7 @@ repos:
     rev: v0.1.0
     hooks:
       - id: dbt-agents-schema-check
-        additional_dependencies: ["dbt-core", "dbt-snowflake"]
+        additional_dependencies: ["dbt-core>=1.8,<2", "dbt-snowflake"]
 ```
 
 ## Developer workflow
@@ -370,8 +372,10 @@ GRANT USE SCHEMA, CREATE TABLE ON SCHEMA <catalog>.agents TO `<publisher>`;
 GRANT SELECT, MODIFY ON SCHEMA <catalog>.agents TO `<publisher>`;
 ```
 
-The SQL warehouse also needs `CAN USE`. Publish stages rows in tables named
-`_DBT_AGENTS_SCHEMA_STAGE_*` in the agents schema and drops them afterwards. Adding
+Unity Catalog is required (the grants and `REPLACE WHERE` assume it). The SQL warehouse
+also needs `CAN USE`. Publish stages rows in tables named `_DBT_AGENTS_SCHEMA_STAGE_*` in
+the agents schema and drops them afterwards, also on failure. If the process is killed
+mid-publish, drop any leftover `_DBT_AGENTS_SCHEMA_STAGE_*` tables by hand. Adding
 columns to migrated tables requires ownership (or `MANAGE`) of those tables.
 
 **DuckDB:** write access to the database file.
@@ -396,12 +400,15 @@ connects. Common causes:
 - `skill_unresolved_uses`: a skill's `uses` names a schema or table that no published
   model has. Fix the name, or list the schema in `check.external_schemas`.
 - `skill_key_duplicate`, `skill_frontmatter_invalid`, `config_invalid`,
-  `project_key_invalid`: fix the named file. These cannot be turned off.
+  `project_key_invalid`: fix the named file. These cannot be turned off. (`publish`
+  reports an invalid or unparseable `agents_schema.yml` with exit 2, not 1.)
 
 Run `dbt-agents-schema check --format json` for machine-readable output.
 
 ### Exit 2 — config, manifest or credential error
 
+- Invalid `agents_schema.yml` (publish and unpublish), or an `unpublish --project` key
+  that does not match the project pattern.
 - `manifest_missing`: run `dbt parse` (or `fetch-manifest`) first, or pass `--manifest`.
 - Unknown environment: `--env` must name an entry under `environments`.
 - `WAREHOUSE_CREDENTIALS` not set, not a mapping, or missing a key. The message names
@@ -416,8 +423,10 @@ Run `dbt-agents-schema check --format json` for machine-readable output.
 
 ### Exit 3 — warehouse or remote error
 
-The warehouse rejected a statement or the connection failed. No project rows were
-changed, though a new schema, table or column may already have been created. Check
+The warehouse rejected a statement or the connection failed. On Snowflake, BigQuery and
+DuckDB no project rows were changed, though a new schema, table or column may already
+have been created. On Databricks, tables replaced before the failure hold the new rows;
+publish again once the cause is fixed. Check
 the permissions above, the network, and that the warehouse is running. For
 `fetch-manifest`, the dbt platform API returned an unexpected status, a network error,
 or a response that is not a manifest.

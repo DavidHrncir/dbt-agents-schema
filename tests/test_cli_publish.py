@@ -329,6 +329,26 @@ def test_unpublish_with_yes(
     assert projects == [("finance",)]
 
 
+@pytest.mark.parametrize("key", ["finance/payments", "Finance", "fin%", ""])
+def test_unpublish_rejects_invalid_project_key(
+    key: str,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A key outside the project pattern could widen the ROOT `skill/<project>/` delete
+    into another project's rows; refuse it before connecting."""
+    db = tmp_path / "w.duckdb"
+    publish_both(db, monkeypatch)
+    before = table_counts(db, "AGENTS")
+    code = main(
+        ["unpublish", "--env", "prod", "--project-dir", str(FINANCE), "--project", key, "--yes"]
+    )
+    assert code == 2
+    assert "must match" in capsys.readouterr().err
+    assert table_counts(db, "AGENTS") == before
+
+
 def test_unpublish_refuses_without_yes_when_not_a_tty(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

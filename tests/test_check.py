@@ -91,6 +91,7 @@ def test_finance_is_clean_except_skill_without_uses(finance: Path) -> None:
     (f,) = of(result, "skill_without_uses")
     assert f.severity == "warning"
     assert f.node == "skill/finance/revenue_overview"
+    assert "add `uses: {schemas: [...], tables: [...]}` so agents" in f.message
 
 
 def test_marketing_is_clean_except_skill_without_uses(marketing: Path) -> None:

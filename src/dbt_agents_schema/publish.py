@@ -16,7 +16,13 @@ from pathlib import Path
 from typing import TextIO
 
 from dbt_agents_schema.check import check_project, format_text
-from dbt_agents_schema.config import ConfigError, ResolvedTarget, load_config, resolve_target
+from dbt_agents_schema.config import (
+    ConfigError,
+    ResolvedTarget,
+    load_config,
+    resolve_target,
+    validate_project_key,
+)
 from dbt_agents_schema.plan import SPEC_VERSION, TABLES, Plan, RunMetadata, build_plan
 from dbt_agents_schema.writers import (
     EnsureResult,
@@ -206,7 +212,13 @@ def unpublish(
     except ConfigError as exc:
         err.write(f"error: {exc}\n")
         return EXIT_CONFIG
-    key = project or config.project
+    key = config.project if project is None else project
+    # The key scopes every delete, including the ROOT `skill/<project>/` prefix, so a key
+    # outside the pattern (e.g. containing `/`) could reach another project's rows.
+    key_problem = validate_project_key(key)
+    if key_problem is not None:
+        err.write(f"error: {key_problem}\n")
+        return EXIT_CONFIG
     where = _describe(target)
     try:
         writer = writer_factory(target)

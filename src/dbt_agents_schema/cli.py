@@ -291,7 +291,7 @@ def _cmd_unpublish(args: argparse.Namespace) -> int:
     except (ConfigError, CredentialError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_INPUT_ERROR
-    project = args.project or config.project
+    project = config.project if args.project is None else args.project
     if not args.yes:
         if not sys.stdin.isatty():
             print(

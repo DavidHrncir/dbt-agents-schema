@@ -93,9 +93,10 @@ class UnpublishResult:
 class RootScope:
     """Which `provider = 'dbt'` ROOT keys one operation owns (SPEC 5.6, 6 step 7).
 
-    `project` is validated by config as `^[a-z][a-z0-9_]*$`; `_` is still a LIKE
-    wildcard, so SQL writers must use `skill_like_pattern` (escaped) or a prefix
-    function, never a raw `LIKE 'skill/<project>/%'`.
+    `project` matches `^[a-z][a-z0-9_]*$` (check validates the config key; unpublish
+    validates `--project`). `_` is still a LIKE wildcard, so SQL writers must use
+    `skill_like_pattern` (escaped) or a prefix function, never a raw
+    `LIKE 'skill/<project>/%'`.
     """
 
     provider: str
