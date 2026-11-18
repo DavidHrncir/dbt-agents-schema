@@ -238,3 +238,13 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - A Databricks stage table left behind by a killed process is not swept automatically. Its name `_DBT_AGENTS_SCHEMA_STAGE_<TABLE>_<hex>` makes it identifiable; T27's guide should document cleanup.
 - Changed: src/dbt_agents_schema/writers/{__init__,snowflake,bigquery,databricks}.py, tests/fake_dbapi.py (`fail_times`, `fail_message`), tests/test_{snowflake,bigquery,databricks}_writer.py, tests/live/harness.py, tests/live/test_{snowflake,bigquery,databricks}_live.py
 - Evidence: `make verify` exit 0 (`539 passed, 18 deselected`); `uv run pytest -m live` → `18 skipped` (each LIVE_* variable unset).
+
+## T21 Built-in analyst skills — done
+- Changed: src/dbt_agents_schema/skills/{snowflake,bigquery,databricks,duckdb}.md (full bodies replace the T07 placeholders), tests/test_analyst_skills.py (new), tests/acceptance/test_multi_project.py (scenario 7 added, existing scenarios untouched), tests/golden/{finance,marketing}.json (regenerated; the only diff is the embedded DuckDB analyst body)
+- Evidence: `make verify` exit 0 (`549 passed, 18 deselected`). Tests: test_every_sql_block_parses_in_its_dialect[snowflake|bigquery|databricks|duckdb] (12 blocks each, one statement per block, each an `exp.Query`, parsed with `sqlglot` in the matching dialect), test_body_covers_spec_9[*], test_each_dialect_has_its_own_body, test_7_analyst_skill_examples_return_rows (publishes finance and marketing, checks the published ROOT body equals the DuckDB body, runs all 12 DuckDB blocks: 13, 2, 1, 8, 2, 8, 3, 6, 2, 5, 1, 5 rows).
+- Decisions:
+  - Examples use unqualified table names. Each body says how to set the current schema first (Snowflake `USE SCHEMA`, BigQuery default dataset or qualified names, Databricks `USE CATALOG`/`USE SCHEMA`, DuckDB `SET search_path`), so one set of SQL stays valid in every dialect.
+  - Example literals are the fixture values (`finance`, `fct_revenue`, `model.shared_pkg.dim_calendar`), marked as placeholders in the text. The acceptance test can then require rows from every example.
+  - Recursive lineage uses `WITH RECURSIVE … UNION ALL` with aliases inside the CTE (BigQuery rejects CTE column lists) and a depth cap of 20. It joins edges on `unique_id` with no `project` filter, so lineage crosses projects. The downstream example from `dim_calendar` returns models in both finance and marketing.
+  - Case-insensitive search uses `LOWER(x) LIKE`, which works in all four dialects. JSON access differs by dialect (`meta:owner::VARCHAR`, `JSON_VALUE`, `get_json_object`, `json_extract_string`).
+  - The Databricks body notes that recursive CTEs need DBR 17.0+ or a current SQL warehouse.

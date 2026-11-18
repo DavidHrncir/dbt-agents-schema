@@ -178,7 +178,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
 
 ## Phase 4 — Distribution
 
-- [ ] **T21 Built-in analyst skills.** Four dialect bodies per SPEC section 9;
+- [x] **T21 Built-in analyst skills.** Four dialect bodies per SPEC section 9;
   published by every publish.
   **Done when:** a test extracts every fenced SQL block and parses it with `sqlglot` in
   the matching dialect; the DuckDB acceptance test runs every DuckDB example query

@@ -267,3 +267,32 @@ def test_6_unpublish_removes_only_that_project(db: Path, do_publish: Publisher) 
     assert "project/marketing" not in keys
     assert not any(k.startswith("skill/marketing/") for k in keys)
     assert snapshot(db) == finance_alone
+
+
+# --- scenario 7 ---------------------------------------------------------------------------
+
+
+def test_7_analyst_skill_examples_return_rows(db: Path, do_publish: Publisher) -> None:
+    """Every DuckDB example in the built-in analyst skill runs and returns rows (T21)."""
+    import re
+
+    from dbt_agents_schema.plan import ANALYST_SKILL_KEY, analyst_skill
+
+    assert do_publish("finance").exit_code == 0
+    assert do_publish("marketing").exit_code == 0
+    published = query(
+        db, f'SELECT content FROM "{SCHEMA}"."ROOT" WHERE key = ?', [ANALYST_SKILL_KEY]
+    )
+    assert published == [(analyst_skill("duckdb"),)]
+
+    blocks = re.findall(r"```sql\n(.*?)```", analyst_skill("duckdb"), re.DOTALL)
+    assert blocks
+    c = duckdb.connect(str(db), read_only=True)
+    try:
+        c.execute(f"SET search_path = '{SCHEMA}'")
+        for block in blocks:
+            rows = c.execute(block).fetchall()
+            print(f"--- {len(rows)} rows\n{block}")
+            assert rows, f"no rows from:\n{block}"
+    finally:
+        c.close()
