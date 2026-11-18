@@ -58,7 +58,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   variable, unknown template variables, `target_*` with `credentials: env`, and
   Snowflake uppercasing.
 
-- [ ] **T05 Manifest reader.** Load a manifest and produce typed model, column and
+- [x] **T05 Manifest reader.** Load a manifest and produce typed model, column and
   dependency records per SPEC 5.7, including `upstream_project` and package
   selection.
   **Done when:** tests on the fixtures prove: root models always included; package

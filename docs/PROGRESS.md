@@ -62,3 +62,15 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - `load_config` does not enforce the project key pattern; `validate_project_key` returns the message so `check` can report `project_key_invalid` and publish can fail on it.
   - Templates are validated at load time (unknown variables, `target_*` with `credentials: env`, stray `{{`/`{%`); rendering happens in `resolve_target`, where a missing profile value is a config error.
   - `environments` in the file replaces the default prod/dev set; it is not merged with it.
+
+## T05 Manifest reader — done
+- Changed: src/dbt_agents_schema/manifest.py, tests/test_manifest.py
+- Evidence: `make verify` exit 0 (`116 passed`); tests: test_missing_manifest_says_run_dbt_parse, test_invalid_json_is_manifest_error, test_root_and_package_models_by_default, test_include_packages_false_keeps_only_root, test_exclude_packages, test_root_models_always_included_even_if_excluded, test_disabled_nodes_ignored, test_node_with_enabled_false_in_nodes_is_ignored, test_ephemeral_model_has_null_relation_name, test_edges_to_sources_and_seeds_carry_this_project, test_edges_to_unpublished_models_kept, test_unknown_upstream_has_null_project_and_type, test_rows_sorted_by_primary_key, test_model_fields, test_columns_for_published_models, test_missing_fields_get_defaults
+- Decisions:
+  - Root package = `metadata.project_name` (overridable via `root_package`); `exclude_packages` never removes root models.
+  - Besides ignoring the `disabled` section, a `nodes` entry with `config.enabled: false` is also skipped.
+  - `meta`: an empty `config.meta` counts as absent, so a non-empty top-level `meta` is used.
+  - `access` falls back to `config.access` when the node-level `access` is missing.
+  - `upstream_project` = this project when the upstream id is a key in `nodes` or `sources` (package models included); duplicate `depends_on` entries collapse to one row per PK.
+  - `generated_at` is parsed to an aware UTC datetime; a naive value is taken as UTC.
+  - `ManifestMissingError` (subclass of `ManifestError`) carries the "run `dbt parse` first" message for check's `manifest_missing` and exit 2.
