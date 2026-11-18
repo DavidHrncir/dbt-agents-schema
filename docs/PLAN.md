@@ -79,7 +79,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   `UPDATE_GOLDEN=1`) for finance and marketing; a test proves the plan is identical
   across two runs; counts in the `DBT_PROJECT` row match the other tables.
 
-- [ ] **T08 Check engine.** Implement every rule in SPEC section 8 with severities and
+- [x] **T08 Check engine.** Implement every rule in SPEC section 8 with severities and
   the four output formats.
   **Done when:** each rule has positive and negative tests; the `bad` fixture triggers
   every rule; the sampled-values heuristics have the required examples; the `gitlab`

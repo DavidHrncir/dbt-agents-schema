@@ -176,7 +176,28 @@ def load_config(
     data: dict[str, Any] = {"version": 1}
     if found:
         data = _parse_and_validate(path)
+    return _build(path, found, data, project_dir, manifest_project_name)
 
+
+def default_config(
+    project_dir: Path,
+    config_path: Path | None = None,
+    *,
+    manifest_project_name: str | None = None,
+) -> Config:
+    """Every field at its default, ignoring any file content (`found` reports whether the
+    file exists). `check` uses it to keep going after `config_invalid`."""
+    path = config_path if config_path is not None else project_dir / CONFIG_FILENAME
+    return _build(path, path.is_file(), {"version": 1}, project_dir, manifest_project_name)
+
+
+def _build(
+    path: Path,
+    found: bool,
+    data: Mapping[str, Any],
+    project_dir: Path,
+    manifest_project_name: str | None,
+) -> Config:
     environments = _environments(path, data.get("environments", _DEFAULT_ENVIRONMENTS))
     check_raw: dict[str, Any] = data.get("check", {})
     rules: dict[str, Severity] = {**DEFAULT_RULES, **check_raw.get("rules", {})}
