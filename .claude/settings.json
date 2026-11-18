@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "Bash(git push *)",
+      "Bash(git push)",
       "Bash(make)",
       "Bash(make *)",
       "Bash(uv *)",
@@ -25,8 +27,6 @@
       "Bash(mkdir *)"
     ],
     "deny": [
-      "Bash(git push *)",
-      "Bash(git push)",
       "Bash(git tag *)",
       "Bash(git reset --hard *)",
       "Bash(git rebase *)",
