@@ -106,3 +106,53 @@ class FakeWriter:
     def close(self) -> None:
         self.calls.append("close")
         self.closed = True
+
+
+# Tables as the dbt Labs `agents-schema` tool creates them: no `project` columns and none
+# of the columns marked "new" in SPEC 5, and no DBT_PROJECT table.
+DBT_LABS_TABLES: dict[str, tuple[str, ...]] = {
+    "ROOT": ("provider", "key", "content"),
+    "DBT_MODEL": (
+        "unique_id",
+        "name",
+        "database_name",
+        "schema_name",
+        "materialization",
+        "description",
+        "file_path",
+        "tags",
+        "meta",
+    ),
+    "DBT_COLUMN": ("model_id", "column_name", "data_type", "description", "meta"),
+    "DBT_DEPENDENCY": ("upstream_id", "downstream_id", "upstream_type", "downstream_type"),
+    "SKILL_USE": ("provider", "skill_key", "use_kind", "object_ref"),
+}
+
+
+def create_dbt_labs_tables(con: Any, schema: str) -> dict[str, int]:
+    """Create dbt Labs-shaped tables in a DuckDB connection with two legacy rows each
+    (ROOT gets a legacy `skill/legacy` row plus the shared `overview` row). Returns the
+    legacy row count per project-scoped table."""
+    con.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+    counts: dict[str, int] = {}
+    for table, columns in DBT_LABS_TABLES.items():
+        types = ", ".join(
+            f'"{c}" {"JSON" if c in ("tags", "meta") else "VARCHAR"}' for c in columns
+        )
+        con.execute(f'CREATE TABLE "{schema}"."{table}" ({types})')
+        placeholders = ", ".join("?" for _ in columns)
+        for i in range(2):
+            values: list[Any] = []
+            for c in columns:
+                if c in ("tags", "meta"):
+                    values.append("[]" if c == "tags" else "{}")
+                elif table == "ROOT" and c == "provider":
+                    values.append("dbt")
+                elif table == "ROOT" and c == "key":
+                    values.append(("overview", "skill/legacy")[i])
+                else:
+                    values.append(f"legacy_{c}_{i}")
+            con.execute(f'INSERT INTO "{schema}"."{table}" VALUES ({placeholders})', values)
+        if table != "ROOT":
+            counts[table] = 2
+    return counts

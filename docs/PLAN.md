@@ -102,7 +102,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   One SQL/dialect module per warehouse; identifier quoting in one helper per dialect.
   **Done when:** the protocol is typed, documented, and used by a no-op fake in tests.
 
-- [ ] **T12 DuckDB writer.** Implement it fully per SPEC section 6, including
+- [x] **T12 DuckDB writer.** Implement it fully per SPEC section 6, including
   migration of dbt Labs-shaped tables (missing columns added, `project IS NULL` rows
   removed) and transactional swap.
   **Done when:** unit tests pass for structure creation, column migration, swap,
