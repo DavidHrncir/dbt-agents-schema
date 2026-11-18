@@ -19,8 +19,8 @@ from dbt_agents_schema.plan import WAREHOUSES
 
 ENV_VAR = "WAREHOUSE_CREDENTIALS"
 
-# Adapters mapped from a dbt profile (SPEC 4.2). T19 adds snowflake, bigquery, databricks.
-PROFILE_ADAPTERS: tuple[str, ...] = ("duckdb",)
+# Adapters mapped from a dbt profile (SPEC 4.2).
+PROFILE_ADAPTERS: tuple[str, ...] = ("snowflake", "bigquery", "databricks", "duckdb")
 
 
 class CredentialError(Exception):
@@ -256,7 +256,142 @@ def from_dbt_profile(
             f"`credentials: dbt_profile`: {', '.join(PROFILE_ADAPTERS)}"
         )
     source = f"{path} (profile {profile_name}, target {target_name})"
+    where = _ProfileKeys(path=path, target=target_name)
+    if adapter == "snowflake":
+        return _map_snowflake(rendered, source, where)
+    if adapter == "bigquery":
+        return _map_bigquery(rendered, source, where)
+    if adapter == "databricks":
+        return _map_databricks(rendered, source, where)
     return _map_duckdb(rendered, source)
+
+
+@dataclass(frozen=True)
+class _ProfileKeys:
+    """Names profiles.yml keys in errors: `<path>: outputs.<target>.<key>`."""
+
+    path: Path
+    target: str
+
+    def key(self, name: str) -> str:
+        return f"outputs.{self.target}.{name}"
+
+    def error(self, message: str) -> CredentialError:
+        return CredentialError(f"{self.path}: {message}")
+
+    def require(self, output: Mapping[str, Any], *names: str) -> None:
+        missing = [self.key(n) for n in names if _blank(output.get(n))]
+        if missing:
+            raise self.error(f"missing required keys: {', '.join(missing)}")
+
+
+def _blank(value: Any) -> bool:
+    return value is None or value == ""
+
+
+def _copy(output: Mapping[str, Any], names: tuple[str, ...]) -> dict[str, Any]:
+    return {n: output[n] for n in names if not _blank(output.get(n))}
+
+
+def _opt_str(value: Any) -> str | None:
+    return None if _blank(value) else str(value)
+
+
+def _map_snowflake(output: Mapping[str, Any], source: str, where: _ProfileKeys) -> Connection:
+    where.require(output, "account", "user")
+    settings = _copy(output, ("account", "user", "role", "warehouse", "database"))
+    authenticator = output.get("authenticator")
+    if not _blank(output.get("password")):
+        settings["password"] = output["password"]
+    elif not _blank(output.get("private_key_path")):
+        settings["private_key_path"] = output["private_key_path"]
+    elif not _blank(output.get("private_key")):
+        settings["private_key_pem"] = _snowflake_pem(
+            str(output["private_key"]), encrypted=not _blank(output.get("private_key_passphrase"))
+        )
+    elif not _blank(authenticator):
+        if str(authenticator).lower() != "externalbrowser":
+            raise where.error(
+                f"{where.key('authenticator')}: only `externalbrowser` is supported; use "
+                "password, private_key_path or private_key otherwise"
+            )
+        settings["authenticator"] = "externalbrowser"
+    else:
+        raise where.error(
+            f"snowflake output {where.target!r} has no authentication; set one of "
+            "password, private_key_path (+ private_key_passphrase), private_key, or "
+            "authenticator: externalbrowser"
+        )
+    if "password" not in settings and not _blank(output.get("private_key_passphrase")):
+        settings["private_key_passphrase"] = output["private_key_passphrase"]
+    return Connection(
+        warehouse="snowflake",
+        source=source,
+        settings=settings,
+        target_schema=_opt_str(output.get("schema")),
+        target_database=_opt_str(output.get("database")),
+    )
+
+
+def _snowflake_pem(value: str, *, encrypted: bool) -> str:
+    """dbt-snowflake's `private_key` is PEM text or base64-encoded PKCS#8 DER."""
+    if "-----BEGIN" in value:
+        return value
+    body = "".join(value.split())
+    label = "ENCRYPTED PRIVATE KEY" if encrypted else "PRIVATE KEY"
+    lines = [body[i : i + 64] for i in range(0, len(body), 64)]
+    return f"-----BEGIN {label}-----\n" + "\n".join(lines) + f"\n-----END {label}-----\n"
+
+
+_BIGQUERY_METHODS = ("oauth", "service-account", "service-account-json")
+
+
+def _map_bigquery(output: Mapping[str, Any], source: str, where: _ProfileKeys) -> Connection:
+    where.require(output, "project", "method")
+    method = str(output["method"])
+    settings: dict[str, Any] = {"project_id": output["project"]}
+    if not _blank(output.get("location")):
+        settings["location"] = output["location"]
+    if method == "oauth":
+        settings["auth_method"] = "adc"
+    elif method == "service-account":
+        where.require(output, "keyfile")
+        settings["keyfile"] = output["keyfile"]
+    elif method == "service-account-json":
+        keyfile_json = output.get("keyfile_json")
+        if not isinstance(keyfile_json, dict):
+            raise where.error(
+                f"{where.key('keyfile_json')} must be a mapping (the service-account key "
+                "file contents)"
+            )
+        settings["credentials_json"] = keyfile_json
+    else:
+        raise where.error(
+            f"{where.key('method')} {method!r} is not supported; use one of: "
+            f"{', '.join(_BIGQUERY_METHODS)}"
+        )
+    dataset = output.get("dataset")
+    if _blank(dataset):
+        dataset = output.get("schema")
+    return Connection(
+        warehouse="bigquery",
+        source=source,
+        settings=settings,
+        target_schema=_opt_str(dataset),
+        target_database=str(output["project"]),
+    )
+
+
+def _map_databricks(output: Mapping[str, Any], source: str, where: _ProfileKeys) -> Connection:
+    where.require(output, "host", "http_path", "token")
+    settings = _copy(output, ("host", "http_path", "catalog", "token"))
+    return Connection(
+        warehouse="databricks",
+        source=source,
+        settings=settings,
+        target_schema=_opt_str(output.get("schema")),
+        target_database=_opt_str(output.get("catalog")),
+    )
 
 
 def _map_duckdb(output: Mapping[str, Any], source: str) -> Connection:

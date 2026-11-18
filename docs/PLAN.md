@@ -165,7 +165,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   **Done when:** fake-connection tests assert one replace statement per table and the
   exact predicates; live test exists and skips.
 
-- [ ] **T19 dbt profile mapping for all warehouses.** Snowflake, BigQuery, Databricks
+- [x] **T19 dbt profile mapping for all warehouses.** Snowflake, BigQuery, Databricks
   profile outputs to connection settings per SPEC 4.2, including `env_var` handling.
   **Done when:** tests cover each auth method in the SPEC table, `env_var` with and
   without default, a missing env var, unsupported Jinja and an unsupported adapter.
