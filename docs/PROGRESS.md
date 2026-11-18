@@ -107,3 +107,13 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - `skill_unresolved_uses`: `uses.schemas` must match a published model schema or an `external_schemas` entry exactly (as T03 decided). `uses.tables` is matched case-insensitively against `schema.alias` and `database.schema.alias`; the schema part of a table entry is compared to `external_schemas` case-insensitively. The check is skipped when there is no manifest. Skills with invalid frontmatter get no extra `skill_without_uses`.
   - Model findings point at the properties YAML (`patch_path`), else the SQL file, under `dbt_packages/<pkg>/` for package models. Unresolved-uses findings carry the frontmatter line of the entry.
   - GitLab severities: error→major, warning→minor, info→info. The fingerprint is the sha256 of rule, file, node, line and message. Findings with no file use `agents_schema.yml` as the path and line 1. GitHub annotations: info→`::notice`; data and properties are escaped per the workflow-command rules.
+
+## T09 `check` command — done
+- Changed: src/dbt_agents_schema/cli.py, tests/test_cli_check.py
+- Evidence: `make verify` exit 0 (`273 passed`); tests: test_clean_finance_exits_0_with_warnings, test_bad_exits_1, test_missing_manifest_exits_2, test_parse_runs_dbt_parse, test_parse_failure_exits_2, test_parse_without_dbt_installed_exits_2, test_no_parse_never_calls_subprocess, test_format_json, test_format_github, test_format_gitlab_writes_default_report_and_prints_text, test_format_gitlab_output_path, test_output_for_json, test_gitlab_report_written_even_when_manifest_missing, test_config_flag, test_default_project_dir_is_cwd
+- Decisions:
+  - Exit codes for `check`: 2 when the manifest is missing or unreadable (findings are still printed, and the "run `dbt parse` first" message goes to stderr); otherwise 1 on any error finding and 0 if there are none. `config_invalid` exits 1 under `check` because it is a check finding (SPEC 7: "Exit 1 on any error finding"). `publish` will exit 2 for config errors (SPEC 6).
+  - `--parse` runs `dbt parse` with `cwd=<project-dir>` (no shell). A non-zero exit, or `dbt` missing from PATH, exits 2 with a fix hint.
+  - With `--format gitlab`, `--output` is the Code Quality report path (default `gl-code-quality-report.json`, relative to cwd) and text goes to stdout. With text, json or github, `--output` writes the rendered output to that file instead of stdout.
+  - Common options (`--project-dir`, `--config`, `--manifest`) live on each subcommand through a shared parent parser. Finding paths keep the `--project-dir` form as given, so running from the repo root yields repo-relative paths for annotations.
+  - Running with no command still prints help and exits 0, as in T01.

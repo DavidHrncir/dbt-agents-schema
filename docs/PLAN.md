@@ -86,7 +86,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   output validates as a Code Quality report (list of objects with `description`,
   `check_name`, `fingerprint`, `severity`, `location.path`, `location.lines.begin`).
 
-- [ ] **T09 `check` command.** Wire `check` into the CLI with `--parse`, `--format`,
+- [x] **T09 `check` command.** Wire `check` into the CLI with `--parse`, `--format`,
   `--output` and exit codes.
   **Done when:** CLI tests (in-process, using `main(argv)`) cover: clean finance exits
   0 with warnings printed; `bad` exits 1; missing manifest exits 2 with the
