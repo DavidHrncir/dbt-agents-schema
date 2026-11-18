@@ -29,13 +29,21 @@ models:
   - name: fct_revenue
     description: Recognized revenue per invoice in US dollars.
     access: public
+    config:
+      meta:
+        owner: revenue-team
+      tags: [finance, revenue]
     columns:
       - name: invoice_date
         description: Date the revenue is recognized.
+        data_type: date
+        meta:
+          grain: day
       - name: customer_id
         description: Customer identifier.
       - name: revenue_usd
         description: Revenue converted to US dollars.
+        data_type: double
   - name: fct_payments
     description: One row per customer payment.
     access: public
@@ -51,6 +59,8 @@ models:
   - name: dim_customers
     description: Customers that have been invoiced.
     access: public
+    meta:
+      tier: gold
     columns:
       - name: customer_id
         description: Customer identifier.

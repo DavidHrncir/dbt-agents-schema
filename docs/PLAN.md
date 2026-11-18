@@ -46,7 +46,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   **Done when:** `make fixtures` regenerates all five manifests; each manifest contains
   the expected models (assert in a test); the test suite passes without dbt installed.
 
-- [ ] **T03 Phase 0 review.** Run the `spec-reviewer` subagent on Phase 0. Fix findings
+- [x] **T03 Phase 0 review.** Run the `spec-reviewer` subagent on Phase 0. Fix findings
   that affect correctness or the spec. Log the result.
 
 ## Phase 1 — Core logic (pure, no warehouse)

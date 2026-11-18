@@ -1,6 +1,6 @@
 ---
 uses:
-  schemas: [MARKETING_MARTS]
+  schemas: [marketing_marts]
   tables: [MARKETING_MARTS.FCT_CAMPAIGN_PERFORMANCE, marketing_marts.fct_attribution]
 ---
 # Channel attribution

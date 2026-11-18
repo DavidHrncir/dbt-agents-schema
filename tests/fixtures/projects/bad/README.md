@@ -9,7 +9,7 @@ run, so they are reached through options:
 | `config_invalid` | `--config agents_schema.invalid.yml` (schema) or `agents_schema.unparseable.yml` (YAML) |
 | `manifest_missing` | no `--manifest`: this project has no `target/manifest.json` |
 | `project_key_invalid` | default project from the over-long dbt project name |
-| `skill_key_duplicate` | `reports/daily.md` and `Reports\Daily.md` both map to `skill/<project>/reports/daily` (case-insensitive, `\` treated as a separator) |
+| `skill_key_duplicate` | created at test time: copy `bad` to `tmp_path` and add a second file mapping to `skill/<project>/reports/daily` (for example `Reports\Daily.md`). Not committed, because a path containing `\` cannot be checked out on Windows and case-only pairs cannot coexist on case-insensitive filesystems. |
 | `skill_frontmatter_invalid` | `broken_frontmatter.md` |
 | `skill_without_uses` | `no_uses.md` |
 | `skill_unresolved_uses` | `unresolved.md` |

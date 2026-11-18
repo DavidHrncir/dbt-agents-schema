@@ -4,26 +4,26 @@ shared_pkg:
   outputs:
     dev:
       type: duckdb
-      path: ":memory:"
+      path: "{{ env_var('FIXTURE_DUCKDB_PATH', ':memory:') }}"
       schema: shared
 finance:
   target: dev
   outputs:
     dev:
       type: duckdb
-      path: ":memory:"
+      path: "{{ env_var('FIXTURE_DUCKDB_PATH', ':memory:') }}"
       schema: finance
 marketing:
   target: dev
   outputs:
     dev:
       type: duckdb
-      path: ":memory:"
+      path: "{{ env_var('FIXTURE_DUCKDB_PATH', ':memory:') }}"
       schema: marketing
 bad:
   target: dev
   outputs:
     dev:
       type: duckdb
-      path: ":memory:"
+      path: "{{ env_var('FIXTURE_DUCKDB_PATH', ':memory:') }}"
       schema: bad

@@ -68,7 +68,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.400461,
+   "created_at": 1794979302.758466,
    "depends_on": {
     "macros": []
    },
@@ -103,7 +103,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.332166,
+   "created_at": 1794979302.688802,
    "depends_on": {
     "macros": [
      "macro.dbt.make_hook_config"
@@ -145,7 +145,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.410708,
+   "created_at": 1794979302.768687,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__alter_column_comment"
@@ -192,7 +192,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.417164,
+   "created_at": 1794979302.775239,
    "depends_on": {
     "macros": [
      "macro.dbt.default__alter_column_type"
@@ -239,7 +239,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.417609,
+   "created_at": 1794979302.775697,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__alter_relation_add_remove_columns"
@@ -281,7 +281,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4108999,
+   "created_at": 1794979302.768886,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__alter_relation_comment"
@@ -318,7 +318,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.397225,
+   "created_at": 1794979302.755247,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__any_value"
@@ -365,7 +365,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.40942,
+   "created_at": 1794979302.767352,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__apply_grants"
@@ -407,7 +407,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4011729,
+   "created_at": 1794979302.7591538,
    "depends_on": {
     "macros": [
      "macro.dbt.default__array_append"
@@ -449,7 +449,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.399322,
+   "created_at": 1794979302.757353,
    "depends_on": {
     "macros": [
      "macro.dbt.default__array_concat"
@@ -491,7 +491,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.400882,
+   "created_at": 1794979302.7588742,
    "depends_on": {
     "macros": [
      "macro.dbt.default__array_construct"
@@ -528,7 +528,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.383544,
+   "created_at": 1794979302.741355,
    "depends_on": {
     "macros": [
      "macro.dbt.get_column_schema_from_query",
@@ -567,7 +567,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.332012,
+   "created_at": 1794979302.6886332,
    "depends_on": {
     "macros": [
      "macro.dbt.make_hook_config"
@@ -604,7 +604,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.399562,
+   "created_at": 1794979302.757568,
    "depends_on": {
     "macros": [
      "macro.dbt.default__bool_or"
@@ -641,7 +641,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4224792,
+   "created_at": 1794979302.780472,
    "depends_on": {
     "macros": []
    },
@@ -676,7 +676,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.42153,
+   "created_at": 1794979302.779671,
    "depends_on": {
     "macros": [
      "macro.dbt.resolve_model_name"
@@ -723,7 +723,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3415968,
+   "created_at": 1794979302.698293,
    "depends_on": {
     "macros": [
      "macro.dbt.make_temp_relation",
@@ -768,7 +768,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3411021,
+   "created_at": 1794979302.69781,
    "depends_on": {
     "macros": [
      "macro.dbt.default__build_snapshot_table"
@@ -805,7 +805,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.421762,
+   "created_at": 1794979302.779881,
    "depends_on": {
     "macros": [
      "macro.dbt.resolve_model_name"
@@ -842,7 +842,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4091232,
+   "created_at": 1794979302.767058,
    "depends_on": {
     "macros": [
      "macro.dbt.default__call_dcl_statements"
@@ -873,7 +873,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3638148,
+   "created_at": 1794979302.7214808,
    "depends_on": {
     "macros": [
      "macro.dbt.default__can_clone_table"
@@ -915,7 +915,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.397017,
+   "created_at": 1794979302.7550201,
    "depends_on": {
     "macros": [
      "macro.dbt.default__cast"
@@ -952,7 +952,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3968031,
+   "created_at": 1794979302.754786,
    "depends_on": {
     "macros": [
      "macro.dbt.default__cast_bool_to_text"
@@ -994,7 +994,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.361879,
+   "created_at": 1794979302.719473,
    "depends_on": {
     "macros": [
      "macro.dbt.default__check_for_schema_changes"
@@ -1036,7 +1036,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4133708,
+   "created_at": 1794979302.771413,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__check_schema_exists"
@@ -1073,7 +1073,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.342182,
+   "created_at": 1794979302.698818,
    "depends_on": {
     "macros": [
      "macro.dbt.get_updated_at_column_data_type",
@@ -1121,7 +1121,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.40607,
+   "created_at": 1794979302.7640011,
    "depends_on": {
     "macros": [
      "macro.dbt.default__collect_freshness"
@@ -1163,7 +1163,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.40639,
+   "created_at": 1794979302.7643251,
    "depends_on": {
     "macros": [
      "macro.dbt.default__collect_freshness_custom_sql"
@@ -1200,7 +1200,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3933198,
+   "created_at": 1794979302.751196,
    "depends_on": {
     "macros": [
      "macro.dbt.default__concat"
@@ -1242,7 +1242,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3904269,
+   "created_at": 1794979302.7482638,
    "depends_on": {
     "macros": []
    },
@@ -1271,7 +1271,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.407423,
+   "created_at": 1794979302.765394,
    "depends_on": {
     "macros": [
      "macro.dbt.default__copy_grants"
@@ -1313,7 +1313,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.338054,
+   "created_at": 1794979302.6947331,
    "depends_on": {
     "macros": [
      "macro.dbt.default__create_columns"
@@ -1355,7 +1355,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.36743,
+   "created_at": 1794979302.724992,
    "depends_on": {
     "macros": [
      "macro.dbt.default__create_csv_table"
@@ -1392,7 +1392,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4032269,
+   "created_at": 1794979302.7611158,
    "depends_on": {
     "macros": [
      "macro.dbt.default__create_indexes"
@@ -1434,7 +1434,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.364012,
+   "created_at": 1794979302.721689,
    "depends_on": {
     "macros": [
      "macro.dbt.default__create_or_replace_clone"
@@ -1465,7 +1465,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.387306,
+   "created_at": 1794979302.744996,
    "depends_on": {
     "macros": [
      "macro.dbt.run_hooks",
@@ -1508,7 +1508,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.401412,
+   "created_at": 1794979302.759396,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__create_schema"
@@ -1560,7 +1560,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.385277,
+   "created_at": 1794979302.7430348,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__create_table_as"
@@ -1602,7 +1602,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.388088,
+   "created_at": 1794979302.7458198,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__create_view_as"
@@ -1633,7 +1633,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.401976,
+   "created_at": 1794979302.759926,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__current_timestamp"
@@ -1664,7 +1664,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.402545,
+   "created_at": 1794979302.760442,
    "depends_on": {
     "macros": [
      "macro.dbt.default__current_timestamp_backcompat"
@@ -1695,7 +1695,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.402688,
+   "created_at": 1794979302.7605782,
    "depends_on": {
     "macros": [
      "macro.dbt.default__current_timestamp_in_utc_backcompat"
@@ -1742,7 +1742,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.392822,
+   "created_at": 1794979302.750668,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__date"
@@ -1789,7 +1789,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.392479,
+   "created_at": 1794979302.750301,
    "depends_on": {
     "macros": [
      "macro.dbt.default__date_spine"
@@ -1831,7 +1831,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.400602,
+   "created_at": 1794979302.758615,
    "depends_on": {
     "macros": [
      "macro.dbt.default__date_trunc"
@@ -1878,7 +1878,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3945081,
+   "created_at": 1794979302.7524421,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__dateadd"
@@ -1925,7 +1925,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.395839,
+   "created_at": 1794979302.7537951,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__datediff"
@@ -1977,7 +1977,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.39101,
+   "created_at": 1794979302.748878,
    "depends_on": {
     "macros": [
      "macro.dbt.convert_datetime"
@@ -2019,7 +2019,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4108002,
+   "created_at": 1794979302.768779,
    "depends_on": {
     "macros": []
    },
@@ -2064,7 +2064,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.417484,
+   "created_at": 1794979302.7755709,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -2111,7 +2111,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.418,
+   "created_at": 1794979302.7761102,
    "depends_on": {
     "macros": [
      "macro.dbt.run_query"
@@ -2153,7 +2153,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.410985,
+   "created_at": 1794979302.7689788,
    "depends_on": {
     "macros": []
    },
@@ -2188,7 +2188,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3972852,
+   "created_at": 1794979302.7553012,
    "depends_on": {
     "macros": []
    },
@@ -2233,7 +2233,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.409972,
+   "created_at": 1794979302.76793,
    "depends_on": {
     "macros": [
      "macro.dbt.run_query",
@@ -2278,7 +2278,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4012558,
+   "created_at": 1794979302.759222,
    "depends_on": {
     "macros": []
    },
@@ -2318,7 +2318,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.399404,
+   "created_at": 1794979302.757429,
    "depends_on": {
     "macros": []
    },
@@ -2358,7 +2358,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.401016,
+   "created_at": 1794979302.7590048,
    "depends_on": {
     "macros": []
    },
@@ -2393,7 +2393,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3996239,
+   "created_at": 1794979302.757622,
    "depends_on": {
     "macros": []
    },
@@ -2433,7 +2433,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.341378,
+   "created_at": 1794979302.698082,
    "depends_on": {
     "macros": [
      "macro.dbt.get_snapshot_table_column_names",
@@ -2471,7 +2471,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.409257,
+   "created_at": 1794979302.7671812,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -2502,7 +2502,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.363872,
+   "created_at": 1794979302.721545,
    "depends_on": {
     "macros": []
    },
@@ -2542,7 +2542,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3970912,
+   "created_at": 1794979302.755112,
    "depends_on": {
     "macros": []
    },
@@ -2577,7 +2577,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3968809,
+   "created_at": 1794979302.754872,
    "depends_on": {
     "macros": []
    },
@@ -2617,7 +2617,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3624582,
+   "created_at": 1794979302.72008,
    "depends_on": {
     "macros": [
      "macro.dbt.diff_columns",
@@ -2660,7 +2660,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.413572,
+   "created_at": 1794979302.7716212,
    "depends_on": {
     "macros": [
      "macro.dbt.replace",
@@ -2708,7 +2708,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.406274,
+   "created_at": 1794979302.764212,
    "depends_on": {
     "macros": [
      "macro.dbt.statement",
@@ -2751,7 +2751,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4065468,
+   "created_at": 1794979302.7644942,
    "depends_on": {
     "macros": [
      "macro.dbt.statement",
@@ -2789,7 +2789,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.393386,
+   "created_at": 1794979302.751265,
    "depends_on": {
     "macros": []
    },
@@ -2818,7 +2818,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4074812,
+   "created_at": 1794979302.7654579,
    "depends_on": {
     "macros": []
    },
@@ -2858,7 +2858,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3382468,
+   "created_at": 1794979302.6949031,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -2900,7 +2900,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3678489,
+   "created_at": 1794979302.725437,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -2937,7 +2937,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.403435,
+   "created_at": 1794979302.761318,
    "depends_on": {
     "macros": [
      "macro.dbt.get_create_index_sql",
@@ -2980,7 +2980,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.364097,
+   "created_at": 1794979302.7217898,
    "depends_on": {
     "macros": []
    },
@@ -3015,7 +3015,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.401531,
+   "created_at": 1794979302.759501,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -3062,7 +3062,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.385642,
+   "created_at": 1794979302.74338,
    "depends_on": {
     "macros": [
      "macro.dbt.get_assert_columns_equivalent",
@@ -3106,7 +3106,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3882968,
+   "created_at": 1794979302.746055,
    "depends_on": {
     "macros": [
      "macro.dbt.get_assert_columns_equivalent"
@@ -3137,7 +3137,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4020748,
+   "created_at": 1794979302.76001,
    "depends_on": {
     "macros": []
    },
@@ -3166,7 +3166,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.40259,
+   "created_at": 1794979302.7604868,
    "depends_on": {
     "macros": []
    },
@@ -3195,7 +3195,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.402818,
+   "created_at": 1794979302.760704,
    "depends_on": {
     "macros": [
      "macro.dbt.current_timestamp_backcompat",
@@ -3243,7 +3243,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.392962,
+   "created_at": 1794979302.7508118,
    "depends_on": {
     "macros": []
    },
@@ -3288,7 +3288,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.392659,
+   "created_at": 1794979302.750499,
    "depends_on": {
     "macros": [
      "macro.dbt.generate_series",
@@ -3332,7 +3332,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.400681,
+   "created_at": 1794979302.758682,
    "depends_on": {
     "macros": []
    },
@@ -3377,7 +3377,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.394592,
+   "created_at": 1794979302.752533,
    "depends_on": {
     "macros": []
    },
@@ -3422,7 +3422,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.395921,
+   "created_at": 1794979302.753888,
    "depends_on": {
     "macros": []
    },
@@ -3462,7 +3462,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.353688,
+   "created_at": 1794979302.711086,
    "depends_on": {
     "macros": []
    },
@@ -3497,7 +3497,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.380448,
+   "created_at": 1794979302.738212,
    "depends_on": {
     "macros": []
    },
@@ -3532,7 +3532,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.376832,
+   "created_at": 1794979302.7343512,
    "depends_on": {
     "macros": [
      "macro.dbt.statement",
@@ -3570,7 +3570,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.401719,
+   "created_at": 1794979302.759679,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -3607,7 +3607,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.378297,
+   "created_at": 1794979302.7359412,
    "depends_on": {
     "macros": []
    },
@@ -3642,7 +3642,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.384109,
+   "created_at": 1794979302.741941,
    "depends_on": {
     "macros": []
    },
@@ -3677,7 +3677,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3863502,
+   "created_at": 1794979302.744019,
    "depends_on": {
     "macros": []
    },
@@ -3717,7 +3717,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.396449,
+   "created_at": 1794979302.7544472,
    "depends_on": {
     "macros": []
    },
@@ -3752,7 +3752,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3950112,
+   "created_at": 1794979302.752954,
    "depends_on": {
     "macros": []
    },
@@ -3781,7 +3781,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.391696,
+   "created_at": 1794979302.749609,
    "depends_on": {
     "macros": []
    },
@@ -3816,7 +3816,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3839161,
+   "created_at": 1794979302.7417312,
    "depends_on": {
     "macros": []
    },
@@ -3845,7 +3845,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.370751,
+   "created_at": 1794979302.728483,
    "depends_on": {
     "macros": []
    },
@@ -3874,7 +3874,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.370649,
+   "created_at": 1794979302.728369,
    "depends_on": {
     "macros": []
    },
@@ -3919,7 +3919,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.37218,
+   "created_at": 1794979302.729942,
    "depends_on": {
     "macros": [
      "macro.dbt.statement",
@@ -3964,7 +3964,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.37453,
+   "created_at": 1794979302.7322109,
    "depends_on": {
     "macros": []
    },
@@ -4004,7 +4004,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.376013,
+   "created_at": 1794979302.7335649,
    "depends_on": {
     "macros": []
    },
@@ -4044,7 +4044,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.374828,
+   "created_at": 1794979302.7325382,
    "depends_on": {
     "macros": []
    },
@@ -4084,7 +4084,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.375309,
+   "created_at": 1794979302.7329102,
    "depends_on": {
     "macros": []
    },
@@ -4119,7 +4119,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.394156,
+   "created_at": 1794979302.752083,
    "depends_on": {
     "macros": [
      "macro.dbt.get_powers_of_two"
@@ -4156,7 +4156,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.372711,
+   "created_at": 1794979302.7304819,
    "depends_on": {
     "macros": [
      "macro.dbt.get_formatted_aggregate_function_args",
@@ -4190,7 +4190,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.373303,
+   "created_at": 1794979302.731062,
    "depends_on": {
     "macros": [
      "macro.dbt.scalar_function_volatility_sql"
@@ -4252,7 +4252,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3814468,
+   "created_at": 1794979302.739327,
    "depends_on": {
     "macros": []
    },
@@ -4287,7 +4287,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.382835,
+   "created_at": 1794979302.740673,
    "depends_on": {
     "macros": [
      "macro.dbt.assert_columns_equivalent"
@@ -4318,7 +4318,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.368714,
+   "created_at": 1794979302.726342,
    "depends_on": {
     "macros": []
    },
@@ -4347,7 +4347,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.368573,
+   "created_at": 1794979302.726201,
    "depends_on": {
     "macros": []
    },
@@ -4387,7 +4387,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.41288,
+   "created_at": 1794979302.770902,
    "depends_on": {
     "macros": []
    },
@@ -4422,7 +4422,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.414099,
+   "created_at": 1794979302.772195,
    "depends_on": {
     "macros": []
    },
@@ -4462,7 +4462,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.412637,
+   "created_at": 1794979302.7706618,
    "depends_on": {
     "macros": []
    },
@@ -4491,7 +4491,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.385911,
+   "created_at": 1794979302.743621,
    "depends_on": {
     "macros": []
    },
@@ -4526,7 +4526,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4168231,
+   "created_at": 1794979302.774959,
    "depends_on": {
     "macros": [
      "macro.dbt.statement",
@@ -4564,7 +4564,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.415149,
+   "created_at": 1794979302.773272,
    "depends_on": {
     "macros": []
    },
@@ -4599,7 +4599,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3795469,
+   "created_at": 1794979302.737259,
    "depends_on": {
     "macros": [
      "macro.dbt.make_backup_relation",
@@ -4643,7 +4643,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.403146,
+   "created_at": 1794979302.761033,
    "depends_on": {
     "macros": []
    },
@@ -4683,7 +4683,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.378062,
+   "created_at": 1794979302.7356758,
    "depends_on": {
     "macros": [
      "macro.dbt.make_intermediate_relation",
@@ -4727,7 +4727,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3818948,
+   "created_at": 1794979302.739771,
    "depends_on": {
     "macros": []
    },
@@ -4767,7 +4767,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.379943,
+   "created_at": 1794979302.737688,
    "depends_on": {
     "macros": [
      "macro.dbt.get_create_view_as_sql",
@@ -4816,7 +4816,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.385041,
+   "created_at": 1794979302.742802,
    "depends_on": {
     "macros": [
      "macro.dbt.create_table_as"
@@ -4858,7 +4858,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.387994,
+   "created_at": 1794979302.745722,
    "depends_on": {
     "macros": [
      "macro.dbt.create_view_as"
@@ -4900,7 +4900,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.368373,
+   "created_at": 1794979302.7260191,
    "depends_on": {
     "macros": []
    },
@@ -4945,7 +4945,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.409027,
+   "created_at": 1794979302.766954,
    "depends_on": {
     "macros": [
      "macro.dbt.support_multiple_grantees_per_dcl_statement"
@@ -5002,7 +5002,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.356416,
+   "created_at": 1794979302.713815,
    "depends_on": {
     "macros": [
      "macro.dbt.get_quoted_csv"
@@ -5039,7 +5039,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.378556,
+   "created_at": 1794979302.736207,
    "depends_on": {
     "macros": [
      "macro.dbt.make_backup_relation",
@@ -5082,7 +5082,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.403612,
+   "created_at": 1794979302.761502,
    "depends_on": {
     "macros": []
    },
@@ -5117,7 +5117,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3766358,
+   "created_at": 1794979302.734143,
    "depends_on": {
     "macros": [
      "macro.dbt.drop_view",
@@ -5156,7 +5156,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.416378,
+   "created_at": 1794979302.774495,
    "depends_on": {
     "macros": [
      "macro.dbt.cast"
@@ -5198,7 +5198,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.415673,
+   "created_at": 1794979302.7738008,
    "depends_on": {
     "macros": []
    },
@@ -5227,7 +5227,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.37287,
+   "created_at": 1794979302.7306361,
    "depends_on": {
     "macros": [
      "macro.dbt.formatted_scalar_function_args_sql"
@@ -5258,7 +5258,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.373133,
+   "created_at": 1794979302.730906,
    "depends_on": {
     "macros": []
    },
@@ -5287,7 +5287,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.373589,
+   "created_at": 1794979302.731331,
    "depends_on": {
     "macros": []
    },
@@ -5332,7 +5332,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4081779,
+   "created_at": 1794979302.76617,
    "depends_on": {
     "macros": []
    },
@@ -5367,7 +5367,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3576362,
+   "created_at": 1794979302.715155,
    "depends_on": {
     "macros": [
      "macro.dbt.get_insert_into_sql"
@@ -5404,7 +5404,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.358621,
+   "created_at": 1794979302.716126,
    "depends_on": {
     "macros": [
      "macro.dbt.get_incremental_append_sql"
@@ -5441,7 +5441,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.357895,
+   "created_at": 1794979302.715402,
    "depends_on": {
     "macros": [
      "macro.dbt.get_delete_insert_merge_sql"
@@ -5478,7 +5478,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3584409,
+   "created_at": 1794979302.7159512,
    "depends_on": {
     "macros": [
      "macro.dbt.get_insert_overwrite_merge_sql"
@@ -5515,7 +5515,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3581939,
+   "created_at": 1794979302.7157052,
    "depends_on": {
     "macros": [
      "macro.dbt.get_merge_sql"
@@ -5552,7 +5552,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.358808,
+   "created_at": 1794979302.716301,
    "depends_on": {
     "macros": []
    },
@@ -5607,7 +5607,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.356888,
+   "created_at": 1794979302.7143612,
    "depends_on": {
     "macros": [
      "macro.dbt.get_quoted_csv"
@@ -5654,7 +5654,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.392332,
+   "created_at": 1794979302.750175,
    "depends_on": {
     "macros": [
      "macro.dbt.statement",
@@ -5697,7 +5697,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.410381,
+   "created_at": 1794979302.768339,
    "depends_on": {
     "macros": []
    },
@@ -5737,7 +5737,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.38167,
+   "created_at": 1794979302.7395651,
    "depends_on": {
     "macros": []
    },
@@ -5792,7 +5792,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3559282,
+   "created_at": 1794979302.7132978,
    "depends_on": {
     "macros": [
      "macro.dbt.get_quoted_csv",
@@ -5836,7 +5836,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.355031,
+   "created_at": 1794979302.712403,
    "depends_on": {
     "macros": [
      "macro.dbt.equals"
@@ -5883,7 +5883,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.354166,
+   "created_at": 1794979302.7115798,
    "depends_on": {
     "macros": []
    },
@@ -5933,7 +5933,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.405447,
+   "created_at": 1794979302.763374,
    "depends_on": {
     "macros": []
    },
@@ -5968,7 +5968,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3938198,
+   "created_at": 1794979302.7517178,
    "depends_on": {
     "macros": []
    },
@@ -6008,7 +6008,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.414459,
+   "created_at": 1794979302.772574,
    "depends_on": {
     "macros": []
    },
@@ -6037,7 +6037,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4142652,
+   "created_at": 1794979302.7723699,
    "depends_on": {
     "macros": []
    },
@@ -6072,7 +6072,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.380198,
+   "created_at": 1794979302.737962,
    "depends_on": {
     "macros": [
      "macro.dbt.make_intermediate_relation",
@@ -6115,7 +6115,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.381079,
+   "created_at": 1794979302.738923,
    "depends_on": {
     "macros": []
    },
@@ -6155,7 +6155,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.379013,
+   "created_at": 1794979302.736693,
    "depends_on": {
     "macros": [
      "macro.dbt.get_rename_view_sql",
@@ -6199,7 +6199,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.38456,
+   "created_at": 1794979302.742374,
    "depends_on": {
     "macros": []
    },
@@ -6239,7 +6239,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.387733,
+   "created_at": 1794979302.745452,
    "depends_on": {
     "macros": []
    },
@@ -6279,7 +6279,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.380657,
+   "created_at": 1794979302.7384372,
    "depends_on": {
     "macros": []
    },
@@ -6324,7 +6324,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.377766,
+   "created_at": 1794979302.735357,
    "depends_on": {
     "macros": [
      "macro.dbt.get_replace_view_sql",
@@ -6374,7 +6374,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.384332,
+   "created_at": 1794979302.742157,
    "depends_on": {
     "macros": []
    },
@@ -6414,7 +6414,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.386719,
+   "created_at": 1794979302.744386,
    "depends_on": {
     "macros": []
    },
@@ -6459,7 +6459,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.408554,
+   "created_at": 1794979302.7664871,
    "depends_on": {
     "macros": []
    },
@@ -6494,7 +6494,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.386112,
+   "created_at": 1794979302.7438111,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.get_column_names",
@@ -6532,7 +6532,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4079628,
+   "created_at": 1794979302.7659461,
    "depends_on": {
     "macros": []
    },
@@ -6567,7 +6567,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4037702,
+   "created_at": 1794979302.7616498,
    "depends_on": {
     "macros": []
    },
@@ -6596,7 +6596,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3823302,
+   "created_at": 1794979302.740236,
    "depends_on": {
     "macros": [
      "macro.dbt.table_columns_and_constraints"
@@ -6653,7 +6653,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.346572,
+   "created_at": 1794979302.703529,
    "depends_on": {
     "macros": []
    },
@@ -6682,7 +6682,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.338511,
+   "created_at": 1794979302.695179,
    "depends_on": {
     "macros": []
    },
@@ -6727,7 +6727,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3469582,
+   "created_at": 1794979302.7039769,
    "depends_on": {
     "macros": [
      "macro.dbt.string_literal"
@@ -6764,7 +6764,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.347297,
+   "created_at": 1794979302.7043352,
    "depends_on": {
     "macros": []
    },
@@ -6804,7 +6804,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.387522,
+   "created_at": 1794979302.7452219,
    "depends_on": {
     "macros": []
    },
@@ -6839,7 +6839,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3966668,
+   "created_at": 1794979302.754666,
    "depends_on": {
     "macros": []
    },
@@ -6874,7 +6874,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.413051,
+   "created_at": 1794979302.771086,
    "depends_on": {
     "macros": []
    },
@@ -6903,7 +6903,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.394806,
+   "created_at": 1794979302.752735,
    "depends_on": {
     "macros": []
    },
@@ -6943,7 +6943,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4000561,
+   "created_at": 1794979302.758065,
    "depends_on": {
     "macros": [
      "macro.dbt.default_last_day"
@@ -6980,7 +6980,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3943539,
+   "created_at": 1794979302.752269,
    "depends_on": {
     "macros": []
    },
@@ -7015,7 +7015,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.413932,
+   "created_at": 1794979302.772016,
    "depends_on": {
     "macros": []
    },
@@ -7050,7 +7050,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.413763,
+   "created_at": 1794979302.7718232,
    "depends_on": {
     "macros": []
    },
@@ -7085,7 +7085,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4132679,
+   "created_at": 1794979302.771301,
    "depends_on": {
     "macros": [
      "macro.dbt.information_schema_name",
@@ -7138,7 +7138,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.39567,
+   "created_at": 1794979302.7536378,
    "depends_on": {
     "macros": []
    },
@@ -7178,7 +7178,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3695948,
+   "created_at": 1794979302.727285,
    "depends_on": {
     "macros": [
      "macro.dbt.get_batch_size",
@@ -7227,7 +7227,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.404861,
+   "created_at": 1794979302.7627609,
    "depends_on": {
     "macros": []
    },
@@ -7267,7 +7267,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4042099,
+   "created_at": 1794979302.762115,
    "depends_on": {
     "macros": [
      "macro.dbt.default__make_temp_relation"
@@ -7309,7 +7309,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.404556,
+   "created_at": 1794979302.7624671,
    "depends_on": {
     "macros": []
    },
@@ -7359,7 +7359,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4120388,
+   "created_at": 1794979302.770059,
    "depends_on": {
     "macros": [
      "macro.dbt.run_query",
@@ -7404,7 +7404,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3975449,
+   "created_at": 1794979302.755574,
    "depends_on": {
     "macros": []
    },
@@ -7439,7 +7439,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3383832,
+   "created_at": 1794979302.6950479,
    "depends_on": {
     "macros": []
    },
@@ -7484,7 +7484,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3636842,
+   "created_at": 1794979302.7213461,
    "depends_on": {
     "macros": [
      "macro.dbt.check_for_schema_changes",
@@ -7522,7 +7522,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.380872,
+   "created_at": 1794979302.73871,
    "depends_on": {
     "macros": []
    },
@@ -7562,7 +7562,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3792598,
+   "created_at": 1794979302.736959,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -7609,7 +7609,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.393197,
+   "created_at": 1794979302.7510731,
    "depends_on": {
     "macros": []
    },
@@ -7659,7 +7659,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.368204,
+   "created_at": 1794979302.725832,
    "depends_on": {
     "macros": [
      "macro.dbt.create_csv_table"
@@ -7696,7 +7696,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.421005,
+   "created_at": 1794979302.779176,
    "depends_on": {
     "macros": []
    },
@@ -7736,7 +7736,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.395231,
+   "created_at": 1794979302.7531781,
    "depends_on": {
     "macros": []
    },
@@ -7776,7 +7776,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.396132,
+   "created_at": 1794979302.754124,
    "depends_on": {
     "macros": []
    },
@@ -7805,7 +7805,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3708858,
+   "created_at": 1794979302.728626,
    "depends_on": {
     "macros": []
    },
@@ -7840,7 +7840,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.370303,
+   "created_at": 1794979302.7280362,
    "depends_on": {
     "macros": [
      "macro.dbt.formatted_scalar_function_args_sql",
@@ -7878,7 +7878,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3700821,
+   "created_at": 1794979302.727818,
    "depends_on": {
     "macros": [
      "macro.dbt.scalar_function_create_replace_signature_sql",
@@ -7910,7 +7910,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.371217,
+   "created_at": 1794979302.72898,
    "depends_on": {
     "macros": []
    },
@@ -7939,7 +7939,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.371424,
+   "created_at": 1794979302.729194,
    "depends_on": {
     "macros": [
      "macro.dbt.unsupported_volatility_warning"
@@ -7981,7 +7981,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3361301,
+   "created_at": 1794979302.6928341,
    "depends_on": {
     "macros": []
    },
@@ -8010,7 +8010,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.402216,
+   "created_at": 1794979302.7601411,
    "depends_on": {
     "macros": [
      "macro.dbt.current_timestamp"
@@ -8047,7 +8047,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.334605,
+   "created_at": 1794979302.691262,
    "depends_on": {
     "macros": []
    },
@@ -8092,7 +8092,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.333316,
+   "created_at": 1794979302.689955,
    "depends_on": {
     "macros": [
      "macro.dbt.get_snapshot_table_column_names",
@@ -8140,7 +8140,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.340984,
+   "created_at": 1794979302.69769,
    "depends_on": {
     "macros": [
      "macro.dbt.get_snapshot_table_column_names",
@@ -8188,7 +8188,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.335275,
+   "created_at": 1794979302.691953,
    "depends_on": {
     "macros": []
    },
@@ -8233,7 +8233,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.400343,
+   "created_at": 1794979302.7583392,
    "depends_on": {
     "macros": []
    },
@@ -8268,7 +8268,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.397722,
+   "created_at": 1794979302.755747,
    "depends_on": {
     "macros": []
    },
@@ -8297,7 +8297,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4076312,
+   "created_at": 1794979302.76561,
    "depends_on": {
     "macros": []
    },
@@ -8342,7 +8342,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3631492,
+   "created_at": 1794979302.720792,
    "depends_on": {
     "macros": [
      "macro.dbt.alter_relation_add_remove_columns",
@@ -8395,7 +8395,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3889909,
+   "created_at": 1794979302.7467678,
    "depends_on": {
     "macros": []
    },
@@ -8435,7 +8435,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.388603,
+   "created_at": 1794979302.746381,
    "depends_on": {
     "macros": [
      "macro.dbt.should_store_failures"
@@ -8487,7 +8487,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3884501,
+   "created_at": 1794979302.746219,
    "depends_on": {
     "macros": []
    },
@@ -8527,7 +8527,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.388743,
+   "created_at": 1794979302.7465112,
    "depends_on": {
     "macros": []
    },
@@ -8562,7 +8562,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.405046,
+   "created_at": 1794979302.762959,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -8593,7 +8593,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3988328,
+   "created_at": 1794979302.7568839,
    "depends_on": {
     "macros": []
    },
@@ -8622,7 +8622,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3991659,
+   "created_at": 1794979302.757204,
    "depends_on": {
     "macros": []
    },
@@ -8651,7 +8651,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.398497,
+   "created_at": 1794979302.7565491,
    "depends_on": {
     "macros": []
    },
@@ -8680,7 +8680,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.398984,
+   "created_at": 1794979302.7570481,
    "depends_on": {
     "macros": []
    },
@@ -8709,7 +8709,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3986628,
+   "created_at": 1794979302.7567208,
    "depends_on": {
     "macros": []
    },
@@ -8738,7 +8738,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.39818,
+   "created_at": 1794979302.756209,
    "depends_on": {
     "macros": []
    },
@@ -8767,7 +8767,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.398347,
+   "created_at": 1794979302.756379,
    "depends_on": {
     "macros": []
    },
@@ -8802,7 +8802,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.371648,
+   "created_at": 1794979302.7294369,
    "depends_on": {
     "macros": []
    },
@@ -8842,7 +8842,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.420477,
+   "created_at": 1794979302.778641,
    "depends_on": {
     "macros": []
    },
@@ -8877,7 +8877,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4068182,
+   "created_at": 1794979302.7647622,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -8919,7 +8919,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.399977,
+   "created_at": 1794979302.757975,
    "depends_on": {
     "macros": [
      "macro.dbt.dateadd",
@@ -8962,7 +8962,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.353387,
+   "created_at": 1794979302.7107468,
    "depends_on": {
     "macros": [
      "macro.dbt.default__diff_column_data_types"
@@ -9004,7 +9004,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.353278,
+   "created_at": 1794979302.7106419,
    "depends_on": {
     "macros": []
    },
@@ -9039,7 +9039,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.380331,
+   "created_at": 1794979302.738102,
    "depends_on": {
     "macros": [
      "macro.dbt.default__drop_materialized_view"
@@ -9076,7 +9076,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.376731,
+   "created_at": 1794979302.7342389,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__drop_relation"
@@ -9113,7 +9113,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.37693,
+   "created_at": 1794979302.734455,
    "depends_on": {
     "macros": []
    },
@@ -9148,7 +9148,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.40162,
+   "created_at": 1794979302.7595892,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__drop_schema"
@@ -9185,7 +9185,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3781939,
+   "created_at": 1794979302.735817,
    "depends_on": {
     "macros": [
      "macro.dbt.default__drop_schema_named"
@@ -9222,7 +9222,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.384046,
+   "created_at": 1794979302.741872,
    "depends_on": {
     "macros": [
      "macro.dbt.default__drop_table"
@@ -9259,7 +9259,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.386266,
+   "created_at": 1794979302.743948,
    "depends_on": {
     "macros": [
      "macro.dbt.default__drop_view"
@@ -9301,7 +9301,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.396307,
+   "created_at": 1794979302.7542899,
    "depends_on": {
     "macros": [
      "macro.dbt.default__equals"
@@ -9338,7 +9338,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3949409,
+   "created_at": 1794979302.752877,
    "depends_on": {
     "macros": [
      "macro.dbt.default__escape_single_quotes"
@@ -9369,7 +9369,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.391644,
+   "created_at": 1794979302.749567,
    "depends_on": {
     "macros": [
      "macro.dbt.default__except"
@@ -9406,7 +9406,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3837419,
+   "created_at": 1794979302.74156,
    "depends_on": {
     "macros": [
      "macro.dbt.default__format_column"
@@ -9448,7 +9448,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.420314,
+   "created_at": 1794979302.778475,
    "depends_on": {
     "macros": [
      "macro.dbt.string_literal",
@@ -9481,7 +9481,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.37049,
+   "created_at": 1794979302.728203,
    "depends_on": {
     "macros": [
      "macro.dbt.default__formatted_scalar_function_args_javascript"
@@ -9512,7 +9512,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.370406,
+   "created_at": 1794979302.728121,
    "depends_on": {
     "macros": [
      "macro.dbt.default__formatted_scalar_function_args_sql"
@@ -9559,7 +9559,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.371835,
+   "created_at": 1794979302.729633,
    "depends_on": {
     "macros": [
      "macro.dbt.default__function_execute_build_sql"
@@ -9601,7 +9601,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.374339,
+   "created_at": 1794979302.732026,
    "depends_on": {
     "macros": [
      "macro.dbt.default__generate_alias_name"
@@ -9643,7 +9643,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.375744,
+   "created_at": 1794979302.733283,
    "depends_on": {
     "macros": [
      "macro.dbt.default__generate_database_name"
@@ -9685,7 +9685,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3747141,
+   "created_at": 1794979302.732418,
    "depends_on": {
     "macros": [
      "macro.dbt.default__generate_latest_version_pointer_alias"
@@ -9727,7 +9727,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.375116,
+   "created_at": 1794979302.7327628,
    "depends_on": {
     "macros": [
      "macro.dbt.default__generate_schema_name"
@@ -9769,7 +9769,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.375484,
+   "created_at": 1794979302.7330701,
    "depends_on": {
     "macros": []
    },
@@ -9804,7 +9804,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.393913,
+   "created_at": 1794979302.751811,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__generate_series"
@@ -9841,7 +9841,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3725262,
+   "created_at": 1794979302.730287,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_aggregate_function_create_replace_signature"
@@ -9872,7 +9872,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3732438,
+   "created_at": 1794979302.731002,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_aggregate_function_volatility_specifier"
@@ -9934,7 +9934,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.381351,
+   "created_at": 1794979302.73922,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_alter_materialized_view_as_sql"
@@ -9971,7 +9971,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.382752,
+   "created_at": 1794979302.740604,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_assert_columns_equivalent"
@@ -10002,7 +10002,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.368654,
+   "created_at": 1794979302.726279,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_batch_size"
@@ -10033,7 +10033,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.368445,
+   "created_at": 1794979302.7260952,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_binding_char"
@@ -10075,7 +10075,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.412747,
+   "created_at": 1794979302.7707589,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_catalog"
@@ -10112,7 +10112,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.414022,
+   "created_at": 1794979302.772117,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_catalog_for_single_relation"
@@ -10154,7 +10154,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.412501,
+   "created_at": 1794979302.7705321,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_catalog_relations"
@@ -10196,7 +10196,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4165661,
+   "created_at": 1794979302.774681,
    "depends_on": {
     "macros": [
      "macro.dbt.get_empty_subquery_sql"
@@ -10233,7 +10233,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4166558,
+   "created_at": 1794979302.7747772,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_columns_in_query"
@@ -10270,7 +10270,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.415062,
+   "created_at": 1794979302.773186,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_columns_in_relation"
@@ -10307,7 +10307,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3794181,
+   "created_at": 1794979302.737129,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_create_backup_sql"
@@ -10349,7 +10349,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.403074,
+   "created_at": 1794979302.7609541,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_create_index_sql"
@@ -10391,7 +10391,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.37794,
+   "created_at": 1794979302.735549,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_create_intermediate_sql"
@@ -10433,7 +10433,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.381824,
+   "created_at": 1794979302.739699,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_create_materialized_view_as_sql"
@@ -10475,7 +10475,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.379732,
+   "created_at": 1794979302.737466,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_create_sql"
@@ -10522,7 +10522,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.384923,
+   "created_at": 1794979302.7427,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_create_table_as_sql"
@@ -10564,7 +10564,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.387916,
+   "created_at": 1794979302.745644,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_create_view_as_sql"
@@ -10606,7 +10606,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.368303,
+   "created_at": 1794979302.725943,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_csv_sql"
@@ -10648,7 +10648,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.342326,
+   "created_at": 1794979302.698972,
    "depends_on": {
     "macros": []
    },
@@ -10693,7 +10693,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4086761,
+   "created_at": 1794979302.76661,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_dcl_statement_list"
@@ -10750,7 +10750,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3560781,
+   "created_at": 1794979302.713452,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_delete_insert_merge_sql"
@@ -10787,7 +10787,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.378443,
+   "created_at": 1794979302.736106,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_drop_backup_sql"
@@ -10829,7 +10829,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.403529,
+   "created_at": 1794979302.7614238,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_drop_index_sql"
@@ -10866,7 +10866,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3762429,
+   "created_at": 1794979302.733788,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_drop_sql"
@@ -10903,7 +10903,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.415772,
+   "created_at": 1794979302.773899,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_empty_schema_sql"
@@ -10945,7 +10945,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.415562,
+   "created_at": 1794979302.773695,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_empty_subquery_sql"
@@ -10992,7 +10992,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.419643,
+   "created_at": 1794979302.777815,
    "depends_on": {
     "macros": [
      "macro.dbt.format_row"
@@ -11034,7 +11034,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.419358,
+   "created_at": 1794979302.777513,
    "depends_on": {
     "macros": [
      "macro.dbt.load_relation",
@@ -11068,7 +11068,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.372808,
+   "created_at": 1794979302.730577,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_formatted_aggregate_function_args"
@@ -11099,7 +11099,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.37295,
+   "created_at": 1794979302.7307148,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_function_language_specifier"
@@ -11130,7 +11130,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.373395,
+   "created_at": 1794979302.7311418,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_function_python_options"
@@ -11177,7 +11177,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4080708,
+   "created_at": 1794979302.766067,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_grant_sql"
@@ -11214,7 +11214,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.357506,
+   "created_at": 1794979302.715038,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_incremental_append_sql"
@@ -11251,7 +11251,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3585439,
+   "created_at": 1794979302.716052,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_incremental_default_sql"
@@ -11288,7 +11288,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.35774,
+   "created_at": 1794979302.715246,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_incremental_delete_insert_sql"
@@ -11325,7 +11325,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.358289,
+   "created_at": 1794979302.71581,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_incremental_insert_overwrite_sql"
@@ -11362,7 +11362,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.358051,
+   "created_at": 1794979302.715564,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_incremental_merge_sql"
@@ -11399,7 +11399,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.358725,
+   "created_at": 1794979302.716216,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_incremental_microbatch_sql"
@@ -11446,7 +11446,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.358964,
+   "created_at": 1794979302.71645,
    "depends_on": {
     "macros": [
      "macro.dbt.get_quoted_csv"
@@ -11503,7 +11503,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.356553,
+   "created_at": 1794979302.713963,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_insert_overwrite_merge_sql"
@@ -11550,7 +11550,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3920121,
+   "created_at": 1794979302.7498748,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_intervals_between"
@@ -11592,7 +11592,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.410285,
+   "created_at": 1794979302.768233,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_limit_sql"
@@ -11629,7 +11629,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.415453,
+   "created_at": 1794979302.773592,
    "depends_on": {
     "macros": []
    },
@@ -11669,7 +11669,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3815901,
+   "created_at": 1794979302.739479,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_materialized_view_configuration_changes"
@@ -11726,7 +11726,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3548129,
+   "created_at": 1794979302.712188,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_merge_sql"
@@ -11768,7 +11768,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.354944,
+   "created_at": 1794979302.712306,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_merge_unique_key_match"
@@ -11815,7 +11815,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.353802,
+   "created_at": 1794979302.7112021,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_merge_update_columns"
@@ -11867,7 +11867,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4051871,
+   "created_at": 1794979302.763093,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_or_create_relation"
@@ -11904,7 +11904,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.393603,
+   "created_at": 1794979302.751509,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_powers_of_two"
@@ -11941,7 +11941,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.352996,
+   "created_at": 1794979302.71036,
    "depends_on": {
     "macros": []
    },
@@ -11981,7 +11981,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4143748,
+   "created_at": 1794979302.7724779,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_relation_last_modified"
@@ -12012,7 +12012,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.414183,
+   "created_at": 1794979302.772285,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_relations"
@@ -12049,7 +12049,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.380095,
+   "created_at": 1794979302.737847,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_rename_intermediate_sql"
@@ -12091,7 +12091,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.381005,
+   "created_at": 1794979302.738842,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_rename_materialized_view_sql"
@@ -12133,7 +12133,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.378809,
+   "created_at": 1794979302.736459,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_rename_sql"
@@ -12175,7 +12175,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.38448,
+   "created_at": 1794979302.742293,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_rename_table_sql"
@@ -12217,7 +12217,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.387655,
+   "created_at": 1794979302.7453701,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_rename_view_sql"
@@ -12259,7 +12259,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3805819,
+   "created_at": 1794979302.7383502,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_replace_materialized_view_sql"
@@ -12306,7 +12306,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.377214,
+   "created_at": 1794979302.734748,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_replace_sql"
@@ -12348,7 +12348,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.384257,
+   "created_at": 1794979302.7420852,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_replace_table_sql"
@@ -12390,7 +12390,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3866408,
+   "created_at": 1794979302.744299,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_replace_view_sql"
@@ -12437,7 +12437,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.408297,
+   "created_at": 1794979302.7662861,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_revoke_sql"
@@ -12479,7 +12479,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.368941,
+   "created_at": 1794979302.72659,
    "depends_on": {
     "macros": []
    },
@@ -12514,7 +12514,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.386004,
+   "created_at": 1794979302.7437131,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_select_subquery"
@@ -12551,7 +12551,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.407903,
+   "created_at": 1794979302.765876,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_show_grant_sql"
@@ -12588,7 +12588,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.403697,
+   "created_at": 1794979302.761587,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_show_indexes_sql"
@@ -12635,7 +12635,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4101849,
+   "created_at": 1794979302.768138,
    "depends_on": {
     "macros": [
      "macro.dbt.get_limit_subquery_sql"
@@ -12666,7 +12666,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.402438,
+   "created_at": 1794979302.7603478,
    "depends_on": {
     "macros": [
      "macro.dbt.snapshot_get_time",
@@ -12699,7 +12699,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.338777,
+   "created_at": 1794979302.6954181,
    "depends_on": {
     "macros": []
    },
@@ -12728,7 +12728,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.382269,
+   "created_at": 1794979302.740171,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_table_columns_and_constraints"
@@ -12785,7 +12785,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.346421,
+   "created_at": 1794979302.7033448,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_test_sql"
@@ -12816,7 +12816,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.338454,
+   "created_at": 1794979302.695123,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_true_sql"
@@ -12863,7 +12863,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.346672,
+   "created_at": 1794979302.7036512,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_unit_test_sql"
@@ -12900,7 +12900,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.341959,
+   "created_at": 1794979302.6986072,
    "depends_on": {
     "macros": [
      "macro.dbt.get_column_schema_from_query"
@@ -12937,7 +12937,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.347119,
+   "created_at": 1794979302.7041469,
    "depends_on": {
     "macros": [
      "macro.dbt.default__get_where_subquery"
@@ -12979,7 +12979,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.387406,
+   "created_at": 1794979302.7451031,
    "depends_on": {
     "macros": [
      "macro.dbt.default__handle_existing_table"
@@ -13016,7 +13016,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3965828,
+   "created_at": 1794979302.754587,
    "depends_on": {
     "macros": [
      "macro.dbt.default__hash"
@@ -13053,7 +13053,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3320892,
+   "created_at": 1794979302.68873,
    "depends_on": {
     "macros": [
      "macro.dbt.make_hook_config"
@@ -13095,7 +13095,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.36177,
+   "created_at": 1794979302.7193532,
    "depends_on": {
     "macros": []
    },
@@ -13130,7 +13130,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.412971,
+   "created_at": 1794979302.7710001,
    "depends_on": {
     "macros": [
      "macro.dbt.default__information_schema_name"
@@ -13161,7 +13161,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.39471,
+   "created_at": 1794979302.75265,
    "depends_on": {
     "macros": [
      "macro.dbt.default__intersect"
@@ -13192,7 +13192,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.405804,
+   "created_at": 1794979302.763711,
    "depends_on": {
     "macros": []
    },
@@ -13221,7 +13221,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.357173,
+   "created_at": 1794979302.7146869,
    "depends_on": {
     "macros": [
      "macro.dbt.should_full_refresh"
@@ -13263,7 +13263,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.399783,
+   "created_at": 1794979302.757777,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__last_day"
@@ -13300,7 +13300,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3942971,
+   "created_at": 1794979302.752209,
    "depends_on": {
     "macros": [
      "macro.dbt.default__length"
@@ -13337,7 +13337,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.413856,
+   "created_at": 1794979302.77191,
    "depends_on": {
     "macros": [
      "macro.dbt.default__list_function_relations_without_caching"
@@ -13374,7 +13374,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4136739,
+   "created_at": 1794979302.771714,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__list_relations_without_caching"
@@ -13411,7 +13411,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.413138,
+   "created_at": 1794979302.771172,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__list_schemas"
@@ -13463,7 +13463,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3954618,
+   "created_at": 1794979302.7534232,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__listagg"
@@ -13500,7 +13500,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.405571,
+   "created_at": 1794979302.7634969,
    "depends_on": {
     "macros": []
    },
@@ -13540,7 +13540,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.369032,
+   "created_at": 1794979302.7266822,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__load_csv_rows"
@@ -13577,7 +13577,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.405649,
+   "created_at": 1794979302.7635741,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation"
@@ -13624,7 +13624,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.404696,
+   "created_at": 1794979302.762607,
    "depends_on": {
     "macros": [
      "macro.dbt.default__make_backup_relation"
@@ -13666,7 +13666,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3319411,
+   "created_at": 1794979302.688543,
    "depends_on": {
     "macros": []
    },
@@ -13706,7 +13706,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.404122,
+   "created_at": 1794979302.7620301,
    "depends_on": {
     "macros": [
      "macro.dbt.default__make_intermediate_relation"
@@ -13748,7 +13748,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4044118,
+   "created_at": 1794979302.7623081,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__make_temp_relation"
@@ -13785,7 +13785,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.365563,
+   "created_at": 1794979302.723129,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation",
@@ -13831,7 +13831,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.374125,
+   "created_at": 1794979302.731811,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation",
@@ -13874,7 +13874,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.361085,
+   "created_at": 1794979302.7186408,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation",
@@ -13928,7 +13928,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.34908,
+   "created_at": 1794979302.706231,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation",
@@ -13974,7 +13974,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.366934,
+   "created_at": 1794979302.724478,
    "depends_on": {
     "macros": [
      "macro.dbt.should_full_refresh",
@@ -14023,7 +14023,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3449259,
+   "created_at": 1794979302.701737,
    "depends_on": {
     "macros": [
      "macro.dbt.get_or_create_relation",
@@ -14078,7 +14078,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3525739,
+   "created_at": 1794979302.70991,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation",
@@ -14127,7 +14127,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.34614,
+   "created_at": 1794979302.703052,
    "depends_on": {
     "macros": [
      "macro.dbt.get_limit_subquery_sql",
@@ -14170,7 +14170,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.348282,
+   "created_at": 1794979302.705408,
    "depends_on": {
     "macros": [
      "macro.dbt.get_columns_in_query",
@@ -14216,7 +14216,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.351501,
+   "created_at": 1794979302.7087822,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation",
@@ -14279,7 +14279,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3504798,
+   "created_at": 1794979302.7077,
    "depends_on": {
     "macros": [
      "macro.dbt.run_hooks",
@@ -14320,7 +14320,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3501718,
+   "created_at": 1794979302.70736,
    "depends_on": {
     "macros": []
    },
@@ -14370,7 +14370,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.350044,
+   "created_at": 1794979302.707237,
    "depends_on": {
     "macros": [
      "macro.dbt.should_full_refresh",
@@ -14422,7 +14422,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.34929,
+   "created_at": 1794979302.706445,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation",
@@ -14471,7 +14471,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3494132,
+   "created_at": 1794979302.7065868,
    "depends_on": {
     "macros": [
      "macro.dbt.drop_relation_if_exists",
@@ -14529,7 +14529,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.389924,
+   "created_at": 1794979302.747724,
    "depends_on": {
     "macros": []
    },
@@ -14569,7 +14569,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.391413,
+   "created_at": 1794979302.74931,
    "depends_on": {
     "macros": [
      "macro.dbt.dates_in_range"
@@ -14621,7 +14621,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.411126,
+   "created_at": 1794979302.769115,
    "depends_on": {
     "macros": [
      "macro.dbt.default__persist_docs"
@@ -14663,7 +14663,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3974268,
+   "created_at": 1794979302.755451,
    "depends_on": {
     "macros": [
      "macro.dbt.default__position"
@@ -14700,7 +14700,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.338337,
+   "created_at": 1794979302.694995,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__post_snapshot"
@@ -14747,7 +14747,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3632798,
+   "created_at": 1794979302.7209249,
    "depends_on": {
     "macros": [
      "macro.dbt.default__process_schema_changes"
@@ -14778,7 +14778,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.391527,
+   "created_at": 1794979302.749439,
    "depends_on": {
     "macros": []
    },
@@ -14807,7 +14807,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.42281,
+   "created_at": 1794979302.7807648,
    "depends_on": {
     "macros": []
    },
@@ -14842,7 +14842,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.422761,
+   "created_at": 1794979302.780724,
    "depends_on": {
     "macros": [
      "macro.dbt.build_ref_function",
@@ -14884,7 +14884,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.380805,
+   "created_at": 1794979302.738625,
    "depends_on": {
     "macros": [
      "macro.dbt.default__refresh_materialized_view"
@@ -14926,7 +14926,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.379116,
+   "created_at": 1794979302.736799,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__rename_relation"
@@ -14973,7 +14973,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3931148,
+   "created_at": 1794979302.7509801,
    "depends_on": {
     "macros": [
      "macro.dbt.default__replace"
@@ -15025,7 +15025,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.367966,
+   "created_at": 1794979302.7255669,
    "depends_on": {
     "macros": [
      "macro.dbt.default__reset_csv_table"
@@ -15062,7 +15062,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4209259,
+   "created_at": 1794979302.779099,
    "depends_on": {
     "macros": [
      "macro.dbt.default__resolve_model_name"
@@ -15104,7 +15104,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.395155,
+   "created_at": 1794979302.753108,
    "depends_on": {
     "macros": [
      "macro.dbt.default__right"
@@ -15146,7 +15146,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.331846,
+   "created_at": 1794979302.688426,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -15183,7 +15183,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.390066,
+   "created_at": 1794979302.747882,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -15225,7 +15225,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.396062,
+   "created_at": 1794979302.754048,
    "depends_on": {
     "macros": [
      "macro.dbt.default__safe_cast"
@@ -15256,7 +15256,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.370833,
+   "created_at": 1794979302.728574,
    "depends_on": {
     "macros": [
      "macro.dbt.default__scalar_function_body_sql"
@@ -15293,7 +15293,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3701792,
+   "created_at": 1794979302.7279181,
    "depends_on": {
     "macros": [
      "macro.dbt.default__scalar_function_create_replace_signature_sql"
@@ -15330,7 +15330,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.370006,
+   "created_at": 1794979302.7277281,
    "depends_on": {
     "macros": [
      "macro.dbt.default__scalar_function_sql"
@@ -15361,7 +15361,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.371049,
+   "created_at": 1794979302.728788,
    "depends_on": {
     "macros": [
      "macro.dbt.default__scalar_function_volatility_javascript"
@@ -15392,7 +15392,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.370969,
+   "created_at": 1794979302.7287061,
    "depends_on": {
     "macros": [
      "macro.dbt.default__scalar_function_volatility_sql"
@@ -15429,7 +15429,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3323321,
+   "created_at": 1794979302.688959,
    "depends_on": {
     "macros": []
    },
@@ -15458,7 +15458,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3325021,
+   "created_at": 1794979302.689141,
    "depends_on": {
     "macros": []
    },
@@ -15498,7 +15498,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.40781,
+   "created_at": 1794979302.765774,
    "depends_on": {
     "macros": [
      "macro.dbt.copy_grants"
@@ -15529,7 +15529,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.332663,
+   "created_at": 1794979302.68929,
    "depends_on": {
     "macros": []
    },
@@ -15574,7 +15574,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.33604,
+   "created_at": 1794979302.692745,
    "depends_on": {
     "macros": [
      "macro.dbt.get_columns_in_query",
@@ -15632,7 +15632,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.336839,
+   "created_at": 1794979302.693553,
    "depends_on": {
     "macros": [
      "macro.dbt.snapshot_get_time",
@@ -15666,7 +15666,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.402158,
+   "created_at": 1794979302.7600892,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__snapshot_get_time"
@@ -15703,7 +15703,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3344882,
+   "created_at": 1794979302.6911511,
    "depends_on": {
     "macros": [
      "macro.dbt.default__snapshot_hash_arguments"
@@ -15750,7 +15750,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3328881,
+   "created_at": 1794979302.6895292,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__snapshot_merge_sql"
@@ -15797,7 +15797,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.338618,
+   "created_at": 1794979302.6952808,
    "depends_on": {
     "macros": [
      "macro.dbt.default__snapshot_staging_table"
@@ -15834,7 +15834,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3351822,
+   "created_at": 1794979302.6918578,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__snapshot_string_as_time"
@@ -15891,7 +15891,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.33509,
+   "created_at": 1794979302.691762,
    "depends_on": {
     "macros": [
      "macro.dbt.get_snapshot_table_column_names",
@@ -15939,7 +15939,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.400249,
+   "created_at": 1794979302.758249,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__split_part"
@@ -15976,7 +15976,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.415313,
+   "created_at": 1794979302.773437,
    "depends_on": {
     "macros": []
    },
@@ -16026,7 +16026,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.389635,
+   "created_at": 1794979302.747437,
    "depends_on": {
     "macros": []
    },
@@ -16061,7 +16061,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3344011,
+   "created_at": 1794979302.691063,
    "depends_on": {
     "macros": []
    },
@@ -16096,7 +16096,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3976672,
+   "created_at": 1794979302.755695,
    "depends_on": {
     "macros": [
      "macro.dbt.default__string_literal"
@@ -16127,7 +16127,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.407565,
+   "created_at": 1794979302.765551,
    "depends_on": {
     "macros": [
      "macro.dbt.default__support_multiple_grantees_per_dcl_statement"
@@ -16174,7 +16174,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3625758,
+   "created_at": 1794979302.7201998,
    "depends_on": {
     "macros": [
      "macro.dbt.default__sync_column_schemas"
@@ -16205,7 +16205,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.382656,
+   "created_at": 1794979302.740514,
    "depends_on": {
     "macros": []
    },
@@ -16234,7 +16234,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.423402,
+   "created_at": 1794979302.7813098,
    "depends_on": {
     "macros": [
      "macro.dbt.default__test_accepted_values"
@@ -16265,7 +16265,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.423226,
+   "created_at": 1794979302.781148,
    "depends_on": {
     "macros": [
      "macro.dbt.default__test_not_null"
@@ -16296,7 +16296,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4235709,
+   "created_at": 1794979302.781471,
    "depends_on": {
     "macros": [
      "macro.dbt.default__test_relationships"
@@ -16327,7 +16327,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.4230819,
+   "created_at": 1794979302.781017,
    "depends_on": {
     "macros": [
      "macro.dbt.default__test_unique"
@@ -16364,7 +16364,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.40495,
+   "created_at": 1794979302.762861,
    "depends_on": {
     "macros": [
      "macro.dbt.default__truncate_relation"
@@ -16395,7 +16395,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.39875,
+   "created_at": 1794979302.7568011,
    "depends_on": {
     "macros": [
      "macro.dbt.default__type_bigint"
@@ -16426,7 +16426,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.399074,
+   "created_at": 1794979302.75713,
    "depends_on": {
     "macros": [
      "macro.dbt.default__type_boolean"
@@ -16457,7 +16457,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3984241,
+   "created_at": 1794979302.756466,
    "depends_on": {
     "macros": [
      "macro.dbt.default__type_float"
@@ -16488,7 +16488,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.398911,
+   "created_at": 1794979302.75697,
    "depends_on": {
     "macros": [
      "macro.dbt.default__type_int"
@@ -16519,7 +16519,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.398575,
+   "created_at": 1794979302.7566311,
    "depends_on": {
     "macros": [
      "macro.dbt.default__type_numeric"
@@ -16550,7 +16550,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3980968,
+   "created_at": 1794979302.756135,
    "depends_on": {
     "macros": [
      "macro.dbt.default__type_string"
@@ -16581,7 +16581,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.398269,
+   "created_at": 1794979302.756298,
    "depends_on": {
     "macros": [
      "macro.dbt.default__type_timestamp"
@@ -16618,7 +16618,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.342494,
+   "created_at": 1794979302.699148,
    "depends_on": {
     "macros": []
    },
@@ -16658,7 +16658,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.342979,
+   "created_at": 1794979302.699668,
    "depends_on": {
     "macros": []
    },
@@ -16698,7 +16698,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.342874,
+   "created_at": 1794979302.699564,
    "depends_on": {
     "macros": []
    },
@@ -16743,7 +16743,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3427682,
+   "created_at": 1794979302.699444,
    "depends_on": {
     "macros": [
      "macro.dbt.equals"
@@ -16780,7 +16780,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.371522,
+   "created_at": 1794979302.729287,
    "depends_on": {
     "macros": [
      "macro.dbt.default__unsupported_volatility_warning"
@@ -16827,7 +16827,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.411637,
+   "created_at": 1794979302.7696362,
    "depends_on": {
     "macros": []
    },
@@ -16867,7 +16867,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.420428,
+   "created_at": 1794979302.778592,
    "depends_on": {
     "macros": [
      "macro.dbt.default__validate_fixture_rows"
@@ -16904,7 +16904,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.406699,
+   "created_at": 1794979302.764647,
    "depends_on": {
     "macros": [
      "macro.dbt.default__validate_sql"
@@ -16951,7 +16951,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2910879,
+   "created_at": 1794979302.6479812,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__dispatch_temporary_relation",
@@ -17016,7 +17016,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2979279,
+   "created_at": 1794979302.6549,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__create_table_as"
@@ -17053,7 +17053,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.291496,
+   "created_at": 1794979302.6483588,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__flight_name"
@@ -17090,7 +17090,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.304883,
+   "created_at": 1794979302.661668,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -17127,7 +17127,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.302497,
+   "created_at": 1794979302.6595788,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -17164,7 +17164,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3062332,
+   "created_at": 1794979302.662969,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.may_be_foreign_key_target",
@@ -17207,7 +17207,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.307047,
+   "created_at": 1794979302.6637352,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb_escape_comment"
@@ -17254,7 +17254,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.307543,
+   "created_at": 1794979302.664174,
    "depends_on": {
     "macros": [
      "macro.dbt.run_query"
@@ -17296,7 +17296,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.30674,
+   "created_at": 1794979302.663448,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb_escape_comment"
@@ -17338,7 +17338,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.297008,
+   "created_at": 1794979302.6539462,
    "depends_on": {
     "macros": []
    },
@@ -17378,7 +17378,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2977622,
+   "created_at": 1794979302.654717,
    "depends_on": {
     "macros": []
    },
@@ -17413,7 +17413,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3296099,
+   "created_at": 1794979302.68618,
    "depends_on": {
     "macros": []
    },
@@ -17458,7 +17458,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.301923,
+   "created_at": 1794979302.6590679,
    "depends_on": {
     "macros": []
    },
@@ -17498,7 +17498,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2960799,
+   "created_at": 1794979302.652965,
    "depends_on": {
     "macros": [
      "macro.dbt.run_query"
@@ -17535,7 +17535,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.295688,
+   "created_at": 1794979302.652565,
    "depends_on": {
     "macros": [
      "macro.dbt.statement",
@@ -17598,7 +17598,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.29874,
+   "created_at": 1794979302.655755,
    "depends_on": {
     "macros": [
      "macro.dbt.get_assert_columns_equivalent",
@@ -17646,7 +17646,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.299229,
+   "created_at": 1794979302.6564322,
    "depends_on": {
     "macros": [
      "macro.dbt.get_assert_columns_equivalent"
@@ -17677,7 +17677,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.300732,
+   "created_at": 1794979302.65792,
    "depends_on": {
     "macros": []
    },
@@ -17722,7 +17722,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.328168,
+   "created_at": 1794979302.6847029,
    "depends_on": {
     "macros": []
    },
@@ -17767,7 +17767,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.328983,
+   "created_at": 1794979302.6855319,
    "depends_on": {
     "macros": []
    },
@@ -17812,7 +17812,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.329526,
+   "created_at": 1794979302.686105,
    "depends_on": {
     "macros": [
      "macro.dbt.datediff"
@@ -17854,7 +17854,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3006809,
+   "created_at": 1794979302.657872,
    "depends_on": {
     "macros": [
      "macro.dbt.run_query",
@@ -17893,7 +17893,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.299928,
+   "created_at": 1794979302.6571012,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -17930,7 +17930,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2958,
+   "created_at": 1794979302.652664,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -17967,7 +17967,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.291913,
+   "created_at": 1794979302.648683,
    "depends_on": {
     "macros": []
    },
@@ -18002,7 +18002,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.328696,
+   "created_at": 1794979302.6852312,
    "depends_on": {
     "macros": []
    },
@@ -18031,7 +18031,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.289272,
+   "created_at": 1794979302.646104,
    "depends_on": {
     "macros": []
    },
@@ -18060,7 +18060,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2891881,
+   "created_at": 1794979302.6460211,
    "depends_on": {
     "macros": []
    },
@@ -18100,7 +18100,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.29247,
+   "created_at": 1794979302.64917,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_catalog_tables_sql",
@@ -18141,7 +18141,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.292844,
+   "created_at": 1794979302.6495512,
    "depends_on": {
     "macros": []
    },
@@ -18181,7 +18181,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2926579,
+   "created_at": 1794979302.649361,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__get_catalog_tables_sql",
@@ -18222,7 +18222,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.293329,
+   "created_at": 1794979302.650038,
    "depends_on": {
     "macros": []
    },
@@ -18251,7 +18251,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2929,
+   "created_at": 1794979302.649607,
    "depends_on": {
     "macros": []
    },
@@ -18286,7 +18286,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2930691,
+   "created_at": 1794979302.649763,
    "depends_on": {
     "macros": []
    },
@@ -18321,7 +18321,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.292768,
+   "created_at": 1794979302.6494699,
    "depends_on": {
     "macros": []
    },
@@ -18356,7 +18356,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.299566,
+   "created_at": 1794979302.6567512,
    "depends_on": {
     "macros": [
      "macro.dbt.statement",
@@ -18399,7 +18399,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.302125,
+   "created_at": 1794979302.659263,
    "depends_on": {
     "macros": []
    },
@@ -18454,7 +18454,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.32421,
+   "created_at": 1794979302.6806998,
    "depends_on": {
     "macros": [
      "macro.dbt.get_quoted_csv"
@@ -18496,7 +18496,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.299364,
+   "created_at": 1794979302.656568,
    "depends_on": {
     "macros": [
      "macro.dbt.run_query"
@@ -18533,7 +18533,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3009548,
+   "created_at": 1794979302.658154,
    "depends_on": {
     "macros": [
      "macro.dbt.get_incremental_delete_insert_sql"
@@ -18570,7 +18570,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.319629,
+   "created_at": 1794979302.676065,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.normalize_incremental_predicates",
@@ -18608,7 +18608,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3235579,
+   "created_at": 1794979302.680058,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.normalize_incremental_predicates",
@@ -18666,7 +18666,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.322515,
+   "created_at": 1794979302.678997,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.normalize_incremental_predicates",
@@ -18713,7 +18713,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.296931,
+   "created_at": 1794979302.65386,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.normalize_string_or_list"
@@ -18755,7 +18755,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.29768,
+   "created_at": 1794979302.6546402,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.normalize_string_or_list"
@@ -18797,7 +18797,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.331115,
+   "created_at": 1794979302.687697,
    "depends_on": {
     "macros": [
      "macro.dbt.dateadd",
@@ -18836,7 +18836,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.299757,
+   "created_at": 1794979302.656933,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -18873,7 +18873,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.295947,
+   "created_at": 1794979302.652817,
    "depends_on": {
     "macros": [
      "macro.dbt.run_query"
@@ -18925,7 +18925,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.32925,
+   "created_at": 1794979302.6858082,
    "depends_on": {
     "macros": []
    },
@@ -18965,7 +18965,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.290207,
+   "created_at": 1794979302.647072,
    "depends_on": {
     "macros": [
      "macro.dbt.get_batch_size",
@@ -19009,7 +19009,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.30027,
+   "created_at": 1794979302.657436,
    "depends_on": {
     "macros": [
      "macro.dbt.py_current_timestring"
@@ -19056,7 +19056,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.319353,
+   "created_at": 1794979302.67577,
    "depends_on": {
     "macros": []
    },
@@ -19091,7 +19091,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.291182,
+   "created_at": 1794979302.648074,
    "depends_on": {
     "macros": [
      "macro.dbt.drop_relation"
@@ -19133,7 +19133,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.300076,
+   "created_at": 1794979302.6572568,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -19164,7 +19164,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.300884,
+   "created_at": 1794979302.658082,
    "depends_on": {
     "macros": [
      "macro.dbt.current_timestamp"
@@ -19211,7 +19211,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.290806,
+   "created_at": 1794979302.647697,
    "depends_on": {
     "macros": [
      "macro.dbt.get_snapshot_table_column_names"
@@ -19248,7 +19248,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.300831,
+   "created_at": 1794979302.6580129,
    "depends_on": {
     "macros": []
    },
@@ -19293,7 +19293,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.330868,
+   "created_at": 1794979302.687445,
    "depends_on": {
     "macros": []
    },
@@ -19328,7 +19328,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3066099,
+   "created_at": 1794979302.6633239,
    "depends_on": {
     "macros": []
    },
@@ -19357,7 +19357,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.305469,
+   "created_at": 1794979302.6622238,
    "depends_on": {
     "macros": []
    },
@@ -19392,7 +19392,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3056152,
+   "created_at": 1794979302.662376,
    "depends_on": {
     "macros": []
    },
@@ -19432,7 +19432,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3314,
+   "created_at": 1794979302.687982,
    "depends_on": {
     "macros": []
    },
@@ -19467,7 +19467,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2914088,
+   "created_at": 1794979302.6482718,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.duckdb__flight_name"
@@ -19498,7 +19498,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.296319,
+   "created_at": 1794979302.653218,
    "depends_on": {
     "macros": []
    },
@@ -19533,7 +19533,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.305804,
+   "created_at": 1794979302.662564,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.enforced_constraint_types",
@@ -19571,7 +19571,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.301028,
+   "created_at": 1794979302.6582289,
    "depends_on": {
     "macros": []
    },
@@ -19606,7 +19606,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.314837,
+   "created_at": 1794979302.671306,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.external_location",
@@ -19661,7 +19661,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.318028,
+   "created_at": 1794979302.674437,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation",
@@ -19724,7 +19724,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.310315,
+   "created_at": 1794979302.666954,
    "depends_on": {
     "macros": [
      "macro.dbt.load_cached_relation",
@@ -19784,7 +19784,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.308314,
+   "created_at": 1794979302.6649349,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.run_hooks",
@@ -19825,7 +19825,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3060281,
+   "created_at": 1794979302.6627572,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.enforced_constraint_types",
@@ -19883,7 +19883,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.328049,
+   "created_at": 1794979302.684593,
    "depends_on": {
     "macros": []
    },
@@ -19918,7 +19918,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.327635,
+   "created_at": 1794979302.684166,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.normalize_string_or_list"
@@ -19960,7 +19960,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.328605,
+   "created_at": 1794979302.68515,
    "depends_on": {
     "macros": []
    },
@@ -20015,7 +20015,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.2990148,
+   "created_at": 1794979302.6561332,
    "depends_on": {
     "macros": []
    },
@@ -20044,7 +20044,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.330744,
+   "created_at": 1794979302.687316,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.external_location",
@@ -20083,7 +20083,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3018072,
+   "created_at": 1794979302.658952,
    "depends_on": {
     "macros": []
    },
@@ -20118,7 +20118,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.305095,
+   "created_at": 1794979302.661865,
    "depends_on": {
     "macros": []
    },
@@ -20158,7 +20158,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.310648,
+   "created_at": 1794979302.667291,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -20215,7 +20215,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.301304,
+   "created_at": 1794979302.658488,
    "depends_on": {
     "macros": []
    },
@@ -20260,7 +20260,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.327549,
+   "created_at": 1794979302.6840892,
    "depends_on": {
     "macros": []
    },
@@ -20305,7 +20305,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.326913,
+   "created_at": 1794979302.68343,
    "depends_on": {
     "macros": []
    },
@@ -20350,7 +20350,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.326454,
+   "created_at": 1794979302.682973,
    "depends_on": {
     "macros": []
    },
@@ -20395,7 +20395,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.326089,
+   "created_at": 1794979302.6826,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.validate_merge_clause_list"
@@ -20437,7 +20437,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.325241,
+   "created_at": 1794979302.681718,
    "depends_on": {
     "macros": [
      "macro.dbt_duckdb.validate_string_field",
@@ -20488,7 +20488,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3271658,
+   "created_at": 1794979302.683688,
    "depends_on": {
     "macros": []
    },
@@ -20533,7 +20533,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.3274188,
+   "created_at": 1794979302.683949,
    "depends_on": {
     "macros": []
    },
@@ -20578,7 +20578,7 @@
     },
     "meta": {}
    },
-   "created_at": 1794979074.301137,
+   "created_at": 1794979302.658338,
    "depends_on": {
     "macros": [
      "macro.dbt.statement"
@@ -20606,9 +20606,9 @@
   "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
   "dbt_version": "1.12.7",
   "env": {},
-  "generated_at": "2026-11-18T05:17:54.248834Z",
-  "invocation_id": "93819873-c6b0-405e-9ab4-95dcfb50f22b",
-  "invocation_started_at": "2026-11-18T05:17:54.055594Z",
+  "generated_at": "2026-11-18T05:21:42.607880Z",
+  "invocation_id": "7af19a31-9c81-4227-81f0-6bd445a399ec",
+  "invocation_started_at": "2026-11-18T05:21:42.428171Z",
   "project_id": "c769c2bd15500dd906102d9be97fdceb",
   "project_name": "marketing",
   "quoting": {
@@ -20617,7 +20617,7 @@
    "identifier": true,
    "schema": true
   },
-  "run_started_at": "2026-11-18T05:17:54.055752+00:00",
+  "run_started_at": "2026-11-18T05:21:42.428321+00:00",
   "send_anonymous_usage_stats": false,
   "user_id": null
  },
@@ -20700,7 +20700,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1794979074.7675798,
+   "created_at": 1794979303.120948,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -20864,7 +20864,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1794979074.768695,
+   "created_at": 1794979303.122167,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -21067,7 +21067,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1794979074.768439,
+   "created_at": 1794979303.121873,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -21260,7 +21260,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1794979074.7664099,
+   "created_at": 1794979303.119732,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -21422,7 +21422,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1794979074.765791,
+   "created_at": 1794979303.119148,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -21550,7 +21550,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1794979074.800982,
+   "created_at": 1794979303.15377,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -21685,7 +21685,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1794979074.801323,
+   "created_at": 1794979303.1541052,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -21772,7 +21772,7 @@
     "tags": [],
     "unique_key": null
    },
-   "created_at": 1794979074.698433,
+   "created_at": 1794979303.0534132,
    "database": "memory",
    "depends_on": {
     "macros": []
@@ -21855,7 +21855,7 @@
     "static_analysis": null,
     "tags": []
    },
-   "created_at": 1794979074.8088372,
+   "created_at": 1794979303.161334,
    "database": "memory",
    "description": "Campaign metadata.",
    "doc_blocks": [],
@@ -21932,7 +21932,7 @@
     "static_analysis": null,
     "tags": []
    },
-   "created_at": 1794979074.809439,
+   "created_at": 1794979303.161929,
    "database": "memory",
    "description": "Daily spend per campaign.",
    "doc_blocks": [],

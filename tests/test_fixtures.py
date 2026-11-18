@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
 FIXTURES = Path(__file__).parent / "fixtures"
 MANIFESTS = FIXTURES / "manifests"
@@ -138,3 +139,41 @@ def test_skills_on_disk() -> None:
 def test_bad_project_has_no_committed_manifest() -> None:
     # `check --project-dir tests/fixtures/projects/bad` must hit manifest_missing.
     assert not (PROJECTS / "bad" / "target" / "manifest.json").exists()
+
+
+def test_finance_has_disabled_model() -> None:
+    for name in ("finance", "finance_v2"):
+        assert "model.finance.legacy_revenue" in load(name)["disabled"]
+
+
+def test_finance_meta_tags_and_data_types() -> None:
+    rev = models(load("finance"))["model.finance.fct_revenue"]
+    assert rev["config"]["meta"]["owner"] == "revenue-team"
+    customers = models(load("finance"))["model.finance.dim_customers"]
+    assert customers["meta"]["tier"] == "gold"
+    assert set(rev["tags"]) == {"finance", "revenue"}
+    assert rev["columns"]["invoice_date"]["data_type"] == "date"
+    assert rev["columns"]["invoice_date"]["meta"] == {"grain": "day"}
+    assert rev["columns"]["customer_id"]["data_type"] is None
+
+
+def frontmatter_uses(text: str) -> dict[str, list[str]]:
+    _, front, _ = text.split("---\n", 2)
+    uses: dict[str, list[str]] = yaml.safe_load(front)["uses"]
+    return uses
+
+
+@pytest.mark.parametrize("name", ["finance", "finance_v2", "marketing"])
+def test_clean_fixture_skill_uses_resolve(name: str) -> None:
+    # Schemas match exactly; tables match schema.alias case-insensitively (SPEC 8).
+    published = models(load(name)).values()
+    schemas = {m["schema"] for m in published}
+    tables = {f"{m['schema']}.{m['alias']}".lower() for m in published}
+    root = PROJECTS / name / "agents" / "skills"
+    for path in root.rglob("*.md"):
+        text = path.read_text()
+        if not text.startswith("---\n"):
+            continue
+        uses = frontmatter_uses(text)
+        assert set(uses.get("schemas", [])) <= schemas, path
+        assert {t.lower() for t in uses.get("tables", [])} <= tables, path

@@ -1,6 +1,6 @@
 ---
 uses:
-  schemas: [FINANCE_MARTS]
+  schemas: [finance_marts]
   tables: [FINANCE_MARTS.FCT_PAYMENTS]
 ---
 # Payment reconciliation
