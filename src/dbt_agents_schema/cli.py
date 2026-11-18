@@ -26,6 +26,7 @@ from dbt_agents_schema.credentials import (
     from_env,
 )
 from dbt_agents_schema.gitinfo import detect_git
+from dbt_agents_schema.parse_profile import write_parse_profile
 from dbt_agents_schema.publish import publish, unpublish
 from dbt_agents_schema.writers.factory import ensure_writer_available, open_writer
 
@@ -127,6 +128,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--project", default=None, help="project key to remove (default: this project's key)"
     )
     unpub.add_argument("--yes", action="store_true", help="do not ask for confirmation")
+
+    wpp = commands.add_parser(
+        "write-parse-profile",
+        parents=[common],
+        help="write a minimal profiles.yml from WAREHOUSE_CREDENTIALS for `dbt parse` in CI",
+        description=(
+            "Write <out>/profiles.yml for `dbt parse` from WAREHOUSE_CREDENTIALS. No secret "
+            "is written. Set `schema` (BigQuery: `dataset`) in WAREHOUSE_CREDENTIALS to the "
+            "dbt target schema."
+        ),
+    )
+    wpp.add_argument("--out", required=True, help="directory to write profiles.yml into")
     return parser
 
 
@@ -139,6 +152,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _cmd_publish(args)
     if args.command == "unpublish":
         return _cmd_unpublish(args)
+    if args.command == "write-parse-profile":
+        return _cmd_write_parse_profile(args)
     parser.print_help()
     return EXIT_OK
 
@@ -262,6 +277,16 @@ def _cmd_unpublish(args: argparse.Namespace) -> int:
         target_schema=connection.target_schema,
         target_database=connection.target_database,
     )
+
+
+def _cmd_write_parse_profile(args: argparse.Namespace) -> int:
+    try:
+        path = write_parse_profile(Path(args.project_dir), Path(args.out), os.environ)
+    except CredentialError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_INPUT_ERROR
+    print(f"wrote {path}; set DBT_PROFILES_DIR={path.parent} for `dbt parse`")
+    return EXIT_OK
 
 
 def _connection(args: argparse.Namespace) -> tuple[Config, Connection]:

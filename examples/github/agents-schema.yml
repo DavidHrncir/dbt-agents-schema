@@ -1,0 +1,41 @@
+# Example caller: copy to .github/workflows/agents-schema.yml in your dbt project repo.
+# Checks on every pull request (findings annotate the PR) and publishes on push to main.
+# Set the WAREHOUSE_CREDENTIALS repository secret (and optionally DBT_PROFILES_YML).
+# Pin `uses:` to a release tag and set package-version to the same release.
+name: agents-schema
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: github.event_name == 'pull_request'
+    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.1.0
+    with:
+      mode: check
+      package-version: "0.1.0"
+      dbt-adapter: dbt-snowflake
+    secrets:
+      WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
+      DBT_PROFILES_YML: ${{ secrets.DBT_PROFILES_YML }}
+
+  publish:
+    if: github.event_name == 'push'
+    # Two publishes of the same project never overlap; a newer one waits, never cancels.
+    concurrency:
+      group: dbt-agents-schema-${{ github.repository }}
+      cancel-in-progress: false
+    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.1.0
+    with:
+      mode: publish
+      package-version: "0.1.0"
+      dbt-adapter: dbt-snowflake
+      environment: prod
+    secrets:
+      WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
+      DBT_PROFILES_YML: ${{ secrets.DBT_PROFILES_YML }}

@@ -1,0 +1,128 @@
+# Reusable workflow: check or publish a dbt project's metadata to its agents schema.
+# SPEC 10.1. Holds no publishing logic: it installs a pinned dbt-agents-schema, runs
+# `dbt deps` and `dbt parse`, then calls the CLI. See examples/github/agents-schema.yml.
+name: dbt-agents-schema
+
+on:
+  workflow_call:
+    inputs:
+      project-dir:
+        description: dbt project directory, relative to the repository root.
+        type: string
+        default: "."
+      package-version:
+        description: Exact dbt-agents-schema version to install, for example 0.1.0.
+        type: string
+        required: true
+      python-version:
+        description: Python version.
+        type: string
+        default: "3.12"
+      dbt-adapter:
+        description: dbt adapter package, for example dbt-snowflake.
+        type: string
+        required: true
+      dbt-version:
+        description: dbt-core version specifier.
+        type: string
+        default: ">=1.8,<2"
+      mode:
+        description: "`check` (annotate the pull request) or `publish`."
+        type: string
+        required: true
+      environment:
+        description: Environment name from agents_schema.yml, used by publish.
+        type: string
+        default: prod
+    secrets:
+      WAREHOUSE_CREDENTIALS:
+        description: Warehouse credentials document. Required for publish.
+        required: false
+      DBT_PROFILES_YML:
+        description: Optional profiles.yml for `dbt parse`. When absent, write-parse-profile builds one from WAREHOUSE_CREDENTIALS.
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  dbt-agents-schema:
+    name: dbt-agents-schema ${{ inputs.mode }}
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_DIR: ${{ inputs.project-dir }}
+      PACKAGE_VERSION: ${{ inputs.package-version }}
+      DBT_ADAPTER: ${{ inputs.dbt-adapter }}
+      DBT_VERSION: ${{ inputs.dbt-version }}
+      MODE: ${{ inputs.mode }}
+      AGENTS_ENVIRONMENT: ${{ inputs.environment }}
+      WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
+      DBT_PROFILES_YML: ${{ secrets.DBT_PROFILES_YML }}
+      DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
+    steps:
+      - name: Validate inputs
+        shell: bash
+        run: |
+          case "$MODE" in
+            check|publish) ;;
+            *) echo "::error::input mode must be 'check' or 'publish', got '$MODE'"; exit 2 ;;
+          esac
+          case "$DBT_ADAPTER" in
+            dbt-snowflake|dbt-bigquery|dbt-databricks|dbt-duckdb) ;;
+            *) echo "::error::input dbt-adapter must be one of dbt-snowflake, dbt-bigquery, dbt-databricks, dbt-duckdb; got '$DBT_ADAPTER'"; exit 2 ;;
+          esac
+          if [ "$MODE" = publish ] && [ -z "$WAREHOUSE_CREDENTIALS" ]; then
+            echo "::error::mode publish needs the WAREHOUSE_CREDENTIALS secret; pass it from the caller under secrets:"
+            exit 2
+          fi
+          # Outside the checkout, so the profile is never committed or uploaded.
+          echo "DBT_PROFILES_DIR=$RUNNER_TEMP/dbt-agents-schema-profiles" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install dbt and dbt-agents-schema
+        shell: bash
+        run: |
+          EXTRA="${DBT_ADAPTER#dbt-}"
+          python -m pip install --upgrade pip
+          python -m pip install "dbt-core${DBT_VERSION}" "${DBT_ADAPTER}" \
+            "dbt-agents-schema[${EXTRA}]==${PACKAGE_VERSION}"
+          dbt --version
+          dbt-agents-schema --version
+
+      - name: Write profiles.yml for dbt parse
+        shell: bash
+        run: |
+          mkdir -p "$DBT_PROFILES_DIR"
+          if [ -n "$DBT_PROFILES_YML" ]; then
+            umask 077
+            printf '%s\n' "$DBT_PROFILES_YML" > "$DBT_PROFILES_DIR/profiles.yml"
+          else
+            dbt-agents-schema write-parse-profile --project-dir "$PROJECT_DIR" --out "$DBT_PROFILES_DIR"
+          fi
+
+      - name: dbt deps and dbt parse
+        shell: bash
+        working-directory: ${{ inputs.project-dir }}
+        run: |
+          dbt deps
+          dbt parse
+
+      - name: Check
+        if: inputs.mode == 'check'
+        shell: bash
+        run: dbt-agents-schema check --project-dir "$PROJECT_DIR" --format github
+
+      - name: Publish
+        if: inputs.mode == 'publish'
+        shell: bash
+        run: dbt-agents-schema publish --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT"
+
+      - name: Remove profiles.yml
+        if: always()
+        shell: bash
+        run: rm -rf "$DBT_PROFILES_DIR"

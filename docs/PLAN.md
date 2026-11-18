@@ -184,7 +184,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   the matching dialect; the DuckDB acceptance test runs every DuckDB example query
   against a schema holding finance and marketing and each returns rows.
 
-- [ ] **T22 GitHub reusable workflow.** Per SPEC 10.1, plus `write-parse-profile`.
+- [x] **T22 GitHub reusable workflow.** Per SPEC 10.1, plus `write-parse-profile`.
   **Done when:** the workflow and example caller pass `check-jsonschema --builtin-schema
   vendor.github-workflows` (and `actionlint` if installed); `write-parse-profile` has
   tests for each warehouse type.
