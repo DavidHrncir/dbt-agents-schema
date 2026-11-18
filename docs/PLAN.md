@@ -125,7 +125,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   **Done when:** all six scenarios pass. This test is the project's definition of done;
   never weaken it.
 
-- [ ] **T14 Credentials and `publish` command.** Resolve credentials for
+- [x] **T14 Credentials and `publish` command.** Resolve credentials for
   `credentials: env` and `credentials: dbt_profile` (DuckDB first), git metadata, spec
   version guard, `--dry-run`, `unpublish`.
   **Done when:** CLI tests publish the finance fixture to a DuckDB file through both
