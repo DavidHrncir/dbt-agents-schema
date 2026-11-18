@@ -169,3 +169,14 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - Git metadata: GitHub vars, then GitLab vars, then `git remote get-url origin` / `rev-parse` (detached HEAD gives a null branch), then null. `clean_repo_url` always drops userinfo, strips `.git` and trailing `/`, and maps SSH and scp-style remotes (`git@host:a/b.git`) to `https://host/a/b`. Without that, a local ssh remote would trip the ownership guard against the CI https URL.
   - `unpublish` also accepts `--target`/`--profiles-dir` (needed for dbt_profile envs). Without `--yes` and stdin not a TTY it exits 2 before connecting. On a TTY it asks for the project key to be typed, and any other answer exits 2 with nothing deleted. Its default project key comes from config/`dbt_project.yml`, because unpublish does not need a manifest.
   - `publish` loads the config once up front to find the environment's credential kind. An unknown `--env` or invalid config exits 2 before check runs.
+
+## T15 Phase 2 review — done
+- Reviewer: Phase 2 review: 0 blockers, 1 should-fix, 3 nits
+- Fixed (should-fix):
+  - A DuckDB `path` carrying a MotherDuck token (`…?motherduck_token=…`) was echoed twice in connect errors. `writers/duckdb.py` now prints `redact_path(path)` (query string replaced by `<redacted>`) and scrubs the path and any `token=` value from driver messages, in both `connect` and `_guard`. Test: test_duckdb_path_token_never_printed, test_redact_path.
+- Fixed (nits):
+  - Check errors now win over credential errors. When credentials fail to resolve, `publish` runs the check, and if it has error findings it prints them and exits 1 (SPEC 6: check before connect). Test: test_check_errors_win_over_credential_errors.
+  - `unpublish` applies the spec version guard (exit 2, nothing deleted) when `DBT_PROJECT` holds a newer `spec_version`. Test: test_unpublish_refuses_newer_spec_version.
+  - A dbt-duckdb profile without `database` gives `target_database` = the file stem of `path` (`memory` for `:memory:`, the database name for `md:` paths), matching dbt-duckdb. Tests: test_profile_duckdb_target_database[*], test_profile_duckdb_no_path_is_memory.
+- Changed: src/dbt_agents_schema/{cli,credentials,publish}.py, src/dbt_agents_schema/writers/duckdb.py, tests/test_{cli_publish,credentials,duckdb_writer}.py
+- Evidence: `make verify` exit 0 (`417 passed`); `tests/acceptance/test_multi_project.py`: 6 passed (scenarios 1–6).

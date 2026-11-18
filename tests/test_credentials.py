@@ -271,3 +271,28 @@ def test_profile_unsupported_jinja_names_key(tmp_path: Path) -> None:
     )
     with pytest.raises(CredentialError, match=r"outputs\.dev\.schema"):
         from_dbt_profile(project, profiles_dir=tmp_path / "profiles", target=None, environ={})
+
+
+@pytest.mark.parametrize(
+    ("path_line", "expected"),
+    [
+        ("path: /data/warehouse.duckdb", "warehouse"),
+        ("path: ':memory:'", "memory"),
+        ("path: /data/w.duckdb\n      database: explicit", "explicit"),
+    ],
+)
+def test_profile_duckdb_target_database(tmp_path: Path, path_line: str, expected: str) -> None:
+    project = write_project(
+        tmp_path,
+        f"finance:\n  target: dev\n  outputs:\n    dev:\n      type: duckdb\n      {path_line}\n",
+    )
+    conn = from_dbt_profile(project, profiles_dir=tmp_path / "profiles", target=None, environ={})
+    assert conn.target_database == expected
+
+
+def test_profile_duckdb_no_path_is_memory(tmp_path: Path) -> None:
+    project = write_project(
+        tmp_path, "finance:\n  target: dev\n  outputs:\n    dev:\n      type: duckdb\n"
+    )
+    conn = from_dbt_profile(project, profiles_dir=tmp_path / "profiles", target=None, environ={})
+    assert conn.target_database == "memory"

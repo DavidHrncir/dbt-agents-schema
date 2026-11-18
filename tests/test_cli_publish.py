@@ -350,3 +350,51 @@ def test_unpublish_prompts_on_tty(
     monkeypatch.setattr("sys.stdin", _Tty(answer))
     assert main(["unpublish", "--env", "prod", "--project-dir", str(FINANCE)]) == code
     assert table_counts(db, "AGENTS")["DBT_PROJECT"] == remaining
+
+
+# --- T15 review fixes ---------------------------------------------------------------------
+
+
+def test_duckdb_path_token_never_printed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.DEBUG)
+    path = f"{tmp_path}/no_dir/db.duckdb?motherduck_token={SECRET}"
+    monkeypatch.setenv("WAREHOUSE_CREDENTIALS", json.dumps({"type": "duckdb", "path": path}))
+    assert main(["publish", "--env", "prod", *finance_args()]) == 3
+    captured = capsys.readouterr()
+    assert "no_dir" in captured.err  # still names the file
+    assert SECRET not in captured.out + captured.err + caplog.text
+
+
+def test_check_errors_win_over_credential_errors(capsys: pytest.CaptureFixture[str]) -> None:
+    # No WAREHOUSE_CREDENTIALS: SPEC 6 checks (exit 1) before connecting (exit 2).
+    code = main(
+        [
+            "publish",
+            "--env",
+            "prod",
+            "--project-dir",
+            str(PROJECTS / "bad"),
+            "--manifest",
+            str(MANIFESTS / "bad.json"),
+        ]
+    )
+    assert code == 1
+
+
+def test_unpublish_refuses_newer_spec_version(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = tmp_path / "w.duckdb"
+    publish_both(db, monkeypatch)
+    con = duckdb.connect(str(db))
+    con.execute('UPDATE "AGENTS"."DBT_PROJECT" SET spec_version = 2')
+    con.close()
+    before = table_counts(db, "AGENTS")
+    assert main(["unpublish", "--env", "prod", "--project-dir", str(FINANCE), "--yes"]) == 2
+    assert "spec_version 2" in capsys.readouterr().err
+    assert table_counts(db, "AGENTS") == before

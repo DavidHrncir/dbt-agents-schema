@@ -133,7 +133,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   called); dev environment renders `<target_schema>_AGENTS` from the fixture profile;
   secrets never appear in output (assert on captured logs).
 
-- [ ] **T15 Phase 2 review.** Run the `spec-reviewer` subagent on Phases 1–2 together.
+- [x] **T15 Phase 2 review.** Run the `spec-reviewer` subagent on Phases 1–2 together.
   Fix correctness findings. Log the result.
 
 ## Phase 3 — Warehouses

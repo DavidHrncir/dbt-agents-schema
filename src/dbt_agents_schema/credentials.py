@@ -260,16 +260,26 @@ def from_dbt_profile(
 
 
 def _map_duckdb(output: Mapping[str, Any], source: str) -> Connection:
-    path = output.get("path") or ":memory:"
+    path = str(output.get("path") or ":memory:")
     schema = output.get("schema") or "main"
-    database = output.get("database")
+    # dbt-duckdb names the catalog after the file stem (`memory` for `:memory:`).
+    database = output.get("database") or _duckdb_catalog(path)
     return Connection(
         warehouse="duckdb",
         source=source,
-        settings={"path": str(path)},
+        settings={"path": path},
         target_schema=str(schema),
         target_database=str(database) if database else None,
     )
+
+
+def _duckdb_catalog(path: str) -> str:
+    if path == ":memory:" or path.startswith(":memory:"):
+        return "memory"
+    base = path.partition("?")[0]
+    if base.startswith("md:") or base.startswith("motherduck:"):
+        return base.split(":", 1)[1] or "my_db"
+    return Path(base).stem
 
 
 def _profile_name(project_dir: Path) -> str:

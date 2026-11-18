@@ -343,3 +343,11 @@ def test_connect_from_path_and_close_twice(tmp_path: Path) -> None:
 def test_connect_bad_path_is_warehouse_error(tmp_path: Path) -> None:
     with pytest.raises(WarehouseError, match="no_dir"):
         DuckDBWriter.connect(str(tmp_path / "no_dir" / "x.duckdb"), database=None, schema="A")
+
+
+def test_redact_path() -> None:
+    from dbt_agents_schema.writers.duckdb import redact_path
+
+    assert redact_path("md:db?motherduck_token=abc&x=1") == "md:db?<redacted>"
+    assert redact_path("/a/b.duckdb") == "/a/b.duckdb"
+    assert redact_path("md:db?token=abc") == "md:db?<redacted>"

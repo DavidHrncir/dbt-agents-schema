@@ -190,6 +190,21 @@ def _cmd_publish(args: argparse.Namespace) -> int:
         if not args.dry_run:
             ensure_writer_available(connection.warehouse)
     except (ConfigError, CredentialError) as exc:
+        # SPEC 6 runs the check (exit 1) before connecting (exit 2): report check
+        # errors first so they are not hidden behind a credential problem.
+        checked = check_project(
+            project_dir,
+            config_path=Path(args.config) if args.config else None,
+            manifest_path=Path(args.manifest) if args.manifest else None,
+        )
+        if (
+            checked.has_errors
+            and not checked.manifest_missing
+            and not any(f.rule == "config_invalid" for f in checked.findings)
+        ):
+            sys.stdout.write(format_text(checked))
+            print("error: check found errors; nothing was published", file=sys.stderr)
+            return EXIT_CHECK_ERRORS
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_INPUT_ERROR
     outcome = publish(

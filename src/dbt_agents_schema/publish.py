@@ -211,6 +211,14 @@ def unpublish(
     try:
         writer = writer_factory(target)
         try:
+            newest = writer.max_spec_version()
+            if newest is not None and newest > SPEC_VERSION:
+                err.write(
+                    f"error: {where} holds DBT_PROJECT rows with spec_version {newest}, newer "
+                    f"than this tool's spec_version {SPEC_VERSION}; upgrade "
+                    "dbt-agents-schema before unpublishing here\n"
+                )
+                return EXIT_CONFIG
             result = writer.unpublish(key)
         finally:
             writer.close()

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from typing import Any, TypeVar
@@ -39,6 +40,7 @@ class DuckDBWriter:
         self._schema = schema
         self._owns_connection = False
         self._closed = False
+        self._path: str | None = None
         self._error_types: tuple[type[BaseException], ...] = _duckdb_errors()
 
     @classmethod
@@ -48,13 +50,16 @@ class DuckDBWriter:
         try:
             con = duckdb.connect(path)
         except duckdb.Error as exc:
+            # The path may carry a token (`md:db?motherduck_token=...`); never echo it raw.
             raise WarehouseError(
-                f"DuckDB: cannot open database file {path!r}: {exc}. Fix the `path` in "
-                "the credentials, and make sure its directory exists"
-            ) from exc
+                f"DuckDB: cannot open database file {redact_path(path)!r}: "
+                f"{_scrub(str(exc), path)}. Fix the `path` in the credentials, and make "
+                "sure its directory exists"
+            ) from None
         con.execute("SET TimeZone = 'UTC'")
         writer = cls(con, database=database, schema=schema)
         writer._owns_connection = True
+        writer._path = path
         return writer
 
     # --- Writer protocol --------------------------------------------------------------
@@ -165,7 +170,9 @@ class DuckDBWriter:
             return fn()
         except self._error_types as exc:
             where = DIALECT.qualified(self._database, self._schema)
-            raise WarehouseError(f"DuckDB: could not {action} in {where}: {exc}") from exc
+            raise WarehouseError(
+                f"DuckDB: could not {action} in {where}: {_scrub(str(exc), self._path)}"
+            ) from None
 
     @contextmanager
     def _transaction(self) -> Iterator[None]:
@@ -227,6 +234,21 @@ class DuckDBWriter:
             sql,
             [[json.dumps(row[c]) if c in json_cols else row[c] for c in cols] for row in rows],
         )
+
+
+_TOKEN = re.compile(r"(token=)[^&\s'\"]+", re.IGNORECASE)
+
+
+def redact_path(path: str) -> str:
+    """`path` without its query string, which may hold a MotherDuck token."""
+    base, sep, _ = path.partition("?")
+    return f"{base}?<redacted>" if sep else path
+
+
+def _scrub(text: str, path: str | None) -> str:
+    if path and path != redact_path(path):
+        text = text.replace(path, redact_path(path))
+    return _TOKEN.sub(r"\1<redacted>", text)
 
 
 def _duckdb_errors() -> tuple[type[BaseException], ...]:
