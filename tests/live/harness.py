@@ -141,7 +141,8 @@ def scenario_3_ownership_guard(lt: LiveTarget) -> None:
 
 def scenario_5_newer_spec_version_refuses(lt: LiveTarget) -> None:
     lt.publish("marketing")
-    lt.query(f"UPDATE {lt.table('DBT_PROJECT')} SET {lt.col('spec_version')} = 2", [])
+    # BigQuery requires a WHERE clause on UPDATE.
+    lt.query(f"UPDATE {lt.table('DBT_PROJECT')} SET {lt.col('spec_version')} = 2 WHERE TRUE", [])
     before = lt.snapshot()
     outcome, text = lt.publish("finance")
     assert outcome.exit_code == 2

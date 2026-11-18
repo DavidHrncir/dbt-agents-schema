@@ -23,6 +23,14 @@ def _no_warehouse_network(request: pytest.FixtureRequest, monkeypatch: pytest.Mo
         return
     try:
         snowflake = importlib.import_module("snowflake.connector")
+        monkeypatch.setattr(snowflake, "connect", _offline(snowflake.errors.DatabaseError))
     except ImportError:
-        return
-    monkeypatch.setattr(snowflake, "connect", _offline(snowflake.errors.DatabaseError))
+        pass
+    try:
+        bigquery = importlib.import_module("google.cloud.bigquery")
+        google_auth = importlib.import_module("google.auth")
+        auth_errors = importlib.import_module("google.auth.exceptions")
+        monkeypatch.setattr(bigquery, "Client", _offline(auth_errors.GoogleAuthError))
+        monkeypatch.setattr(google_auth, "default", _offline(auth_errors.DefaultCredentialsError))
+    except ImportError:
+        pass

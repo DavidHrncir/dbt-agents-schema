@@ -152,7 +152,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   text), rollback on error, and quoting of odd identifiers; live test exists and skips
   cleanly.
 
-- [ ] **T17 BigQuery writer.** DDL outside the transaction; swap inside one
+- [x] **T17 BigQuery writer.** DDL outside the transaction; swap inside one
   multi-statement transaction script; rows staged through a load job into a temporary
   table or passed as `UNNEST` of a STRUCT array parameter, chosen by row volume; JSON
   columns as `JSON`.
