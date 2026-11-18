@@ -149,3 +149,12 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - JSON columns are bound as `json.dumps` text. Timestamps are bound as aware datetimes into TIMESTAMPTZ. A connection the writer opens itself (`DuckDBWriter.connect`) runs `SET TimeZone = 'UTC'`.
   - `read_project_row`, `max_spec_version` and `unpublish` return None or 0 when the tables do not exist yet, so the guards and `unpublish` never create structure.
   - The dbt Labs table shape used in tests (`tests/fakes.py::DBT_LABS_TABLES`) is the SPEC 5 tables minus every column marked "new", with no DBT_PROJECT table.
+
+## T13 Acceptance test: many projects, one schema — done
+- Changed: tests/acceptance/test_multi_project.py (new), src/dbt_agents_schema/publish.py (new), pyproject.toml (`pythonpath = ["tests"]` so acceptance tests can import `fakes`)
+- Evidence: `make verify` exit 0 (`341 passed`); `uv run pytest tests/acceptance/test_multi_project.py -v`: test_1_two_projects_share_one_schema PASSED, test_2_republish_one_project_leaves_the_other_untouched PASSED, test_3_ownership_guard PASSED (exit 4, then 0 with force), test_4_migrates_dbt_labs_tables PASSED ("legacy rows removed: 8"), test_5_newer_spec_version_refuses PASSED (exit 2), test_6_unpublish_removes_only_that_project PASSED — 6 passed
+- Decisions:
+  - The scenarios need publish exit codes before the CLI exists (T14). So the orchestration lives in `dbt_agents_schema.publish`: `publish(project_dir, env=, warehouse=, writer_factory=, git=, out=, err=, …) -> PublishOutcome` and `unpublish(...) -> int`. T14 adds credential resolution, git detection and the CLI on top. The acceptance test drives these functions against a DuckDB file.
+  - Order within publish: check → plan → connect → spec version guard → ensure structure → ownership guard → swap. The spec guard runs before `ensure_structure`, so an older tool never ALTERs a newer schema; that is what SPEC 6's guard intends. The ownership guard follows SPEC order (after ensure). A refused publish leaves every row unchanged (asserted).
+  - Publish exit codes: `config_invalid` and a missing or unreadable manifest → 2; other error findings → 1; `MissingExtraError` → 2; `WarehouseError` → 3; ownership → 4; newer spec → 2. Check findings are printed as text before publishing.
+  - The ownership comparison is an exact string match of `repo_url`. Credential stripping and normalization belong to git detection in T14.

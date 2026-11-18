@@ -39,6 +39,7 @@ packages = ["src/dbt_agents_schema"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]
 addopts = "-ra --strict-markers"
 markers = [
     "live: runs against a real warehouse; needs credentials in the environment",

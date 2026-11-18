@@ -109,7 +109,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   unpublish and rollback (inject a failure between delete and insert; previous rows
   survive).
 
-- [ ] **T13 Acceptance test: many projects, one schema.** In
+- [x] **T13 Acceptance test: many projects, one schema.** In
   `tests/acceptance/test_multi_project.py`, against DuckDB:
   1. Publish finance, then marketing. Both projects' rows exist in every table; ROOT has
      both `project/` rows and both projects' skills.
