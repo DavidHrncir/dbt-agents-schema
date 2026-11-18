@@ -97,7 +97,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
 
 ## Phase 2 — Writer and the multi-project guarantee (DuckDB)
 
-- [ ] **T11 Writer interface.** Define the writer protocol: `ensure_structure`,
+- [x] **T11 Writer interface.** Define the writer protocol: `ensure_structure`,
   `read_project_row`, `max_spec_version`, `swap(plan)`, `unpublish(project)`, `close`.
   One SQL/dialect module per warehouse; identifier quoting in one helper per dialect.
   **Done when:** the protocol is typed, documented, and used by a no-op fake in tests.
