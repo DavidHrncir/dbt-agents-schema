@@ -1,0 +1,436 @@
+{
+  "project": "marketing",
+  "tables": {
+    "DBT_COLUMN": [
+      {
+        "column_name": "channel",
+        "data_type": "",
+        "description": "Normalized channel name.",
+        "meta": {},
+        "model_id": "model.marketing.dim_channels",
+        "project": "marketing"
+      },
+      {
+        "column_name": "calendar_date",
+        "data_type": "",
+        "description": "Calendar day.",
+        "meta": {},
+        "model_id": "model.marketing.fct_attribution",
+        "project": "marketing"
+      },
+      {
+        "column_name": "channel",
+        "data_type": "",
+        "description": "Normalized channel name.",
+        "meta": {},
+        "model_id": "model.marketing.fct_attribution",
+        "project": "marketing"
+      },
+      {
+        "column_name": "spend_usd",
+        "data_type": "",
+        "description": "Attributed spend in US dollars.",
+        "meta": {},
+        "model_id": "model.marketing.fct_attribution",
+        "project": "marketing"
+      },
+      {
+        "column_name": "campaign_id",
+        "data_type": "",
+        "description": "Campaign identifier.",
+        "meta": {},
+        "model_id": "model.marketing.fct_campaign_performance",
+        "project": "marketing"
+      },
+      {
+        "column_name": "channel",
+        "data_type": "",
+        "description": "Normalized channel name.",
+        "meta": {},
+        "model_id": "model.marketing.fct_campaign_performance",
+        "project": "marketing"
+      },
+      {
+        "column_name": "clicks",
+        "data_type": "",
+        "description": "Clicks recorded that day.",
+        "meta": {},
+        "model_id": "model.marketing.fct_campaign_performance",
+        "project": "marketing"
+      },
+      {
+        "column_name": "spend_date",
+        "data_type": "",
+        "description": "Day of spend.",
+        "meta": {},
+        "model_id": "model.marketing.fct_campaign_performance",
+        "project": "marketing"
+      },
+      {
+        "column_name": "spend_usd",
+        "data_type": "",
+        "description": "Spend in US dollars.",
+        "meta": {},
+        "model_id": "model.marketing.fct_campaign_performance",
+        "project": "marketing"
+      },
+      {
+        "column_name": "campaign_id",
+        "data_type": "",
+        "description": "Campaign identifier.",
+        "meta": {},
+        "model_id": "model.marketing.stg_ad_spend",
+        "project": "marketing"
+      },
+      {
+        "column_name": "clicks",
+        "data_type": "",
+        "description": "Clicks recorded that day.",
+        "meta": {},
+        "model_id": "model.marketing.stg_ad_spend",
+        "project": "marketing"
+      },
+      {
+        "column_name": "spend_date",
+        "data_type": "",
+        "description": "Day of spend.",
+        "meta": {},
+        "model_id": "model.marketing.stg_ad_spend",
+        "project": "marketing"
+      },
+      {
+        "column_name": "spend_usd",
+        "data_type": "",
+        "description": "Spend in US dollars.",
+        "meta": {},
+        "model_id": "model.marketing.stg_ad_spend",
+        "project": "marketing"
+      },
+      {
+        "column_name": "campaign_id",
+        "data_type": "",
+        "description": "Campaign identifier.",
+        "meta": {},
+        "model_id": "model.marketing.stg_campaigns",
+        "project": "marketing"
+      },
+      {
+        "column_name": "campaign_name",
+        "data_type": "",
+        "description": "Campaign display name.",
+        "meta": {},
+        "model_id": "model.marketing.stg_campaigns",
+        "project": "marketing"
+      },
+      {
+        "column_name": "source_channel",
+        "data_type": "",
+        "description": "Channel as reported by the ad platform.",
+        "meta": {},
+        "model_id": "model.marketing.stg_campaigns",
+        "project": "marketing"
+      },
+      {
+        "column_name": "calendar_date",
+        "data_type": "",
+        "description": "The calendar day.",
+        "meta": {},
+        "model_id": "model.shared_pkg.dim_calendar",
+        "project": "marketing"
+      },
+      {
+        "column_name": "currency_code",
+        "data_type": "",
+        "description": "ISO 4217 code.",
+        "meta": {},
+        "model_id": "model.shared_pkg.dim_currency",
+        "project": "marketing"
+      },
+      {
+        "column_name": "currency_name",
+        "data_type": "",
+        "description": "English currency name.",
+        "meta": {},
+        "model_id": "model.shared_pkg.dim_currency",
+        "project": "marketing"
+      }
+    ],
+    "DBT_DEPENDENCY": [
+      {
+        "downstream_id": "model.marketing.fct_attribution",
+        "downstream_type": "model",
+        "project": "marketing",
+        "upstream_id": "model.marketing.fct_campaign_performance",
+        "upstream_project": "marketing",
+        "upstream_type": "model"
+      },
+      {
+        "downstream_id": "model.marketing.fct_campaign_performance",
+        "downstream_type": "model",
+        "project": "marketing",
+        "upstream_id": "model.marketing.stg_ad_spend",
+        "upstream_project": "marketing",
+        "upstream_type": "model"
+      },
+      {
+        "downstream_id": "model.marketing.fct_campaign_performance",
+        "downstream_type": "model",
+        "project": "marketing",
+        "upstream_id": "model.marketing.stg_campaigns",
+        "upstream_project": "marketing",
+        "upstream_type": "model"
+      },
+      {
+        "downstream_id": "model.marketing.fct_attribution",
+        "downstream_type": "model",
+        "project": "marketing",
+        "upstream_id": "model.shared_pkg.dim_calendar",
+        "upstream_project": "marketing",
+        "upstream_type": "model"
+      },
+      {
+        "downstream_id": "model.marketing.dim_channels",
+        "downstream_type": "model",
+        "project": "marketing",
+        "upstream_id": "seed.marketing.channel_map",
+        "upstream_project": "marketing",
+        "upstream_type": "seed"
+      },
+      {
+        "downstream_id": "model.marketing.fct_campaign_performance",
+        "downstream_type": "model",
+        "project": "marketing",
+        "upstream_id": "seed.marketing.channel_map",
+        "upstream_project": "marketing",
+        "upstream_type": "seed"
+      },
+      {
+        "downstream_id": "model.marketing.stg_campaigns",
+        "downstream_type": "model",
+        "project": "marketing",
+        "upstream_id": "source.marketing.ads.campaigns",
+        "upstream_project": "marketing",
+        "upstream_type": "source"
+      },
+      {
+        "downstream_id": "model.marketing.stg_ad_spend",
+        "downstream_type": "model",
+        "project": "marketing",
+        "upstream_id": "source.marketing.ads.spend",
+        "upstream_project": "marketing",
+        "upstream_type": "source"
+      }
+    ],
+    "DBT_MODEL": [
+      {
+        "access": "public",
+        "alias": "dim_channels",
+        "database_name": "memory",
+        "description": "Marketing channels.",
+        "file_path": "models/marts/dim_channels.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "dim_channels",
+        "package_name": "marketing",
+        "project": "marketing",
+        "relation_name": "\"memory\".\"marketing_marts\".\"dim_channels\"",
+        "schema_name": "marketing_marts",
+        "tags": [],
+        "unique_id": "model.marketing.dim_channels"
+      },
+      {
+        "access": "protected",
+        "alias": "fct_attribution",
+        "database_name": "memory",
+        "description": "Spend attributed to channels per calendar day.",
+        "file_path": "models/marts/fct_attribution.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "fct_attribution",
+        "package_name": "marketing",
+        "project": "marketing",
+        "relation_name": "\"memory\".\"marketing_marts\".\"fct_attribution\"",
+        "schema_name": "marketing_marts",
+        "tags": [],
+        "unique_id": "model.marketing.fct_attribution"
+      },
+      {
+        "access": "public",
+        "alias": "fct_campaign_performance",
+        "database_name": "memory",
+        "description": "Daily spend and clicks per campaign.",
+        "file_path": "models/marts/fct_campaign_performance.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "fct_campaign_performance",
+        "package_name": "marketing",
+        "project": "marketing",
+        "relation_name": "\"memory\".\"marketing_marts\".\"fct_campaign_performance\"",
+        "schema_name": "marketing_marts",
+        "tags": [],
+        "unique_id": "model.marketing.fct_campaign_performance"
+      },
+      {
+        "access": "protected",
+        "alias": "stg_ad_spend",
+        "database_name": "memory",
+        "description": "Daily ad spend cleaned from the ad platform.",
+        "file_path": "models/staging/stg_ad_spend.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "stg_ad_spend",
+        "package_name": "marketing",
+        "project": "marketing",
+        "relation_name": "\"memory\".\"marketing_staging\".\"stg_ad_spend\"",
+        "schema_name": "marketing_staging",
+        "tags": [],
+        "unique_id": "model.marketing.stg_ad_spend"
+      },
+      {
+        "access": "protected",
+        "alias": "stg_campaigns",
+        "database_name": "memory",
+        "description": "Campaigns cleaned from the ad platform.",
+        "file_path": "models/staging/stg_campaigns.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "stg_campaigns",
+        "package_name": "marketing",
+        "project": "marketing",
+        "relation_name": "\"memory\".\"marketing_staging\".\"stg_campaigns\"",
+        "schema_name": "marketing_staging",
+        "tags": [],
+        "unique_id": "model.marketing.stg_campaigns"
+      },
+      {
+        "access": "protected",
+        "alias": "dim_calendar",
+        "database_name": "memory",
+        "description": "One row per calendar day, shared by every project.",
+        "file_path": "models/dim_calendar.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "dim_calendar",
+        "package_name": "shared_pkg",
+        "project": "marketing",
+        "relation_name": "\"memory\".\"marketing\".\"dim_calendar\"",
+        "schema_name": "marketing",
+        "tags": [],
+        "unique_id": "model.shared_pkg.dim_calendar"
+      },
+      {
+        "access": "protected",
+        "alias": "dim_currency",
+        "database_name": "memory",
+        "description": "ISO currencies used across projects.",
+        "file_path": "models/dim_currency.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "dim_currency",
+        "package_name": "shared_pkg",
+        "project": "marketing",
+        "relation_name": "\"memory\".\"marketing\".\"dim_currency\"",
+        "schema_name": "marketing",
+        "tags": [],
+        "unique_id": "model.shared_pkg.dim_currency"
+      }
+    ],
+    "DBT_PROJECT": [
+      {
+        "column_count": 19,
+        "dbt_project_name": "marketing",
+        "dbt_version": "1.12.7",
+        "dependency_count": 8,
+        "description": "Marketing performance marts",
+        "environment": "prod",
+        "git_branch": "main",
+        "git_sha": "0123456789abcdef0123456789abcdef01234567",
+        "manifest_generated_at": "2026-11-18T05:21:42.607880+00:00",
+        "model_count": 7,
+        "owner": "marketing-analytics@example.com",
+        "project": "marketing",
+        "published_at": "2026-01-02T03:04:05+00:00",
+        "publisher_version": "0.1.0",
+        "repo_url": "https://github.com/example/analytics",
+        "skill_count": 2,
+        "spec_version": 1
+      }
+    ],
+    "ROOT": [
+      {
+        "content": "# DBT_COLUMN\n\nOne row per documented column of a published model, keyed by (project, model_id, column_name). model_id joins to DBT_MODEL.unique_id within the same project. Columns: project, model_id, column_name, data_type, description, meta (JSON object).\n",
+        "key": "column",
+        "provider": "dbt"
+      },
+      {
+        "content": "# DBT_DEPENDENCY\n\nOne row per lineage edge into a published model, keyed by (project, upstream_id, downstream_id). upstream_type is the node type (model, source, seed, snapshot, ...); downstream_type is always model. upstream_project is the publishing project when the upstream node is in its manifest, else null. Join upstream_id or downstream_id to DBT_MODEL.unique_id; the same model may be published by several projects.\n",
+        "key": "dependency",
+        "provider": "dbt"
+      },
+      {
+        "content": "# DBT_MODEL\n\nOne row per published dbt model, keyed by (project, unique_id). Columns: project, unique_id, name, package_name, database_name, schema_name, alias, relation_name (null for ephemeral models), materialization, access, description, file_path, tags (JSON array), meta (JSON object). Query a model through relation_name, or database_name.schema_name.alias.\n",
+        "key": "model",
+        "provider": "dbt"
+      },
+      {
+        "content": "# dbt agents schema\n\nThis schema holds metadata about one or more dbt projects, published by dbt-agents-schema. Every row in the DBT_* and SKILL_USE tables carries a `project` column naming the dbt project that owns it; filter on it to look at one project. Tables: ROOT (this catalog of keys and markdown content), DBT_PROJECT (one row per published project), DBT_MODEL, DBT_COLUMN, DBT_DEPENDENCY (model lineage) and SKILL_USE (which schemas and tables each skill uses). Project overviews are under ROOT keys `project/<project>`, skills under `skill/<project>/<path>`. Start with `SELECT * FROM DBT_PROJECT ORDER BY project`.\n",
+        "key": "overview",
+        "provider": "dbt"
+      },
+      {
+        "content": "# DBT_PROJECT\n\nOne row per dbt project published into this schema, keyed by `project`. Columns: project, dbt_project_name, owner, description, environment, repo_url, git_sha, git_branch, dbt_version, manifest_generated_at, publisher_version, spec_version, published_at, model_count, column_count, dependency_count, skill_count.\n",
+        "key": "project",
+        "provider": "dbt"
+      },
+      {
+        "content": "# Project `marketing`\n\n- project: marketing\n- dbt project name: marketing\n- owner: marketing-analytics@example.com\n- description: Marketing performance marts\n- environment: prod\n- repository: https://github.com/example/analytics\n- git SHA: 0123456789abcdef0123456789abcdef01234567\n- git branch: main\n- dbt version: 1.12.7\n- published at: 2026-01-02T03:04:05+00:00\n- models: 7\n- columns: 19\n- dependencies: 8\n- skills: 2\n\nRows in DBT_MODEL, DBT_COLUMN, DBT_DEPENDENCY and SKILL_USE carry `project`. To see only this project's models:\n\n```sql\nSELECT name, schema_name, alias, description\nFROM DBT_MODEL\nWHERE project = 'marketing'\nORDER BY name;\n```\n",
+        "key": "project/marketing",
+        "provider": "dbt"
+      },
+      {
+        "content": "# dbt agents schema analyst (duckdb)\n\n<!-- Placeholder body from T07. T21 replaces it with the full analyst skill (SPEC 9). -->\n\nRead-only: run SELECT statements only. Start discovery at `ROOT`, then `DBT_PROJECT`\nto see which dbt projects are present. Every `DBT_*` row carries `project`.\n\n```sql\nSELECT key, content FROM ROOT WHERE provider = 'dbt' ORDER BY key;\n```\n",
+        "key": "skill/dbt-agents-schema-analyst",
+        "provider": "dbt"
+      },
+      {
+        "content": "---\nuses:\n  schemas: [marketing_marts]\n  tables: [MARKETING_MARTS.FCT_CAMPAIGN_PERFORMANCE, marketing_marts.fct_attribution]\n---\n# Channel attribution\n\nCompare spend and clicks by channel over time.\n",
+        "key": "skill/marketing/attribution",
+        "provider": "dbt"
+      },
+      {
+        "content": "# Weekly campaign review\n\nList the campaigns with the largest week-over-week change in spend.\n",
+        "key": "skill/marketing/campaigns/weekly_review",
+        "provider": "dbt"
+      },
+      {
+        "content": "# SKILL_USE\n\nWhich schemas and tables each skill declares in its `uses` frontmatter, keyed by (project, skill_key, use_kind, object_ref). provider is always dbt; skill_key is the ROOT key of the skill; use_kind is `schema` or `table`.\n",
+        "key": "skill_use",
+        "provider": "dbt"
+      }
+    ],
+    "SKILL_USE": [
+      {
+        "object_ref": "marketing_marts",
+        "project": "marketing",
+        "provider": "dbt",
+        "skill_key": "skill/marketing/attribution",
+        "use_kind": "schema"
+      },
+      {
+        "object_ref": "MARKETING_MARTS.FCT_CAMPAIGN_PERFORMANCE",
+        "project": "marketing",
+        "provider": "dbt",
+        "skill_key": "skill/marketing/attribution",
+        "use_kind": "table"
+      },
+      {
+        "object_ref": "marketing_marts.fct_attribution",
+        "project": "marketing",
+        "provider": "dbt",
+        "skill_key": "skill/marketing/attribution",
+        "use_kind": "table"
+      }
+    ]
+  },
+  "warehouse": "duckdb"
+}

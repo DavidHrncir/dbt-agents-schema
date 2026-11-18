@@ -72,7 +72,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   **Done when:** tests cover nested folders, Windows-style path separators, no
   frontmatter, invalid YAML frontmatter, and duplicate keys differing only by case.
 
-- [ ] **T07 Plan builder.** Pure function `(config, manifest, skills, run_metadata) ->
+- [x] **T07 Plan builder.** Pure function `(config, manifest, skills, run_metadata) ->
   Plan` producing every row for the six tables, including all ROOT rows of SPEC 5.6 and
   the `project/<project>` overview text. Rows sorted by primary key.
   **Done when:** golden-file tests (`tests/golden/*.json`, regenerated only with

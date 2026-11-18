@@ -84,3 +84,13 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - `uses: null`, `uses: {}` and empty lists count as "no uses" (`skill_without_uses` applies, no finding here). Entries are stripped; empty strings are dropped.
   - Files match `*.md` case-insensitively. Keys keep their on-disk case. On a case-insensitive key collision, the first file in POSIX-path order is kept and each later one gets a `skill_key_duplicate` finding naming both files.
   - `content` is the full file text (BOM stripped), frontmatter included, for the ROOT row.
+
+## T07 Plan builder — done
+- Changed: src/dbt_agents_schema/plan.py, src/dbt_agents_schema/skills/{snowflake,bigquery,databricks,duckdb}.md (placeholders), tests/test_plan.py, tests/golden/{finance,marketing}.json
+- Evidence: `make verify` exit 0 (`186 passed`); tests: test_golden[finance], test_golden[marketing], test_plan_identical_across_runs, test_project_row_counts_match_other_tables, test_rows_sorted_and_unique_by_primary_key[*], test_rows_have_exact_columns[*], test_all_root_rows_present, test_shared_root_rows_identical_across_projects, test_project_overview_content, test_skill_use_rows, test_finance_v2_drops_skill_use, test_analyst_skill_matches_warehouse[*]
+- Decisions:
+  - `published_at` comes in through `RunMetadata` (aware datetime, UTC) and is written to both the `DBT_PROJECT` row and the `project/<p>` overview, which keeps the plan a pure, repeatable function. The publish command (T14) takes it from the clock right before the writer runs. SPEC 5.1 says "set by the writer"; supplying it at publish time meets that, and the overview text matches the row.
+  - The plan is warehouse-aware only through the analyst skill body (`RunMetadata.warehouse`). The bodies in `src/dbt_agents_schema/skills/*.md` are placeholders; T21 writes the real SPEC 9 content and regenerates the goldens with `UPDATE_GOLDEN=1`.
+  - Rows are plain dicts in `TABLE_COLUMNS` order; JSON columns (`tags`, `meta`) stay as Python lists and dicts, and writers serialize them. `TABLE_COLUMNS`, `PRIMARY_KEYS`, `SHARED_ROOT_KEYS` and `ANALYST_SKILL_KEY` live in plan.py so writers share one definition.
+  - `skill_count` counts the project's skill files (not the built-in analyst skill). Unknown overview values render as `unknown`.
+  - The overview's example query puts the project key into the markdown text as a literal (it matches `^[a-z][a-z0-9_]*$`); this is content only and is never executed by the tool.
