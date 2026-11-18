@@ -26,7 +26,7 @@ ifneq ($(strip $(GITHUB_WORKFLOWS)),)
 	uv run check-jsonschema --builtin-schema vendor.github-workflows $(GITHUB_WORKFLOWS)
 endif
 ifneq ($(strip $(GITLAB_FILES)),)
-	uv run check-jsonschema --builtin-schema vendor.gitlab-ci $(GITLAB_FILES)
+	uv run python scripts/validate_gitlab_ci.py $(GITLAB_FILES)
 endif
 	@if command -v actionlint >/dev/null 2>&1; then \
 		actionlint; \

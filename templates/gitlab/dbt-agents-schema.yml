@@ -1,0 +1,89 @@
+# GitLab CI template: check or publish a dbt project's metadata to its agents schema.
+# SPEC 10.2. Holds no publishing logic: it installs a pinned dbt-agents-schema, runs
+# `dbt deps` and `dbt parse`, then calls the CLI. Use it with `include: remote:` (raw URL
+# pinned to a tag), `include: project:`, or copy it into your repository. It does not
+# use the GitLab CI/CD Catalog. Example: examples/gitlab/.gitlab-ci.yml.
+#
+# Variables (Settings > CI/CD > Variables):
+#   WAREHOUSE_CREDENTIALS  masked; required to publish. Merge request pipelines also use
+#                          it to write a profile for `dbt parse`, so do not mark it
+#                          protected unless you set DBT_PROFILES_YML instead.
+#   DBT_PROFILES_YML       optional profiles.yml (plain or file type) for `dbt parse`.
+spec:
+  inputs:
+    project_dir:
+      description: dbt project directory, relative to the repository root.
+      default: "."
+    package_version:
+      description: Exact dbt-agents-schema version to install, for example 0.1.0.
+    python_version:
+      description: Python version (selects the python:<version> image).
+      default: "3.12"
+    dbt_adapter:
+      description: dbt adapter package.
+      options: [dbt-snowflake, dbt-bigquery, dbt-databricks, dbt-duckdb]
+    dbt_version:
+      description: dbt-core version specifier.
+      default: ">=1.8,<2"
+    mode:
+      description: "auto: check on merge requests and publish on the default branch; check or publish: only that job."
+      options: [auto, check, publish]
+      default: auto
+    environment:
+      description: Environment name from agents_schema.yml, used by publish.
+      default: prod
+---
+.dbt-agents-schema-base:
+  image: python:$[[ inputs.python_version ]]
+  variables:
+    PROJECT_DIR: "$[[ inputs.project_dir ]]"
+    DBT_ADAPTER: "$[[ inputs.dbt_adapter ]]"
+    DBT_VERSION: "$[[ inputs.dbt_version ]]"
+    AGENTS_ENVIRONMENT: "$[[ inputs.environment ]]"
+    DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
+    PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  before_script:
+    - EXTRA="${DBT_ADAPTER#dbt-}"
+    - python -m pip install "dbt-core${DBT_VERSION}" "${DBT_ADAPTER}" "dbt-agents-schema[${EXTRA}]==$[[ inputs.package_version ]]"
+    - dbt --version
+    - dbt-agents-schema --version
+    - |
+      # Profile for `dbt parse`, kept outside the checkout so it is never uploaded.
+      export DBT_PROFILES_DIR="$(mktemp -d)"
+      if [ -n "${DBT_PROFILES_YML:-}" ]; then
+        umask 077
+        if [ -f "$DBT_PROFILES_YML" ]; then
+          cp "$DBT_PROFILES_YML" "$DBT_PROFILES_DIR/profiles.yml"
+        else
+          printf '%s\n' "$DBT_PROFILES_YML" > "$DBT_PROFILES_DIR/profiles.yml"
+        fi
+      else
+        dbt-agents-schema write-parse-profile --project-dir "$PROJECT_DIR" --out "$DBT_PROFILES_DIR"
+      fi
+    - (cd "$PROJECT_DIR" && dbt deps && dbt parse)
+
+dbt-agents-schema-check:
+  extends: .dbt-agents-schema-base
+  stage: test
+  rules:
+    - if: '"$[[ inputs.mode ]]" != "publish" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+  script:
+    - dbt-agents-schema check --project-dir "$PROJECT_DIR" --format gitlab --output gl-code-quality-report.json
+  artifacts:
+    when: always
+    reports:
+      codequality: gl-code-quality-report.json
+
+dbt-agents-schema-publish:
+  extends: .dbt-agents-schema-base
+  stage: deploy
+  rules:
+    - if: '"$[[ inputs.mode ]]" != "check" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  resource_group: dbt-agents-schema-$CI_PROJECT_PATH
+  script:
+    - |
+      if [ -z "${WAREHOUSE_CREDENTIALS:-}" ]; then
+        echo "error: publish needs the WAREHOUSE_CREDENTIALS CI/CD variable (Settings > CI/CD > Variables)" >&2
+        exit 2
+      fi
+    - dbt-agents-schema publish --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT"

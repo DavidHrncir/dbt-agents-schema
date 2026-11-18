@@ -189,7 +189,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   vendor.github-workflows` (and `actionlint` if installed); `write-parse-profile` has
   tests for each warehouse type.
 
-- [ ] **T23 GitLab template.** Per SPEC 10.2.
+- [x] **T23 GitLab template.** Per SPEC 10.2.
   **Done when:** the template and example caller pass `check-jsonschema
   --builtin-schema vendor.gitlab-ci`; a test loads the template YAML and asserts the
   job names, rules, `resource_group` and the codequality artifact.
