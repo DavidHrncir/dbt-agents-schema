@@ -127,6 +127,11 @@ existing CI secrets carry over:
   `serverHostName`), `http_path` (alias `httpPath`), `catalog`, `token` (aliases
   `access_token`, `personal_access_token`, `personalAccessToken`).
 - DuckDB: `type: duckdb`, `path` (file path; `:memory:` allowed).
+- Every warehouse also accepts an optional `schema` key (BigQuery: `dataset`, falling
+  back to `schema`): the dbt target schema the models build into. Only
+  `write-parse-profile` reads it (section 7); `publish` ignores it. DuckDB defaults to
+  `main`; on the other warehouses `write-parse-profile` exits 2 without it, naming the
+  key and the `DBT_PROFILES_YML` alternative.
 
 Mapping of "database" and "schema" per warehouse:
 
@@ -178,7 +183,9 @@ one place per writer.
 | json | VARIANT | JSON | STRING (JSON text) | JSON |
 
 Table names are uppercase: `ROOT`, `DBT_PROJECT`, `DBT_MODEL`, `DBT_COLUMN`,
-`DBT_DEPENDENCY`, `SKILL_USE`. Column names are lowercase. Primary keys are declared
+`DBT_DEPENDENCY`, `SKILL_USE`. Column names are lowercase, except on Snowflake, where
+table and column names are stored uppercase (quoted) so unquoted SQL such as
+`SELECT project FROM DBT_MODEL` resolves on every warehouse. Primary keys are declared
 where the warehouse supports informational constraints; uniqueness is guaranteed by the
 writer, not the database.
 
@@ -347,7 +354,7 @@ Common options: `--project-dir PATH` (default `.`), `--config PATH` (default
 | `unpublish --env NAME [--project P] [--yes]` | Delete one project's rows from the environment's agents schema, including its ROOT rows. Refuses without `--yes` when stdin is not a TTY. |
 | `init [--ci github\|gitlab\|none] [--force]` | Write `agents_schema.yml`, `agents/skills/example.md`, and the CI caller file for the chosen platform, plus a `.pre-commit-config.yaml` snippet printed to stdout. Never overwrites without `--force`. |
 | `fetch-manifest --account-id ID --job-id ID [--host HOST] [--out PATH]` | Download the latest `manifest.json` from a dbt platform job. Token from `DBT_CLOUD_API_TOKEN`. Default host `cloud.getdbt.com`, default out `target/manifest.json`. Verify the endpoint against current dbt platform Admin API docs before implementing; record the URL used in PROGRESS. |
-| `write-parse-profile --out DIR` | Write a minimal `profiles.yml` from `WAREHOUSE_CREDENTIALS` so CI can run `dbt parse` without a separate profiles secret. Profile name = `profile` in `dbt_project.yml`. |
+| `write-parse-profile --out DIR` | Write a minimal `profiles.yml` from `WAREHOUSE_CREDENTIALS` so CI can run `dbt parse` without a separate profiles secret. Profile name = `profile` in `dbt_project.yml`. The output's schema comes from the optional `schema`/`dataset` key in `WAREHOUSE_CREDENTIALS` (section 4.1); exit 2 when it is required and missing. |
 | `--version` | Print the package version. |
 
 **Git metadata** for `DBT_PROJECT`: GitHub (`GITHUB_SERVER_URL`/`GITHUB_REPOSITORY`,
@@ -448,14 +455,19 @@ the CLI. They contain no publishing logic.
 ### 10.2 GitLab
 
 - Template at `templates/gitlab/dbt-agents-schema.yml` using `spec: inputs` with the
-  same inputs as GitHub (snake_case names). Usable through `include: remote:` (raw URL
+  same inputs as GitHub (snake_case names), except that `mode` is `auto` | `check` |
+  `publish` (default `auto`: check on merge requests, publish on the default branch), so
+  a single `include` creates both jobs. Usable through `include: remote:` (raw URL
   pinned to a tag), `include: project:`, or copied into the consumer repo. Do not
   depend on the GitLab CI/CD Catalog.
 - Jobs: `dbt-agents-schema-check` on merge request pipelines, writing the Code Quality
   report as `artifacts:reports:codequality`; `dbt-agents-schema-publish` on the default
   branch with `resource_group: dbt-agents-schema-$CI_PROJECT_PATH` to serialize
   publishes.
-- Credentials from a masked CI/CD variable `WAREHOUSE_CREDENTIALS`.
+- Credentials from a protected CI/CD variable `WAREHOUSE_CREDENTIALS`, type File
+  recommended; the wrapper reads the file and passes its contents to the CLI. GitLab
+  cannot mask a multi-line JSON/YAML document, so the template does not rely on
+  masking.
 - Example caller at `examples/gitlab/.gitlab-ci.yml`.
 
 ### 10.3 Pre-commit

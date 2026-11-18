@@ -357,3 +357,7 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 - Options: (a) SPEC 5 says column names are lowercase except on Snowflake, where they are stored uppercase so unquoted SQL works (current behaviour); (b) quoted lowercase on Snowflake too.
 - Recommendation: (a). The analyst skill's unquoted SQL works on every warehouse.
 - Evidence (T29, recorded): `make verify` exit 0 (`640 passed, 18 deselected`; `config reference up to date`). `bash scripts/demo_duckdb.sh` exit 0 (prod: finance, marketing; dev: finance; analyst queries return 2, 2 and 5 rows).
+
+## SPEC update — proposals A–D accepted
+- Changed: docs/SPEC.md only. 4.1: optional `schema`/`dataset` key, read only by `write-parse-profile` (A). 5: Snowflake stores table and column names uppercase (D). 7: `write-parse-profile` row says where the schema comes from (A). 10.2: GitLab `mode` is `auto | check | publish`, default `auto` (C); `WAREHOUSE_CREDENTIALS` is a protected variable, File type recommended, not masked (B). No code changes.
+- Evidence: `make verify` exit 0 (`640 passed, 18 deselected`).
