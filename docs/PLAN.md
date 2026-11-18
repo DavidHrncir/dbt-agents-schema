@@ -194,7 +194,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   --builtin-schema vendor.gitlab-ci`; a test loads the template YAML and asserts the
   job names, rules, `resource_group` and the codequality artifact.
 
-- [ ] **T24 Pre-commit hook and `init`.** Per SPEC 7 and 10.3.
+- [x] **T24 Pre-commit hook and `init`.** Per SPEC 7 and 10.3.
   **Done when:** `init --ci github` and `init --ci gitlab` in a temp dir produce files
   that pass `check` and the CI validation above; `init` refuses to overwrite without
   `--force`.

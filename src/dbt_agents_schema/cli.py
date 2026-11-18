@@ -26,6 +26,7 @@ from dbt_agents_schema.credentials import (
     from_env,
 )
 from dbt_agents_schema.gitinfo import detect_git
+from dbt_agents_schema.init import InitError, init_project
 from dbt_agents_schema.parse_profile import write_parse_profile
 from dbt_agents_schema.publish import publish, unpublish
 from dbt_agents_schema.writers.factory import ensure_writer_available, open_writer
@@ -140,6 +141,24 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     wpp.add_argument("--out", required=True, help="directory to write profiles.yml into")
+
+    init = commands.add_parser(
+        "init",
+        parents=[common],
+        help="write agents_schema.yml, an example skill and a CI caller file",
+        description=(
+            "Write agents_schema.yml, agents/skills/example.md and the CI caller for the "
+            "chosen platform; print a .pre-commit-config.yaml snippet. Never overwrites "
+            "without --force."
+        ),
+    )
+    init.add_argument(
+        "--ci",
+        choices=("github", "gitlab", "none"),
+        default="github",
+        help="CI platform to write a caller file for (default: github)",
+    )
+    init.add_argument("--force", action="store_true", help="overwrite existing files")
     return parser
 
 
@@ -154,6 +173,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _cmd_unpublish(args)
     if args.command == "write-parse-profile":
         return _cmd_write_parse_profile(args)
+    if args.command == "init":
+        return _cmd_init(args)
     parser.print_help()
     return EXIT_OK
 
@@ -286,6 +307,21 @@ def _cmd_write_parse_profile(args: argparse.Namespace) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_INPUT_ERROR
     print(f"wrote {path}; set DBT_PROFILES_DIR={path.parent} for `dbt parse`")
+    return EXIT_OK
+
+
+def _cmd_init(args: argparse.Namespace) -> int:
+    try:
+        result = init_project(Path(args.project_dir), ci=args.ci, force=args.force)
+    except InitError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_INPUT_ERROR
+    for path in result.written:
+        print(f"wrote {path}")
+    for note in result.notes:
+        print(f"note: {note}", file=sys.stderr)
+    print("\nAdd this to .pre-commit-config.yaml to run `check` before each commit:\n")
+    sys.stdout.write(result.pre_commit_snippet)
     return EXIT_OK
 
 

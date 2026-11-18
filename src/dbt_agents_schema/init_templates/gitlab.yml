@@ -1,0 +1,18 @@
+# Example caller: copy to .gitlab-ci.yml in your dbt project repository (or merge the
+# `include` entry into yours). Checks merge requests (findings appear in the Code Quality
+# widget) and publishes on the default branch. Set the masked CI/CD variable
+# WAREHOUSE_CREDENTIALS. Pin the URL to a release tag and set package_version to it.
+# Alternatives: `include: project: <group>/dbt-agents-schema` with `ref: v@PACKAGE_VERSION@` and
+# `file: templates/gitlab/dbt-agents-schema.yml`, or a local copy with `include: local:`.
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+include:
+  - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v@PACKAGE_VERSION@/templates/gitlab/dbt-agents-schema.yml
+    inputs:
+      package_version: "@PACKAGE_VERSION@"
+      dbt_adapter: @DBT_ADAPTER@
+      environment: prod
