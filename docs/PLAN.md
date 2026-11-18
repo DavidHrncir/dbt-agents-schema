@@ -199,7 +199,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   that pass `check` and the CI validation above; `init` refuses to overwrite without
   `--force`.
 
-- [ ] **T25 `fetch-manifest`.** Per SPEC 7. Look up the current dbt platform Admin API
+- [x] **T25 `fetch-manifest`.** Per SPEC 7. Look up the current dbt platform Admin API
   endpoint for job artifacts first and record the URL and doc link in PROGRESS.md.
   **Done when:** tests with a mocked HTTP layer cover success, 401, 404 and a non-JSON
   body; no real network call in tests.

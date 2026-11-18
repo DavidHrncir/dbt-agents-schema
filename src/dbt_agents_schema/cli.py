@@ -10,7 +10,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from dbt_agents_schema import __version__
+from dbt_agents_schema import __version__, fetch
 from dbt_agents_schema.check import (
     check_project,
     format_github,
@@ -159,6 +159,26 @@ def build_parser() -> argparse.ArgumentParser:
         help="CI platform to write a caller file for (default: github)",
     )
     init.add_argument("--force", action="store_true", help="overwrite existing files")
+
+    fm = commands.add_parser(
+        "fetch-manifest",
+        parents=[common],
+        help="download the latest manifest.json of a dbt platform job",
+        description=(
+            f"Download manifest.json from the latest run of a dbt platform job. Token from "
+            f"{fetch.TOKEN_ENV}. Exit 2 for bad input, token or not found; 3 for remote errors."
+        ),
+    )
+    fm.add_argument("--account-id", required=True, help="dbt platform account id")
+    fm.add_argument("--job-id", required=True, help="dbt platform job id")
+    fm.add_argument(
+        "--host",
+        default=fetch.DEFAULT_HOST,
+        help=f"dbt platform access URL host (default: {fetch.DEFAULT_HOST})",
+    )
+    fm.add_argument(
+        "--out", default=None, help="output file (default: <project-dir>/target/manifest.json)"
+    )
     return parser
 
 
@@ -175,6 +195,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _cmd_write_parse_profile(args)
     if args.command == "init":
         return _cmd_init(args)
+    if args.command == "fetch-manifest":
+        return _cmd_fetch_manifest(args)
     parser.print_help()
     return EXIT_OK
 
@@ -322,6 +344,27 @@ def _cmd_init(args: argparse.Namespace) -> int:
         print(f"note: {note}", file=sys.stderr)
     print("\nAdd this to .pre-commit-config.yaml to run `check` before each commit:\n")
     sys.stdout.write(result.pre_commit_snippet)
+    return EXIT_OK
+
+
+def _cmd_fetch_manifest(args: argparse.Namespace) -> int:
+    token = os.environ.get(fetch.TOKEN_ENV, "").strip()
+    if not token:
+        print(
+            f"error: {fetch.TOKEN_ENV} is not set; set it to a dbt platform service token "
+            "(or personal access token) with read access to the job",
+            file=sys.stderr,
+        )
+        return EXIT_INPUT_ERROR
+    out = Path(args.out) if args.out else Path(args.project_dir) / "target" / "manifest.json"
+    try:
+        path = fetch.fetch_manifest(
+            account_id=args.account_id, job_id=args.job_id, host=args.host, token=token, out=out
+        )
+    except fetch.FetchError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return exc.exit_code
+    print(f"wrote {path}")
     return EXIT_OK
 
 
