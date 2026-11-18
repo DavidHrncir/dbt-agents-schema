@@ -1,0 +1,18 @@
+version: 2
+models:
+  - name: orders
+    access: public
+    columns:
+      - name: order_id
+      - name: customer_id
+        description: Customer who placed the order.
+  - name: customers
+    description: "Customer master. 1,204,331 rows; null rate on email is 3%."
+    access: public
+    columns:
+      - name: customer_id
+        description: "Customer key. Distinct values: 1,204,331."
+      - name: tier
+        description: "Loyalty tier. Top values: gold, silver, bronze."
+      - name: lifetime_value
+        description: "Lifetime value. min: 0, max: 98231.5, mean: 412.7"

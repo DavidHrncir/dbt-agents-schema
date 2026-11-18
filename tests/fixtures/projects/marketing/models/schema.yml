@@ -1,0 +1,51 @@
+version: 2
+models:
+  - name: stg_campaigns
+    description: Campaigns cleaned from the ad platform.
+    columns:
+      - name: campaign_id
+        description: Campaign identifier.
+      - name: campaign_name
+        description: Campaign display name.
+      - name: source_channel
+        description: Channel as reported by the ad platform.
+  - name: stg_ad_spend
+    description: Daily ad spend cleaned from the ad platform.
+    columns:
+      - name: campaign_id
+        description: Campaign identifier.
+      - name: spend_date
+        description: Day of spend.
+      - name: spend_usd
+        description: Spend in US dollars.
+      - name: clicks
+        description: Clicks recorded that day.
+  - name: dim_channels
+    description: Marketing channels.
+    access: public
+    columns:
+      - name: channel
+        description: Normalized channel name.
+  - name: fct_campaign_performance
+    description: Daily spend and clicks per campaign.
+    access: public
+    columns:
+      - name: campaign_id
+        description: Campaign identifier.
+      - name: channel
+        description: Normalized channel name.
+      - name: spend_date
+        description: Day of spend.
+      - name: spend_usd
+        description: Spend in US dollars.
+      - name: clicks
+        description: Clicks recorded that day.
+  - name: fct_attribution
+    description: Spend attributed to channels per calendar day.
+    columns:
+      - name: channel
+        description: Normalized channel name.
+      - name: calendar_date
+        description: Calendar day.
+      - name: spend_usd
+        description: Attributed spend in US dollars.

@@ -1,0 +1,46 @@
+version: 2
+models:
+  - name: stg_invoices
+    description: Invoices cleaned from the ERP.
+    columns:
+      - name: invoice_id
+        description: Invoice identifier.
+      - name: customer_id
+        description: Customer identifier.
+      - name: invoice_date
+        description: Date the invoice was issued.
+      - name: amount
+        description: Invoice amount in the invoice currency.
+      - name: currency_code
+        description: ISO 4217 currency of the invoice.
+  - name: stg_payments
+    description: Payments cleaned from the ERP.
+    columns:
+      - name: payment_id
+        description: Payment identifier.
+      - name: invoice_id
+        description: Invoice the payment settles.
+      - name: paid_at
+        description: Time the payment cleared.
+      - name: amount
+        description: Amount paid.
+  - name: int_invoice_lines
+    description: Invoice lines prepared for revenue.
+  - name: fct_revenue
+    description: Recognized revenue per invoice in US dollars.
+    access: public
+    columns:
+      - name: invoice_date
+        description: Date the revenue is recognized.
+      - name: customer_id
+        description: Customer identifier.
+      - name: revenue_usd
+        description: Revenue converted to US dollars.
+      - name: revenue_eur
+        description: Revenue converted to euros.
+  - name: dim_customers
+    description: Customers that have been invoiced.
+    access: public
+    columns:
+      - name: customer_id
+        description: Customer identifier.

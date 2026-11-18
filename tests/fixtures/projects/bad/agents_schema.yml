@@ -1,0 +1,4 @@
+# Valid config that leaves `project` to default (too long, see dbt_project.yml).
+version: 1
+check:
+  description_scope: public

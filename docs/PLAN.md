@@ -30,7 +30,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
   **Done when:** `make install && make verify` exits 0; `uv run dbt-agents-schema
   --version` prints `0.1.0`; a test covers `--version`.
 
-- [ ] **T02 Fixture dbt projects.**
+- [x] **T02 Fixture dbt projects.**
   Under `tests/fixtures/projects/` create three dbt projects using `dbt-duckdb`:
   `shared_pkg` (a package with 2 models), `finance` and `marketing` (each installs
   `shared_pkg` with `packages: [{local: ../shared_pkg}]`, 4–6 models, sources, a seed,

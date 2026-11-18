@@ -1,0 +1,10 @@
+version: 2
+sources:
+  - name: erp
+    schema: raw_erp
+    description: Raw ERP extract.
+    tables:
+      - name: invoices
+        description: Invoice headers.
+      - name: payments
+        description: Customer payments.

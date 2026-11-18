@@ -1,0 +1,6 @@
+# JSON Schema violation: unknown key at the top level and an unknown rule severity.
+version: 1
+colour: blue
+check:
+  rules:
+    missing_model_description: loud

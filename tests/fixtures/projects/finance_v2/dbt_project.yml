@@ -1,0 +1,12 @@
+name: finance
+version: "1.0.0"
+config-version: 2
+profile: finance
+model-paths: ["models"]
+seed-paths: ["seeds"]
+models:
+  finance:
+    staging:
+      +schema: staging
+    marts:
+      +schema: marts
