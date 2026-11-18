@@ -14,7 +14,7 @@ A phase is complete when every task in it is `[x]`, `[!]` or `[H]`, and the
 
 ## Phase 0 — Foundation
 
-- [ ] **T01 Scaffold the package.**
+- [x] **T01 Scaffold the package.**
   Create `pyproject.toml` (hatchling build, `uv` for envs), `src/dbt_agents_schema/`
   with `__init__.py` (`__version__ = "0.1.0"`) and `cli.py`, `tests/`, a `Makefile`, and
   `.github/workflows/ci.yml` that runs `make verify`. Runtime deps: `pyyaml`,

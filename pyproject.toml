@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dbt-agents-schema"
+version = "0.1.0"
+description = "Publish dbt project metadata into a shared warehouse agents schema."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6",
+    "jsonschema>=4",
+]
+
+[project.optional-dependencies]
+snowflake = ["snowflake-connector-python>=3", "cryptography>=41"]
+bigquery = ["google-cloud-bigquery>=3", "google-auth>=2"]
+databricks = ["databricks-sql-connector>=3"]
+duckdb = ["duckdb>=1"]
+
+[project.scripts]
+dbt-agents-schema = "dbt_agents_schema.cli:main_entry"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "types-PyYAML",
+    "duckdb>=1",
+    "sqlglot>=25",
+    "check-jsonschema>=0.29",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dbt_agents_schema"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "live: runs against a real warehouse; needs credentials in the environment",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
