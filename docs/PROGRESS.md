@@ -327,3 +327,13 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - The config reference is generated from the shipped schema, between markers in the guide. To make that possible, the schema gained `description`/`default` annotations, which do not change validation. Prose defaults that are not valid instances (`project`, `environments`, `database`) use a custom `x-default` annotation, so editors never offer them as values.
   - Install instructions show both `pip install "dbt-agents-schema[<extra>]==0.1.0"` and a git URL. Where partners install from is H2's decision, and the CI wrappers assume an index that serves the pinned version.
   - The guide mentions the T26-deferred lineage depth-20 note under Troubleshooting.
+
+## T28 End-to-end demo — done
+- Changed: scripts/demo_duckdb.sh (new), tests/test_demo.py (new)
+- Evidence: `make verify` exit 0 (`636 passed, 18 deselected`). `bash scripts/demo_duckdb.sh` exit 0: finance and marketing checks pass (1 warning each); finance and marketing go to `AGENTS` (prod), finance to `finance_AGENTS` (dev); 3 analyst queries return rows. Tests: test_demo_exits_zero_and_shows_results, test_demo_leaves_the_checkout_clean.
+- Decisions:
+  - The demo uses the real CLI through `uv run --project <repo>`, so it works from any directory. Prod uses `credentials: env` (`WAREHOUSE_CREDENTIALS` with `type: duckdb`). Dev uses `credentials: dbt_profile` through `tests/fixtures/profiles.yml` with `FIXTURE_DUCKDB_PATH`.
+  - The fixture manifests are checked in, so the demo passes `--manifest` instead of running `dbt parse`. It needs no network and no dbt adapter install.
+  - The three queries come out of the published `skill/dbt-agents-schema-analyst` ROOT row, the same way an agent would read them: projects, downstream lineage of `model.shared_pkg.dim_calendar` across both projects, and the skills list. The script exits non-zero if any of them returns no rows.
+  - The DuckDB file goes to `$DEMO_DIR` (default: a new temp dir). Nothing is written in the checkout.
+  - Noticed for T29: the `skill_without_uses` message prints `{schemas: [...], tables: [...]}}` (one `}` too many).

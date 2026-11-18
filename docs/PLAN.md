@@ -217,7 +217,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   **Done when:** every CLI flag and config key appears in the guide (a test checks this
   against `--help` output and the schema).
 
-- [ ] **T28 End-to-end demo.** `scripts/demo_duckdb.sh`: check both fixtures, publish
+- [x] **T28 End-to-end demo.** `scripts/demo_duckdb.sh`: check both fixtures, publish
   finance and marketing to `prod` and finance to `dev` in a DuckDB file, then run three
   analyst-skill queries and print the results.
   **Done when:** the script exits 0 from a clean checkout after `make install`.
