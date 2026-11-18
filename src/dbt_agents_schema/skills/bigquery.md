@@ -7,8 +7,9 @@ each other (also across projects), and which project skills apply.
 **Read-only.** Run `SELECT` statements only. Never `INSERT`, `UPDATE`, `DELETE`,
 `MERGE`, `CREATE`, `ALTER` or `DROP` anything in this schema; publishing is done by CI.
 
-Either set the agents dataset as the job's default dataset, or qualify each table as
-`<project>.<agents dataset>.ROOT` and so on. Table names are uppercase and case-sensitive
+Either set the agents dataset as the job's default dataset, or qualify each table with
+backticks, as in `` `<project>.<agents dataset>.ROOT` `` (backticks are required when the
+project id contains `-`). Table names are uppercase and case-sensitive
 in BigQuery; column names are lowercase.
 
 The example values (`'finance'`, `'revenue'`, `'model.finance.fct_revenue'`,

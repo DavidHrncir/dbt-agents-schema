@@ -287,3 +287,35 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - No HTTP dependency: urllib behind an injectable `Http` callable (`fetch.default_http`). Headers are added with `add_unredirected_header`, so a redirect to another host (e.g. a storage URL) never carries the token.
   - Exit codes: 2 for input, token or not found (missing `DBT_CLOUD_API_TOKEN`, bad `--host`/ids, 401/403, 404); 3 for remote problems (other non-200, network error, non-JSON body, JSON without `metadata`). SPEC 7 defines no codes for this command; these mirror publish's "your input" (2) and "remote system" (3).
   - Default `--out` is `<project-dir>/target/manifest.json`, where `check` and `publish` look by default. The file is written via a temp file and `os.replace`, so a failed download keeps any existing manifest. Errors include the dbt platform `status.user_message` when present and never the token. `--host` accepts a bare host or `https://host/`. `http://` is rejected.
+
+## T26 Phase 4 review — done
+- Reviewer: Phase 4 review: 0 blockers, 3 should-fix, 7 nits
+- Fixed (should-fix):
+  - **GitHub secrets scoped to steps.** `WAREHOUSE_CREDENTIALS` and `DBT_PROFILES_YML` were in job-level `env:`, so pip, `dbt deps` and `dbt parse` (third-party package code, `env_var()`) could read them in PR check runs. Now only "Write profiles.yml" (both) and "Publish" (`WAREHOUSE_CREDENTIALS`) receive them. "Validate inputs" gets only `HAS_WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS != '' }}`. Cleanup uses `rm -rf "${DBT_PROFILES_DIR:?}"`. Test: test_secrets_reach_only_the_steps_that_need_them.
+  - **GitLab credentials.** GitLab cannot mask a multi-line JSON/YAML document, and a file-type variable holds a path that `from_env` rejected. The template now reads `WAREHOUSE_CREDENTIALS` from the file when it is a path (wrapper plumbing; the CLI still receives the document as SPEC 4.1 says). Both variables are moved into an unexported shell variable and `unset` before `dbt deps`/`dbt parse`, and publish gets them back explicitly. The header comment now recommends a protected File variable plus an unprotected, secret-free `DBT_PROFILES_YML` (from `write-parse-profile`) for merge request checks, which also answers nit 6. The example and init callers no longer say "masked". Test: test_secrets_are_unset_before_dbt_runs. See SPEC CHANGE PROPOSAL B.
+  - **`write-parse-profile` schema key** is a SPEC deviation, now logged as SPEC CHANGE PROPOSAL A. Behaviour is unchanged, because a guessed schema would publish wrong relation names.
+- Fixed (nits):
+  - bigquery.md shows backtick-quoted `` `<project>.<agents dataset>.ROOT` `` (project ids with `-`).
+  - fetch-manifest also maps `http.client.HTTPException` (e.g. `IncompleteRead`) to exit 3 instead of a traceback with exit 1. Test: test_interrupted_download.
+  - The GitHub caller's concurrency comment now says a queued publish is replaced by a newer one and a running one is never cancelled.
+- Not fixed (nits, deferred):
+  - GitLab `mode: auto` divergence: logged as SPEC CHANGE PROPOSAL C.
+  - The literal-to-literal GitLab rules (`'"$[[ inputs.mode ]]" != "publish" && …'`) are schema-valid but unverified on a real GitLab instance. Confirm with `mode` auto/check/publish during H1/H2.
+  - Recursive lineage CTEs use `UNION ALL` with a depth cap of 20. Results are correct, but path counts can grow on DAGs with many diamonds. Worth a sentence in T27's guide if partners have very large DAGs.
+- Changed: .github/workflows/dbt-agents-schema.yml, templates/gitlab/dbt-agents-schema.yml, examples/{github/agents-schema.yml,gitlab/.gitlab-ci.yml}, src/dbt_agents_schema/init_templates/{github,gitlab}.yml, src/dbt_agents_schema/skills/bigquery.md, src/dbt_agents_schema/fetch.py, tests/test_ci_{github,gitlab}.py, tests/test_fetch_manifest.py
+- Evidence: `make verify` exit 0 (`615 passed, 18 deselected`; GitHub and GitLab CI files `ok -- validation done`).
+
+### SPEC CHANGE PROPOSAL A — target schema for `write-parse-profile` (SPEC 4.1, 7)
+- Problem: `dbt parse` writes the profile's schema into every model's `relation_name` and `schema_name`, which are published. SPEC 4.1's `WAREHOUSE_CREDENTIALS` shape has no schema, so a profile built only from it would publish made-up relation names. The current code requires an optional `schema` key (BigQuery `dataset`/`schema`; DuckDB defaults to `main`) and exits 2 without it. A team reusing its dbt Labs secret without `DBT_PROFILES_YML` must add one key.
+- Options: (a) add the optional `schema`/`dataset` key to SPEC 4.1, used only by `write-parse-profile` (current behaviour); (b) add `write-parse-profile --schema` and a `parse-schema`/`parse_schema` wrapper input; (c) require `DBT_PROFILES_YML` whenever the schema is unknown.
+- Recommendation: (a). It is one optional key, publish ignores it, and the error names the key and the `DBT_PROFILES_YML` alternative. (b) can be added later. No task is blocked; this records the deviation for human approval.
+
+### SPEC CHANGE PROPOSAL B — GitLab credentials variable (SPEC 10.2)
+- Problem: SPEC 10.2 says "a masked CI/CD variable `WAREHOUSE_CREDENTIALS`". GitLab masking requires a single line from a restricted character set, which a JSON/YAML credentials document (braces, quotes, spaces, newlines, PEM keys) does not meet.
+- Options: (a) SPEC says "a protected CI/CD variable, type File recommended" and the wrapper reads the file (current behaviour); (b) also accept base64-encoded `WAREHOUSE_CREDENTIALS` in the CLI, which can be masked; (c) keep "masked" and accept that it is unattainable.
+- Recommendation: (a) now. Consider (b) for v0.2 if partners want masking in job logs.
+
+### SPEC CHANGE PROPOSAL C — GitLab `mode` input (SPEC 10.2)
+- Problem: SPEC 10.2 asks for "the same inputs as GitHub", where `mode` is `check | publish`. A GitLab `include` creates both jobs at once, and including the template twice with different inputs would collide on job names.
+- Options: (a) allow `mode: auto | check | publish` (default `auto`: check on merge requests, publish on the default branch) (current behaviour); (b) drop `mode` from the GitLab template and rely on rules only.
+- Recommendation: (a). It keeps the input names aligned and the common case a single include.

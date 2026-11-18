@@ -121,3 +121,15 @@ def test_validator_checks_each_document(tmp_path: Path) -> None:
     )
     bad = subprocess.run([sys.executable, str(script), str(broken)], capture_output=True)
     assert bad.returncode != 0, "an invalid job key in the body document must fail"
+
+
+def test_secrets_are_unset_before_dbt_runs() -> None:
+    _, body = template()
+    before = "\n".join(body[".dbt-agents-schema-base"]["before_script"])
+    assert '[ -f "$WAREHOUSE_CREDENTIALS" ]' in before, "file-type variables are read"
+    unset = before.index("unset WAREHOUSE_CREDENTIALS DBT_PROFILES_YML")
+    assert before.index("write-parse-profile") < unset < before.index("&& dbt deps &&")
+    publish = "\n".join(body[PUBLISH_JOB]["script"])
+    assert 'WAREHOUSE_CREDENTIALS="$_agents_schema_credentials" dbt-agents-schema publish' in (
+        publish
+    )

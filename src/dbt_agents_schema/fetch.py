@@ -20,6 +20,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from http.client import HTTPException
 from pathlib import Path
 
 from dbt_agents_schema import __version__
@@ -108,8 +109,12 @@ def fetch_manifest(
     where = f"job {job_id} in account {account_id} on {url.split('/')[2]}"
     try:
         response = get(url, headers, TIMEOUT_SECONDS)
-    except OSError as exc:
-        raise FetchError(f"cannot reach {url.split('/')[2]}: {exc}; check --host", 3) from None
+    except (OSError, HTTPException) as exc:
+        raise FetchError(
+            f"cannot download from {url.split('/')[2]}: {type(exc).__name__}: {exc}; check "
+            "--host and retry",
+            3,
+        ) from None
 
     if response.status in (401, 403):
         raise FetchError(

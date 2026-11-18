@@ -204,7 +204,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   **Done when:** tests with a mocked HTTP layer cover success, 401, 404 and a non-JSON
   body; no real network call in tests.
 
-- [ ] **T26 Phase 4 review.** Run the `spec-reviewer` subagent on Phase 4. Fix
+- [x] **T26 Phase 4 review.** Run the `spec-reviewer` subagent on Phase 4. Fix
   correctness findings. Log the result.
 
 ## Phase 5 — Partner-ready

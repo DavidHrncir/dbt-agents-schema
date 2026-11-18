@@ -5,10 +5,14 @@
 # use the GitLab CI/CD Catalog. Example: examples/gitlab/.gitlab-ci.yml.
 #
 # Variables (Settings > CI/CD > Variables):
-#   WAREHOUSE_CREDENTIALS  masked; required to publish. Merge request pipelines also use
-#                          it to write a profile for `dbt parse`, so do not mark it
-#                          protected unless you set DBT_PROFILES_YML instead.
+#   WAREHOUSE_CREDENTIALS  required to publish. Use type "File" and mark it protected so
+#                          only default-branch pipelines receive it. GitLab cannot mask a
+#                          multi-line JSON/YAML document, so do not rely on masking.
 #   DBT_PROFILES_YML       optional profiles.yml (plain or file type) for `dbt parse`.
+#                          With a protected WAREHOUSE_CREDENTIALS, set this (unprotected)
+#                          for merge request checks: the output of
+#                          `dbt-agents-schema write-parse-profile` holds no secrets.
+# Both are removed from the environment before `dbt deps` and `dbt parse` run.
 spec:
   inputs:
     project_dir:
@@ -48,6 +52,10 @@ spec:
     - dbt --version
     - dbt-agents-schema --version
     - |
+      # A file-type variable holds a path; the CLI expects the document itself.
+      if [ -n "${WAREHOUSE_CREDENTIALS:-}" ] && [ -f "$WAREHOUSE_CREDENTIALS" ]; then
+        WAREHOUSE_CREDENTIALS="$(cat "$WAREHOUSE_CREDENTIALS")"
+      fi
       # Profile for `dbt parse`, kept outside the checkout so it is never uploaded.
       export DBT_PROFILES_DIR="$(mktemp -d)"
       if [ -n "${DBT_PROFILES_YML:-}" ]; then
@@ -60,6 +68,10 @@ spec:
       else
         dbt-agents-schema write-parse-profile --project-dir "$PROJECT_DIR" --out "$DBT_PROFILES_DIR"
       fi
+      # Keep secrets out of the environment of `dbt deps` and `dbt parse`, which run
+      # third-party package code. Publish gets the credentials back explicitly.
+      _agents_schema_credentials="${WAREHOUSE_CREDENTIALS:-}"
+      unset WAREHOUSE_CREDENTIALS DBT_PROFILES_YML
     - (cd "$PROJECT_DIR" && dbt deps && dbt parse)
 
 dbt-agents-schema-check:
@@ -82,8 +94,8 @@ dbt-agents-schema-publish:
   resource_group: dbt-agents-schema-$CI_PROJECT_PATH
   script:
     - |
-      if [ -z "${WAREHOUSE_CREDENTIALS:-}" ]; then
+      if [ -z "${_agents_schema_credentials:-}" ]; then
         echo "error: publish needs the WAREHOUSE_CREDENTIALS CI/CD variable (Settings > CI/CD > Variables)" >&2
         exit 2
       fi
-    - dbt-agents-schema publish --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT"
+    - WAREHOUSE_CREDENTIALS="$_agents_schema_credentials" dbt-agents-schema publish --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT"

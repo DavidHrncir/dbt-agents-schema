@@ -26,7 +26,8 @@ jobs:
 
   publish:
     if: github.event_name == 'push'
-    # Two publishes of the same project never overlap; a newer one waits, never cancels.
+    # Two publishes of the same project never overlap. A queued publish is replaced by a
+    # newer one, so the latest commit wins; a running publish is never cancelled.
     concurrency:
       group: dbt-agents-schema-${{ github.repository }}
       cancel-in-progress: false

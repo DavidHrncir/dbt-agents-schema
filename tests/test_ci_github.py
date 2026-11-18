@@ -80,3 +80,22 @@ def test_example_caller() -> None:
     concurrency = publish["concurrency"]
     assert "github.repository" in concurrency["group"]
     assert concurrency["cancel-in-progress"] is False
+
+
+def test_secrets_reach_only_the_steps_that_need_them() -> None:
+    (job,) = load(WORKFLOW)["jobs"].values()
+    assert "secrets." not in str(job.get("env", {}))
+    holders = {
+        step.get("name") or step.get("uses"): sorted(
+            k for k, v in step.get("env", {}).items() if "secrets." in str(v)
+        )
+        for step in job["steps"]
+        if "secrets." in str(step.get("env", {}))
+    }
+    assert holders == {
+        "Validate inputs": ["HAS_WAREHOUSE_CREDENTIALS"],
+        "Write profiles.yml for dbt parse": ["DBT_PROFILES_YML", "WAREHOUSE_CREDENTIALS"],
+        "Publish": ["WAREHOUSE_CREDENTIALS"],
+    }
+    validate = next(s for s in job["steps"] if s.get("name") == "Validate inputs")
+    assert validate["env"]["HAS_WAREHOUSE_CREDENTIALS"].endswith("!= '' }}"), "presence only"

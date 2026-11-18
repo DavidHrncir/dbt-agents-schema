@@ -56,12 +56,14 @@ jobs:
       DBT_VERSION: ${{ inputs.dbt-version }}
       MODE: ${{ inputs.mode }}
       AGENTS_ENVIRONMENT: ${{ inputs.environment }}
-      WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
-      DBT_PROFILES_YML: ${{ secrets.DBT_PROFILES_YML }}
+      # Secrets are passed only to the steps that need them (profile, publish), never
+      # to pip, `dbt deps` or `dbt parse`, which run third-party package code.
       DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
     steps:
       - name: Validate inputs
         shell: bash
+        env:
+          HAS_WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS != '' }}
         run: |
           case "$MODE" in
             check|publish) ;;
@@ -71,7 +73,7 @@ jobs:
             dbt-snowflake|dbt-bigquery|dbt-databricks|dbt-duckdb) ;;
             *) echo "::error::input dbt-adapter must be one of dbt-snowflake, dbt-bigquery, dbt-databricks, dbt-duckdb; got '$DBT_ADAPTER'"; exit 2 ;;
           esac
-          if [ "$MODE" = publish ] && [ -z "$WAREHOUSE_CREDENTIALS" ]; then
+          if [ "$MODE" = publish ] && [ "$HAS_WAREHOUSE_CREDENTIALS" != true ]; then
             echo "::error::mode publish needs the WAREHOUSE_CREDENTIALS secret; pass it from the caller under secrets:"
             exit 2
           fi
@@ -96,6 +98,9 @@ jobs:
 
       - name: Write profiles.yml for dbt parse
         shell: bash
+        env:
+          WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
+          DBT_PROFILES_YML: ${{ secrets.DBT_PROFILES_YML }}
         run: |
           mkdir -p "$DBT_PROFILES_DIR"
           if [ -n "$DBT_PROFILES_YML" ]; then
@@ -120,9 +125,11 @@ jobs:
       - name: Publish
         if: inputs.mode == 'publish'
         shell: bash
+        env:
+          WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
         run: dbt-agents-schema publish --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT"
 
       - name: Remove profiles.yml
         if: always()
         shell: bash
-        run: rm -rf "$DBT_PROFILES_DIR"
+        run: rm -rf "${DBT_PROFILES_DIR:?}"

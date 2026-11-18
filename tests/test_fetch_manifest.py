@@ -143,6 +143,14 @@ def test_network_error(tmp_path: Path) -> None:
     assert info.value.exit_code == 3 and "cloud.getdbt.com" in str(info.value)
 
 
+def test_interrupted_download(tmp_path: Path) -> None:
+    import http.client
+
+    with pytest.raises(FetchError) as info:
+        run(FakeHttp(http.client.IncompleteRead(b'{"meta', 1000)), tmp_path / "m.json")
+    assert info.value.exit_code == 3 and "IncompleteRead" in str(info.value)
+
+
 def test_token_is_not_forwarded_on_redirect() -> None:
     request = fetch.build_request("https://cloud.getdbt.com/x", {"Authorization": "Bearer t"})
     assert request.get_header("Authorization") == "Bearer t"
