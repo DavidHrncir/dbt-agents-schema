@@ -1,8 +1,9 @@
 # Example caller: copy to .gitlab-ci.yml in your dbt project repository (or merge the
 # `include` entry into yours). Checks merge requests (findings appear in the Code Quality
-# widget) and publishes on the default branch. Set the CI/CD variable
-# WAREHOUSE_CREDENTIALS (type File, protected; see the template header). Pin the URL
-# to a release tag and set package_version to it.
+# widget) and publishes on the default branch. Add `parse_target` to the prod
+# environment in agents_schema.yml so `dbt parse` sees production names without a real
+# credential. Set the CI/CD variable WAREHOUSE_CREDENTIALS (type File, protected; see
+# the template header). Pin the URL to a release tag and set package_version to it.
 # Alternatives: `include: project: <group>/dbt-agents-schema` with `ref: v@PACKAGE_VERSION@` and
 # `file: templates/gitlab/dbt-agents-schema.yml`, or a local copy with `include: local:`.
 
@@ -15,5 +16,6 @@ include:
   - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v@PACKAGE_VERSION@/templates/gitlab/dbt-agents-schema.yml
     inputs:
       package_version: "@PACKAGE_VERSION@"
-      dbt_adapter: @DBT_ADAPTER@
+      warehouse: @WAREHOUSE@
       environment: prod
+      # dbt_engine: core            # dbt-core instead of dbt Fusion; installs @DBT_ADAPTER@

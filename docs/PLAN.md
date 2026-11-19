@@ -280,7 +280,7 @@ updated. Each task cites the SPEC sections that proposal changes.
   (`dbt-adapter`, `package-version`) still validates; `init --ci github` output matches
   the example.
 
-- [ ] **T35 GitLab template parity.** Per SPEC 10.2.
+- [x] **T35 GitLab template parity.** Per SPEC 10.2.
   **Done when:** the template and example pass `check-jsonschema --builtin-schema
   vendor.gitlab-ci`; tests assert the new inputs, `write-parse-profile --env`,
   `--no-partial-parse`, `check --env`, the dry run before publish, and that secrets are

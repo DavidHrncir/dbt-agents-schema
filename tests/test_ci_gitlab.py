@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
+import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,26 +35,143 @@ def test_header_declares_snake_case_inputs() -> None:
     inputs = header["spec"]["inputs"]
     assert set(inputs) == {
         "project_dir",
-        "package_version",
         "python_version",
-        "dbt_adapter",
-        "dbt_version",
         "mode",
         "environment",
+        "warehouse",
+        "dbt_engine",
+        "dbt_fusion_version",
+        "dbt_version",
+        "dbt_adapter",
+        "package_version",
+        "package_spec",
     }
+    assert "parse_env" not in inputs, "included jobs already see the project's variables"
     assert inputs["project_dir"]["default"] == "."
-    assert "default" not in inputs["package_version"], "package_version is required"
-    assert "default" not in inputs["dbt_adapter"], "dbt_adapter is required"
     assert inputs["python_version"]["default"] == "3.12"
     assert inputs["dbt_version"]["default"] == ">=1.8,<2"
     assert inputs["environment"]["default"] == "prod"
     assert {"check", "publish"} <= set(inputs["mode"]["options"])
-    assert inputs["dbt_adapter"]["options"] == [
-        "dbt-snowflake",
-        "dbt-bigquery",
-        "dbt-databricks",
-        "dbt-duckdb",
-    ]
+    assert inputs["dbt_engine"]["options"] == ["fusion", "core"]
+    assert inputs["dbt_engine"]["default"] == "fusion"
+    # Conditionally required inputs are validated by the job script.
+    for name in ("warehouse", "dbt_adapter", "package_version", "package_spec"):
+        assert inputs[name]["default"] == "", name
+
+
+def test_fusion_default_matches_github_workflow() -> None:
+    header, _ = template()
+    github = yaml.safe_load((ROOT / ".github/workflows/dbt-agents-schema.yml").read_text())
+    github_inputs = github[True]["workflow_call"]["inputs"]
+    assert (
+        header["spec"]["inputs"]["dbt_fusion_version"]["default"]
+        == github_inputs["dbt-fusion-version"]["default"]
+    )
+
+
+def base_script() -> str:
+    _, body = template()
+    return "\n".join(body[".dbt-agents-schema-base"]["before_script"])
+
+
+def test_engine_and_package_install() -> None:
+    text = base_script()
+    assert "public.cdn.getdbt.com/fs/install/install.sh" in text
+    assert '--version "$DBT_FUSION_VERSION"' in text
+    assert 'pip install "dbt-core${DBT_VERSION}" "$AGENTS_DBT_ADAPTER"' in text
+    assert 'pip install "$AGENTS_PACKAGE_REQUIREMENT"' in text
+    assert text.index("install.sh") < text.index("dbt deps")
+
+
+def test_profile_parse_and_check_use_env() -> None:
+    text = base_script()
+    assert 'write-parse-profile --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT"' in text
+    assert "dbt parse --no-partial-parse" in text
+    _, body = template()
+    check = "\n".join(body[CHECK_JOB]["script"])
+    assert '--env "$AGENTS_ENVIRONMENT"' in check
+
+
+def test_publish_runs_dry_run_first() -> None:
+    _, body = template()
+    script = body[PUBLISH_JOB]["script"]
+    dry = next(i for i, line in enumerate(script) if "--dry-run" in line)
+    real = next(
+        i
+        for i, line in enumerate(script)
+        if "publish --project-dir" in line and "--dry-run" not in line
+    )
+    assert dry < real
+    for i in (dry, real):
+        assert 'WAREHOUSE_CREDENTIALS="$_agents_schema_credentials"' in script[i]
+
+
+def run_validate(tmp_path: Path, **values: str) -> subprocess.CompletedProcess[str]:
+    """Run the template's input validation block with bash, inputs passed as the job
+    variables GitLab would set."""
+    header, body = template()
+    base = body[".dbt-agents-schema-base"]
+    defaults = {k: str(v.get("default", "")) for k, v in header["spec"]["inputs"].items()}
+    env = {"PATH": os.environ["PATH"]}
+    for key, value in base["variables"].items():
+        for name, default in defaults.items():
+            value = value.replace(f"$[[ inputs.{name} ]]", values.get(name, default))
+        env[key] = value
+    block = base["before_script"][0]
+    assert "$[[ inputs." not in block, "inputs reach the script only through variables"
+    bash = shutil.which("bash")
+    assert bash is not None
+    return subprocess.run(
+        [
+            bash,
+            "-e",
+            "-c",
+            block + '\necho "REQ=$AGENTS_PACKAGE_REQUIREMENT ADAPTER=$AGENTS_DBT_ADAPTER"',
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+
+@pytest.mark.parametrize(
+    ("values", "expected"),
+    [
+        (
+            {"warehouse": "bigquery", "package_version": "0.2.0"},
+            "REQ=dbt-agents-schema[bigquery]==0.2.0 ADAPTER=dbt-bigquery",
+        ),
+        (
+            {"dbt_adapter": "dbt-duckdb", "package_version": "0.1.0"},
+            "REQ=dbt-agents-schema[duckdb]==0.1.0 ADAPTER=dbt-duckdb",
+        ),
+        (
+            {"warehouse": "snowflake", "package_spec": "git+https://gitlab.com/acme/das@abc"},
+            "REQ=dbt-agents-schema[snowflake] @ git+https://gitlab.com/acme/das@abc "
+            "ADAPTER=dbt-snowflake",
+        ),
+    ],
+)
+def test_input_validation_derives_requirement(
+    tmp_path: Path, values: dict[str, str], expected: str
+) -> None:
+    proc = run_validate(tmp_path, **values)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert expected in proc.stdout
+
+
+@pytest.mark.parametrize(
+    ("values", "needle"),
+    [
+        ({"package_version": "0.2.0"}, "warehouse"),
+        ({"warehouse": "postgres", "package_version": "0.2.0"}, "warehouse"),
+        ({"warehouse": "duckdb"}, "package_version"),
+    ],
+)
+def test_input_validation_rejects(tmp_path: Path, values: dict[str, str], needle: str) -> None:
+    proc = run_validate(tmp_path, **values)
+    assert proc.returncode == 2
+    assert needle in proc.stderr
 
 
 def test_job_names() -> None:
@@ -90,7 +210,9 @@ def test_publish_job_on_default_branch_serialized() -> None:
 
 def test_jobs_install_pinned_package_and_parse() -> None:
     text = TEMPLATE.read_text()
-    assert "dbt-agents-schema[${EXTRA}]==$[[ inputs.package_version ]]" in text
+    assert "dbt-agents-schema[${EXTRA}]==$PACKAGE_VERSION" in text
+    assert 'PACKAGE_VERSION: "$[[ inputs.package_version ]]"' in text
+    assert "dbt parse --no-partial-parse" in text
     for needle in ("dbt deps", "dbt parse", "write-parse-profile", "WAREHOUSE_CREDENTIALS"):
         assert needle in text, needle
     assert "component:" not in text, "must not depend on the GitLab CI/CD Catalog"
@@ -106,9 +228,11 @@ def test_every_input_is_used() -> None:
 def test_example_caller() -> None:
     (caller,) = documents(CALLER)
     (include,) = caller["include"]
-    assert include["remote"].endswith("/v0.1.0/templates/gitlab/dbt-agents-schema.yml")
-    assert include["inputs"]["package_version"] == "0.1.0"
-    assert include["inputs"]["dbt_adapter"].startswith("dbt-")
+    assert include["remote"].endswith("/v0.2.0/templates/gitlab/dbt-agents-schema.yml")
+    assert include["inputs"]["package_version"] == "0.2.0"
+    assert include["inputs"]["warehouse"] == "snowflake"
+    header, _ = template()
+    assert set(include["inputs"]) <= set(header["spec"]["inputs"])
 
 
 def test_validator_checks_each_document(tmp_path: Path) -> None:
