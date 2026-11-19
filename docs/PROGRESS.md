@@ -447,3 +447,11 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - `database` is required by the JSON Schema for every `type` except duckdb (`if`/`then`). `location` on a non-BigQuery `parse_target` is a schema error, reading "BigQuery only" in SPEC 3 as a constraint.
   - Template refusal and regex compilation run after JSON Schema validation, so they report the JSON path (`$.check.measured_values.allow[1]`) and the YAML line. `check` reports them as `config_invalid` through the existing ConfigError path.
   - `test_defaults_with_no_file` now lists the four new rules in its expected defaults (extended, not weakened).
+
+## T31 Placeholder parse profile — done
+- Changed: `parse_profile.py` (`build_placeholder_profile`, `PLACEHOLDER`, `write_parse_profile(..., parse_target=)`), `cli.py` (`write-parse-profile --env`), `tests/test_parse_profile.py`.
+- Evidence: `make verify` exit 0 (`683 passed, 18 deselected`). Tests: test_parse_target_snowflake, test_parse_target_bigquery, test_parse_target_databricks, test_parse_target_duckdb, test_parse_target_never_reads_warehouse_credentials[bigquery|databricks|duckdb|snowflake], test_parse_target_ignores_set_credentials, test_env_without_parse_target_uses_credentials, test_unknown_env_is_exit_2, test_parse_target_refuses_overwrite; the existing T22 tests pass unchanged.
+- Decisions:
+  - Placeholder value `dbt-parse-placeholder` for every connection field the adapters require: Snowflake `account`/`user`/`password`/`warehouse`; Databricks `host`/`http_path`/`token`; BigQuery `keyfile_json` with that value as `private_key_id`, inside a PEM-shaped `private_key`, and in `client_email`. Whether Fusion accepts the dummy key without connecting is confirmed by H3.
+  - DuckDB writes `path: ":memory:"` and no `database`, even when `parse_target.database` is set, because dbt-duckdb rejects a `database` that disagrees with the path. Models then carry the database `memory`, so T32 must skip the database comparison for DuckDB unless the user set it.
+  - `--env` with an environment that has no `parse_target` falls back to the `WAREHOUSE_CREDENTIALS` profile. An undefined environment exits 2 and lists the available ones.

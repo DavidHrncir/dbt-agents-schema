@@ -133,14 +133,24 @@ def build_parser() -> argparse.ArgumentParser:
     wpp = commands.add_parser(
         "write-parse-profile",
         parents=[common],
-        help="write a minimal profiles.yml from WAREHOUSE_CREDENTIALS for `dbt parse` in CI",
+        help="write a minimal profiles.yml for `dbt parse` in CI",
         description=(
-            "Write <out>/profiles.yml for `dbt parse` from WAREHOUSE_CREDENTIALS. No secret "
-            "is written. Set `schema` (BigQuery: `dataset`) in WAREHOUSE_CREDENTIALS to the "
-            "dbt target schema."
+            "Write <out>/profiles.yml for `dbt parse`. With --env naming an environment "
+            "that has parse_target, the profile is built from parse_target with placeholder "
+            "credentials and WAREHOUSE_CREDENTIALS is not read. Otherwise it is built from "
+            "WAREHOUSE_CREDENTIALS: no secret is written; set `schema` (BigQuery: `dataset`) "
+            "in it to the dbt target schema."
         ),
     )
     wpp.add_argument("--out", required=True, help="directory to write profiles.yml into")
+    wpp.add_argument(
+        "--env",
+        default=None,
+        help=(
+            "environment whose parse_target builds a placeholder profile; "
+            "WAREHOUSE_CREDENTIALS is then not read"
+        ),
+    )
 
     init = commands.add_parser(
         "init",
@@ -323,8 +333,27 @@ def _cmd_unpublish(args: argparse.Namespace) -> int:
 
 
 def _cmd_write_parse_profile(args: argparse.Namespace) -> int:
+    project_dir = Path(args.project_dir)
+    parse_target = None
     try:
-        path = write_parse_profile(Path(args.project_dir), Path(args.out), os.environ)
+        if args.env is not None:
+            config = load_config(project_dir, Path(args.config) if args.config else None)
+            env = config.environments.get(args.env)
+            if env is None:
+                available = ", ".join(sorted(config.environments))
+                print(
+                    f"error: {config.path}: environment {args.env!r} is not defined; "
+                    f"available: {available}. Pass one of them to --env",
+                    file=sys.stderr,
+                )
+                return EXIT_INPUT_ERROR
+            parse_target = env.parse_target
+        path = write_parse_profile(
+            project_dir, Path(args.out), os.environ, parse_target=parse_target
+        )
+    except ConfigError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_INPUT_ERROR
     except CredentialError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_INPUT_ERROR

@@ -244,7 +244,7 @@ updated. Each task cites the SPEC sections that proposal changes.
   regex in `allow`/`exempt`/`count_nouns` (`config_invalid` naming the key and index), and
   the new rule defaults; the config reference in the partner guide is regenerated.
 
-- [ ] **T31 Placeholder parse profile.** `write-parse-profile --env NAME` (SPEC 7).
+- [x] **T31 Placeholder parse profile.** `write-parse-profile --env NAME` (SPEC 7).
   **Done when:** tests for each of the four warehouse types assert the written profile
   (profile name, target name, database/schema/location, placeholder credentials, file mode
   0600) with `WAREHOUSE_CREDENTIALS` unset; a test proves `WAREHOUSE_CREDENTIALS` is not

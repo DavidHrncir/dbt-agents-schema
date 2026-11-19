@@ -12,7 +12,11 @@ import yaml
 
 from dbt_agents_schema.cli import main
 from dbt_agents_schema.credentials import CredentialError
-from dbt_agents_schema.parse_profile import build_parse_profile, write_parse_profile
+from dbt_agents_schema.parse_profile import (
+    PLACEHOLDER,
+    build_parse_profile,
+    write_parse_profile,
+)
 
 SECRET = "hunter2-secret"
 
@@ -217,3 +221,154 @@ def test_cli_error_exit_2(
     code = main(["write-parse-profile", "--project-dir", str(project), "--out", str(tmp_path)])
     assert code == 2
     assert "WAREHOUSE_CREDENTIALS" in capsys.readouterr().err
+
+
+# --- placeholder profile from parse_target (T31) -------------------------------------
+
+
+PARSE_TARGETS = {
+    "snowflake": "type: snowflake\n      database: ANALYTICS\n      schema: FINANCE\n",
+    "bigquery": (
+        "type: bigquery\n      name: ci\n      database: acme-prod\n      schema: finance\n"
+        "      location: EU\n"
+    ),
+    "databricks": "type: databricks\n      database: main\n      schema: finance\n",
+    "duckdb": "type: duckdb\n      schema: main\n",
+}
+
+
+def with_parse_target(project: Path, warehouse: str) -> None:
+    (project / "agents_schema.yml").write_text(
+        "version: 1\nenvironments:\n  prod:\n    credentials: env\n    schema: AGENTS\n"
+        "    parse_target:\n      " + PARSE_TARGETS[warehouse] + "  dev:\n"
+        "    credentials: dbt_profile\n    schema: DEV_AGENTS\n"
+    )
+
+
+def run_wpp(project: Path, out_dir: Path, *extra: str) -> int:
+    return main(
+        ["write-parse-profile", "--project-dir", str(project), "--out", str(out_dir), *extra]
+    )
+
+
+def written(out_dir: Path) -> tuple[str, dict[str, Any]]:
+    path = out_dir / "profiles.yml"
+    assert stat.S_IMODE(path.stat().st_mode) == 0o600
+    loaded = yaml.safe_load(path.read_text())
+    assert list(loaded) == ["finance_profile"]
+    body = loaded["finance_profile"]
+    assert list(body["outputs"]) == [body["target"]]
+    return body["target"], body["outputs"][body["target"]]
+
+
+@pytest.fixture
+def no_creds(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("WAREHOUSE_CREDENTIALS", raising=False)
+
+
+@pytest.mark.usefixtures("no_creds")
+def test_parse_target_snowflake(project: Path, tmp_path: Path) -> None:
+    with_parse_target(project, "snowflake")
+    assert run_wpp(project, tmp_path / "out", "--env", "prod") == 0
+    target, out = written(tmp_path / "out")
+    assert target == "prod"
+    assert out["type"] == "snowflake"
+    assert (out["database"], out["schema"]) == ("ANALYTICS", "FINANCE")
+    assert out["password"] == PLACEHOLDER
+    assert out["account"] == PLACEHOLDER and out["user"] == PLACEHOLDER
+
+
+@pytest.mark.usefixtures("no_creds")
+def test_parse_target_bigquery(project: Path, tmp_path: Path) -> None:
+    with_parse_target(project, "bigquery")
+    assert run_wpp(project, tmp_path / "out", "--env", "prod") == 0
+    target, out = written(tmp_path / "out")
+    assert target == "ci"
+    assert out["type"] == "bigquery"
+    assert out["method"] == "service-account-json"
+    assert (out["project"], out["dataset"], out["location"]) == ("acme-prod", "finance", "EU")
+    key = out["keyfile_json"]
+    assert key["type"] == "service_account"
+    assert key["project_id"] == "acme-prod"
+    assert PLACEHOLDER in key["private_key"]
+
+
+@pytest.mark.usefixtures("no_creds")
+def test_parse_target_databricks(project: Path, tmp_path: Path) -> None:
+    with_parse_target(project, "databricks")
+    assert run_wpp(project, tmp_path / "out", "--env", "prod") == 0
+    target, out = written(tmp_path / "out")
+    assert target == "prod"
+    assert out["type"] == "databricks"
+    assert (out["catalog"], out["schema"]) == ("main", "finance")
+    assert out["token"] == PLACEHOLDER
+    assert out["host"] and out["http_path"]
+
+
+@pytest.mark.usefixtures("no_creds")
+def test_parse_target_duckdb(project: Path, tmp_path: Path) -> None:
+    with_parse_target(project, "duckdb")
+    assert run_wpp(project, tmp_path / "out", "--env", "prod") == 0
+    target, out = written(tmp_path / "out")
+    assert target == "prod"
+    assert out == {"type": "duckdb", "path": ":memory:", "schema": "main"}
+
+
+@pytest.mark.parametrize("warehouse", sorted(PARSE_TARGETS))
+def test_parse_target_never_reads_warehouse_credentials(
+    project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, warehouse: str
+) -> None:
+    class Tripwire(dict[str, str]):
+        def __getitem__(self, key: str) -> str:
+            assert key != "WAREHOUSE_CREDENTIALS", "WAREHOUSE_CREDENTIALS was read"
+            return super().__getitem__(key)
+
+        def get(self, key: str, default: Any = None) -> Any:
+            assert key != "WAREHOUSE_CREDENTIALS", "WAREHOUSE_CREDENTIALS was read"
+            return super().get(key, default)
+
+    with_parse_target(project, warehouse)
+    env = Tripwire(WAREHOUSE_CREDENTIALS=json.dumps({"type": "duckdb", "path": SECRET}))
+    monkeypatch.setattr("os.environ", env)
+    assert run_wpp(project, tmp_path / "out", "--env", "prod") == 0
+    assert SECRET not in (tmp_path / "out" / "profiles.yml").read_text()
+
+
+def test_parse_target_ignores_set_credentials(
+    project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with_parse_target(project, "snowflake")
+    monkeypatch.setenv("WAREHOUSE_CREDENTIALS", "not even yaml: [")
+    assert run_wpp(project, tmp_path / "out", "--env", "prod") == 0
+    _, out = written(tmp_path / "out")
+    assert out["database"] == "ANALYTICS"
+
+
+def test_env_without_parse_target_uses_credentials(
+    project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with_parse_target(project, "snowflake")
+    monkeypatch.setenv(
+        "WAREHOUSE_CREDENTIALS", json.dumps({"type": "duckdb", "path": "x.db", "schema": "s"})
+    )
+    assert run_wpp(project, tmp_path / "out", "--env", "dev") == 0
+    target, out = written(tmp_path / "out")
+    assert target == "agents_schema_parse"
+    assert out == {"type": "duckdb", "path": "x.db", "schema": "s"}
+
+
+@pytest.mark.usefixtures("no_creds")
+def test_unknown_env_is_exit_2(
+    project: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with_parse_target(project, "snowflake")
+    assert run_wpp(project, tmp_path / "out", "--env", "staging") == 2
+    err = capsys.readouterr().err
+    assert "staging" in err and "prod" in err
+
+
+@pytest.mark.usefixtures("no_creds")
+def test_parse_target_refuses_overwrite(project: Path, tmp_path: Path) -> None:
+    with_parse_target(project, "duckdb")
+    assert run_wpp(project, tmp_path / "out", "--env", "prod") == 0
+    assert run_wpp(project, tmp_path / "out", "--env", "prod") == 2

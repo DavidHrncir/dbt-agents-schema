@@ -8,6 +8,10 @@ and service-account JSON are left out, BigQuery uses `method: oauth`, and the Da
 The output's `schema` decides the schema dbt puts into each model's `relation_name`, so
 it must be the project's real target schema. It is read from an optional `schema` key
 (BigQuery also `dataset`) in `WAREHOUSE_CREDENTIALS`; the publisher itself ignores it.
+
+With `--env` naming an environment that has `parse_target` (SPEC 3, 7), the profile is
+built from `parse_target` alone: connection fields are obvious placeholders and
+`WAREHOUSE_CREDENTIALS` is never read.
 """
 
 from __future__ import annotations
@@ -19,11 +23,61 @@ from typing import Any
 
 import yaml
 
+from dbt_agents_schema.config import ParseTarget
 from dbt_agents_schema.credentials import ENV_VAR, CredentialError, _profile_name, from_env
 
 PROFILES_FILENAME = "profiles.yml"
 TARGET = "agents_schema_parse"
 DATABRICKS_PARSE_TOKEN = "dbt-parse-only-not-a-token"
+PLACEHOLDER = "dbt-parse-placeholder"
+_PLACEHOLDER_KEY = f"-----BEGIN PRIVATE KEY-----\n{PLACEHOLDER}\n-----END PRIVATE KEY-----\n"
+
+
+def build_placeholder_profile(project_dir: Path, parse_target: ParseTarget) -> dict[str, Any]:
+    """The profiles.yml mapping for `project_dir` from `parse_target` (no credentials)."""
+    output: dict[str, Any]
+    if parse_target.type == "snowflake":
+        output = {
+            "type": "snowflake",
+            "account": PLACEHOLDER,
+            "user": PLACEHOLDER,
+            "password": PLACEHOLDER,
+            "warehouse": PLACEHOLDER,
+            "database": parse_target.database,
+            "schema": parse_target.schema,
+        }
+    elif parse_target.type == "bigquery":
+        output = {
+            "type": "bigquery",
+            "method": "service-account-json",
+            "project": parse_target.database,
+            "dataset": parse_target.schema,
+            "keyfile_json": {
+                "type": "service_account",
+                "project_id": parse_target.database,
+                "private_key_id": PLACEHOLDER,
+                "private_key": _PLACEHOLDER_KEY,
+                "client_email": f"{PLACEHOLDER}@{parse_target.database}.iam.gserviceaccount.com",
+                "client_id": "0",
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+            },
+        }
+        if parse_target.location is not None:
+            output["location"] = parse_target.location
+    elif parse_target.type == "databricks":
+        output = {
+            "type": "databricks",
+            "host": f"{PLACEHOLDER}.cloud.databricks.com",
+            "http_path": f"/sql/1.0/warehouses/{PLACEHOLDER}",
+            "catalog": parse_target.database,
+            "schema": parse_target.schema,
+            "token": PLACEHOLDER,
+        }
+    else:  # duckdb
+        output = {"type": "duckdb", "path": ":memory:", "schema": parse_target.schema}
+    name = parse_target.name
+    return {_profile_name(project_dir): {"target": name, "outputs": {name: output}}}
 
 
 def build_parse_profile(project_dir: Path, environ: Mapping[str, str]) -> dict[str, Any]:
@@ -65,9 +119,22 @@ def build_parse_profile(project_dir: Path, environ: Mapping[str, str]) -> dict[s
     return {_profile_name(project_dir): {"target": TARGET, "outputs": {TARGET: output}}}
 
 
-def write_parse_profile(project_dir: Path, out_dir: Path, environ: Mapping[str, str]) -> Path:
-    """Write `<out_dir>/profiles.yml` (mode 0600). Never overwrites an existing file."""
-    profile = build_parse_profile(project_dir, environ)
+def write_parse_profile(
+    project_dir: Path,
+    out_dir: Path,
+    environ: Mapping[str, str],
+    *,
+    parse_target: ParseTarget | None = None,
+) -> Path:
+    """Write `<out_dir>/profiles.yml` (mode 0600). Never overwrites an existing file.
+
+    With `parse_target`, the profile holds placeholders and `environ` is not read.
+    """
+    profile = (
+        build_placeholder_profile(project_dir, parse_target)
+        if parse_target is not None
+        else build_parse_profile(project_dir, environ)
+    )
     path = out_dir / PROFILES_FILENAME
     if path.exists():
         raise CredentialError(
