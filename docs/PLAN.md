@@ -228,3 +228,81 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
 
 - [H] **H2 Release.** Human reviews, tags `v0.1.0`, pushes, and decides where partners
   install from.
+
+## Phase 6 — v0.2.0: CI parse and published-context checks
+
+Starts only after SPEC CHANGE PROPOSALS E–H (PROGRESS.md) are accepted and SPEC.md is
+updated. Each task cites the SPEC sections that proposal changes.
+
+- [ ] **T30 Config: `parse_target` and `measured_values`.** Extend
+  `schemas/agents_schema.schema.json` and the loader with `environments.<name>.parse_target`
+  (SPEC 3) and `check.measured_values` (SPEC 3), and register the new rule ids
+  `manifest_target_mismatch`, `manifest_empty`, `column_meta_missing` and
+  `measured_values_in_context` with their default severities (SPEC 8).
+  **Done when:** tests cover each `parse_target` key, its required keys per `type`, the
+  `name` default, unknown keys, templates refused, `measured_values` defaults, an invalid
+  regex in `allow`/`exempt`/`count_nouns` (`config_invalid` naming the key and index), and
+  the new rule defaults; the config reference in the partner guide is regenerated.
+
+- [ ] **T31 Placeholder parse profile.** `write-parse-profile --env NAME` (SPEC 7).
+  **Done when:** tests for each of the four warehouse types assert the written profile
+  (profile name, target name, database/schema/location, placeholder credentials, file mode
+  0600) with `WAREHOUSE_CREDENTIALS` unset; a test proves `WAREHOUSE_CREDENTIALS` is not
+  read even when set; without `--env`, or with an environment that has no
+  `parse_target`, the existing tests pass unchanged.
+
+- [ ] **T32 Manifest target rules.** `check --env NAME`, and the rules
+  `manifest_target_mismatch`, `manifest_empty` and `column_meta_missing` (SPEC 7, 8);
+  `publish --env` applies them before connecting.
+  **Done when:** tests use the fixture manifests with a `parse_target` that matches
+  (no finding), a wrong database, a wrong schema prefix, case differences (no finding), an
+  unset database on DuckDB, a manifest with no models, and `column_meta_missing` at
+  `off` and `error`; `publish` exits 1 on a mismatch without connecting; `check` without
+  `--env` never reports `manifest_target_mismatch`.
+
+- [ ] **T33 `measured_values_in_context` rule.** Per SPEC 8.
+  **Done when:** tests hold at least three positive and three negative examples for each
+  step, plus every case listed in the SPEC; findings carry `node` for models and columns
+  and `file`/`line` for skills; `meta` is scanned; the `bad` fixture triggers the rule
+  (add scenarios, do not edit existing expectations). Existing tests pass unchanged. If a
+  fixture description now produces a warning that breaks an existing assertion, stop and
+  log it in PROGRESS.md instead of editing the assertion.
+
+- [ ] **T34 GitHub reusable workflow and caller.** Per SPEC 10 and 10.1: `warehouse`,
+  `dbt-engine`, `dbt-fusion-version`, `package-spec`, `parse-env`, `PACKAGE_REPO_TOKEN`,
+  the new profile, parse, check and dry-run steps; update
+  `examples/github/agents-schema.yml` and `init --ci github` to the new caller.
+  **Done when:** both files pass `check-jsonschema --builtin-schema
+  vendor.github-workflows` (and `actionlint` if installed); tests load the YAML and assert
+  the inputs and defaults, the step order, `--no-partial-parse`, that
+  `WAREHOUSE_CREDENTIALS` reaches only the publish steps and `PACKAGE_REPO_TOKEN` only the
+  install step, that `parse-env` rejects each forbidden key, and that a v0.1-style caller
+  (`dbt-adapter`, `package-version`) still validates; `init --ci github` output matches
+  the example.
+
+- [ ] **T35 GitLab template parity.** Per SPEC 10.2.
+  **Done when:** the template and example pass `check-jsonschema --builtin-schema
+  vendor.gitlab-ci`; tests assert the new inputs, `write-parse-profile --env`,
+  `--no-partial-parse`, `check --env`, the dry run before publish, and that secrets are
+  still unset before `dbt deps`/`dbt parse`.
+
+- [ ] **T36 Docs.** Partner guide: rewrite GitHub and GitLab setup around the new caller
+  and `parse_target`; add sections "Production parse target" and "Keep measurements out
+  of published context" (why, what the rule flags, `allow`/`exempt`/`count_nouns`,
+  examples); update the CLI reference for `check --env` and `write-parse-profile --env`;
+  a note that Fusion is now the default engine. Add an unreleased `0.2.0` entry to
+  CHANGELOG.md that calls out the engine default change and records the default
+  `dbt-fusion-version`.
+  **Done when:** `tests/test_partner_guide.py` passes (every flag, choice and config key
+  appears) and `make verify` exits 0.
+
+- [ ] **T37 Phase 6 review and version.** Run the `spec-reviewer` subagent on Phase 6.
+  Fix correctness findings. Set `__version__ = "0.2.0"`, finalize the CHANGELOG entry,
+  and make a local commit `release: 0.2.0`. Do not tag or push.
+
+- [H] **H3 Live CI run.** Human points `dbt_fivetran_platform_governance` at the new
+  workflow with `schema` set to a test dataset; confirms the Fusion parse succeeds with
+  the placeholder profile, that check annotates a pull request, and that publish writes
+  the expected rows. Repeat the placeholder parse for each other warehouse partners use.
+
+- [H] **H4 Release.** Human reviews, tags `v0.2.0` and pushes.

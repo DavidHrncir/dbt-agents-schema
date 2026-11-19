@@ -38,3 +38,9 @@ Phase 5:
 ```text
 /goal Every task in Phase 5 of docs/PLAN.md is marked [x], [!] or [H]; `bash scripts/demo_duckdb.sh` exits 0 with output shown; the final spec-reviewer summary line is in docs/PROGRESS.md; and the final turn shows `make verify` exiting 0 and a local commit `release: 0.1.0`. Use the /next-task skill for each task. Do not tag or push. Or stop after 60 turns.
 ```
+
+Phase 6:
+
+```text
+/goal Every task in Phase 6 of docs/PLAN.md is marked [x], [!] or [H]; the Phase 6 spec-reviewer summary line is in docs/PROGRESS.md; and the final turn shows `make verify` exiting 0 and a local commit `release: 0.2.0`. Use the /next-task skill for each task, one commit per task. Do not tag or push. Or stop after 80 turns.
+```

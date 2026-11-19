@@ -361,3 +361,81 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 ## SPEC update — proposals A–D accepted
 - Changed: docs/SPEC.md only. 4.1: optional `schema`/`dataset` key, read only by `write-parse-profile` (A). 5: Snowflake stores table and column names uppercase (D). 7: `write-parse-profile` row says where the schema comes from (A). 10.2: GitLab `mode` is `auto | check | publish`, default `auto` (C); `WAREHOUSE_CREDENTIALS` is a protected variable, File type recommended, not masked (B). No code changes.
 - Evidence: `make verify` exit 0 (`640 passed, 18 deselected`).
+
+## SPEC CHANGE PROPOSALS E–H — v0.2.0: CI parse and published-context checks
+- Source: review of the `dbt_fivetran_platform_governance` workflow (dbt Labs CLI) against the v0.1.0 reusable workflow, 2026-11-18. That workflow parses with dbt Fusion against a production-shaped profile holding placeholder keys, fails when the manifest did not resolve to production, and fails when published text contains measured values. v0.1.0 does none of these.
+- Decisions (user, 2026-11-18): Fusion is the default parse engine and dbt-core stays available; `measured_values_in_context` defaults to `warning`; a placeholder profile is the default when `DBT_PROFILES_YML` is absent and the environment has a `parse_target`.
+- Status: awaiting acceptance. Phase 6 of PLAN.md starts only after SPEC.md is updated.
+
+### SPEC CHANGE PROPOSAL E — production parse target (SPEC 3, 7)
+- Problem: `dbt parse` resolves each model's database, schema and `relation_name` from the profile target, and those values are published. In CI the profile comes from `DBT_PROFILES_YML` or from `write-parse-profile`, which reads the real `WAREHOUSE_CREDENTIALS` plus a `schema` key (proposal A). That puts a live credential next to `dbt deps`/`dbt parse`, which run third-party code, and makes pull request checks depend on the publish secret. Parse never connects, so no real credential is needed.
+- Options: (a) optional `environments.<name>.parse_target` in `agents_schema.yml`, and `write-parse-profile --env NAME` writes a profile from it with placeholder credentials and reads no secret; (b) workflow inputs `parse-database`/`parse-schema`/`parse-location`; (c) keep v0.1 behaviour.
+- Recommendation: (a). One source of truth, also used by proposal F; the wrappers stay thin; it works the same in GitHub, GitLab and locally. (b) would put the target in two files that can drift.
+- Proposed SPEC text:
+  - SPEC 3, optional key under each environment:
+    ```yaml
+        parse_target:                     # optional; production shape for `dbt parse` in CI
+          type: bigquery                  # snowflake | bigquery | databricks | duckdb; required
+          name: prod                      # profile target name; default: the environment name
+          database: internal-sales        # Snowflake database, BigQuery project, Databricks catalog; required except duckdb
+          schema: dh_dbt_ft_platform_gov  # dbt target schema (BigQuery dataset); required
+          location: US                    # BigQuery only; optional
+    ```
+    Plain strings, no templates. Unknown keys are a config error.
+  - SPEC 7, `write-parse-profile`: add `--env NAME`. When that environment has `parse_target`, write the profile from it: profile name = `profile` in `dbt_project.yml`, target = `parse_target.name`, and connection fields filled with obvious placeholders (BigQuery `method: service-account-json` with a dummy key, Snowflake `password`, Databricks `token`, DuckDB `path: ":memory:"`). It must not read `WAREHOUSE_CREDENTIALS`. Without `--env`, or when the environment has no `parse_target`, behaviour is unchanged. File mode 0600.
+  - SPEC 7, `check`: add `--env NAME`, which turns on the environment-dependent rules of proposal F. `publish --env` turns them on too.
+
+### SPEC CHANGE PROPOSAL F — manifest target rules (SPEC 8)
+- Problem: a parse against the wrong profile succeeds silently and publishes relation names that point nowhere; an empty parse publishes zero models and stays green; parsing with dbt-core instead of Fusion silently publishes empty column `meta` (Fusion copies model `meta` to columns, dbt-core does not). v0.1 catches none of these.
+- Options: (a) three configurable rules in the check engine; (b) leave it to each project's workflow as inline Python (what the governance project does today).
+- Recommendation: (a). The checks then also run locally, in pre-commit and in GitLab, and have tests.
+- Proposed SPEC text (SPEC 8, configurable rules):
+
+  | id | Default | Condition |
+  | --- | --- | --- |
+  | `manifest_target_mismatch` | error | Only with `--env` and a `parse_target`. A published model's `database` differs from `parse_target.database`, or its `schema` does not start with `parse_target.schema` (both case-insensitive; the database comparison is skipped when `parse_target.database` is unset). One finding per model, naming the model, its resolved `database.schema` and the expected values. |
+  | `manifest_empty` | error | The manifest has no published models. |
+  | `column_meta_missing` | off | No column of any published model has a non-empty `meta`. Projects that rely on Fusion's column `meta` set it to `error`. |
+
+### SPEC CHANGE PROPOSAL G — measured values in published context (SPEC 3, 8)
+- Problem: published descriptions, `meta` and skills should describe method, not measurements. A row count or ratio written into a description goes stale, nothing re-checks it, and an agent quotes it as current instead of querying. `sampled_values_in_description` only catches profiler output (five patterns, descriptions only); it misses hand-written counts, `meta` and skill files.
+- Options: (a) a new rule alongside the existing one; (b) widen `sampled_values_in_description`, which changes results for existing users.
+- Recommendation: (a), default `warning` (user decision).
+- Proposed SPEC text:
+  - SPEC 8, configurable rule: `measured_values_in_context` | warning | Published text contains a measured value (below).
+  - Scope: the description and `meta` of each published model, the description and `meta` of each of its columns, and the full text of each skill file. `meta` is scanned as JSON with sorted keys.
+  - Each line is stripped of surrounding whitespace and one leading list marker (`^\d+[.)]\s+`), then:
+    1. **Count phrase** → finding, unless the line matches an `exempt` pattern. Count phrases: `\d[\d,]*\s*(<nouns>)\b` with built-in nouns `rows?|records?|tables?|columns?|events?|jobs?|users?|customers?|accounts?|orders?|transactions?` plus `count_nouns`; `\b\d[\d,]*\s+of\s+\d`; `\b\d+(\.\d+)?x\b`; `\b\d+(\.\d+)?[KMB]\b` (suffix case-sensitive). Built-in exemption: `\b1 (row|record) per\b`.
+    2. Otherwise a line matching a built-in or configured `allow` pattern is skipped. Built-in: `[<>]=\s*\d`, `\b0-100\b`, `\bone (row|record) per\b`, `\b1:1\b`, `accepted values`, `percentile`, `\bp\d{2}\b`.
+    3. Otherwise any number (`(?<![\w.\-])\d[\d,]*(\.\d+)?`, commas removed) with value ≥ `min_number` is a finding.
+    Matching is case-insensitive except where noted. At most one finding per line. The message gives the matched text, the first 100 characters of the line, and the fix: use qualitative wording or the query that derives the value, or add a pattern to `check.measured_values.allow`/`exempt`. Skill findings carry `file` and `line`; model and column findings carry `node`.
+  - SPEC 3, under `check`:
+    ```yaml
+      measured_values:
+        min_number: 10    # numbers below this are never flagged
+        allow: []         # regexes; a matching line may contain numbers
+        exempt: []        # regexes; a matching line may contain count phrases
+        count_nouns: []   # extra regex nouns for count phrases, e.g. "grants?", "syncs?"
+    ```
+    An invalid regex is `config_invalid`, naming the key and list index.
+  - Tests: at least three positive and three negative examples per step, including: "(94 rows)" on a line that also matches an `allow` pattern is flagged; "10. Never name a model" is not; "one row per order" and "1 row per order" are not; "older than 2x the connection's sync_frequency" passes only with an `exempt` pattern; numbers below `min_number` are not flagged.
+- Note: the governance project's script lists `1 row per` as allowed, but its count-phrase check runs first and flags it. The built-in exemption above fixes that.
+
+### SPEC CHANGE PROPOSAL H — CI wrappers (SPEC 10, 10.1, 10.2)
+- Problem: the reusable workflow installs from a package index the tool is not on yet; parses with dbt-core only, so column `meta` is published empty; cannot pass the variables a project's `env_var()` calls need at parse time (a reusable workflow does not see the caller's `env`); uses partial parsing; builds the parse profile from the publish secret; and publishes without logging the target first.
+- Options: (a) the inputs and steps below; (b) document a hand-written caller workflow instead of the reusable one.
+- Recommendation: (a). The engine default changes from dbt-core to Fusion for v0.1 callers that do not set `dbt-engine`; CHANGELOG 0.2.0 must say so, and `dbt-engine: core` restores the old behaviour.
+- Proposed SPEC text:
+  - SPEC 10: "All wrappers install a pinned dbt-agents-schema (`package-version`, or a pinned `package-spec`) and a pinned dbt engine, run `dbt deps` and `dbt parse --no-partial-parse`, then call the CLI. They contain no publishing logic."
+  - SPEC 10.1, inputs added or changed:
+    - `warehouse` (`snowflake | bigquery | databricks | duckdb`): selects the package extra and, with dbt-core, the adapter. Required unless `dbt-adapter` is given, in which case it is derived from it (v0.1 callers keep working).
+    - `dbt-engine` (`fusion | core`, default `fusion`). Fusion is installed with the official installer, pinned to `dbt-fusion-version` (default: the version this release was tested with, recorded in CHANGELOG). `core` installs `dbt-core<dbt-version>` and `dbt-adapter` (default `dbt-<warehouse>`).
+    - `package-spec` (optional): a full pip requirement, such as a git URL pinned to a commit. When set it replaces `package-version`, which is otherwise required.
+    - `parse-env` (optional): lines of `KEY=VALUE` exported to every later step. Blank lines and `#` lines are ignored. Keys must match `^[A-Z_][A-Z0-9_]*$` and must not be `WAREHOUSE_CREDENTIALS`, `DBT_PROFILES_YML`, `DBT_PROFILES_DIR`, `PACKAGE_REPO_TOKEN`, or start with `GITHUB_` or `RUNNER_`. Not for secrets: values are not masked.
+    - Secret `PACKAGE_REPO_TOKEN` (optional): read-only token for installing `package-spec` from a private git repository. Given only to the install step, through a git `insteadOf` rule that the same step removes; never written inside the checkout.
+  - SPEC 10.1, steps: validate inputs → checkout → setup Python → install engine and package → profile (`DBT_PROFILES_YML` when set, else `write-parse-profile --env <environment>`) → `dbt deps` → `dbt parse --no-partial-parse` → check mode: `check --env <environment> --format github`; publish mode: `publish --env <environment> --dry-run`, then `publish --env <environment>`.
+  - SPEC 10.1, example caller (and `init --ci github`): triggers `workflow_dispatch`, plus `pull_request` and `push` to `main` filtered by `paths` (`models/**`, `macros/**`, the skills directory, `dbt_project.yml`, `packages.yml`, `package-lock.yml`, `agents_schema.yml`, the caller file itself); one job whose `mode` is `check` on pull requests and `publish` otherwise; `concurrency` per pull request ref, and one shared queued group for publishes.
+  - SPEC 10.2: the GitLab template gets `warehouse`, `dbt_engine`, `dbt_fusion_version` and `package_spec`, the same profile, parse, check and dry-run steps. No `parse_env`: included jobs already see the project's CI/CD variables.
+
+## SPEC update — proposals E–H accepted
+- Changed: docs/SPEC.md only. 3: `environments.<name>.parse_target`, `check.measured_values`, the four new rules in the example, and validation rules for both (E, G). 6: the check step runs the environment-dependent rules for `--env` (F). 7: `check --env`; `write-parse-profile --env` writes a placeholder profile from `parse_target` and does not read `WAREHOUSE_CREDENTIALS` (E). 8: `measured_values_in_context` (warning), `manifest_target_mismatch` (error), `manifest_empty` (error), `column_meta_missing` (off), and the measured-values algorithm and test cases (F, G). 10, 10.1, 10.2: pinned engine and package, `--no-partial-parse`, new inputs `warehouse`, `dbt-engine` (default `fusion`), `dbt-fusion-version`, `package-spec`, `parse-env`, secret `PACKAGE_REPO_TOKEN`, step order with dry run, new example caller; GitLab parity without `parse_env` (H). No code changes; Phase 6 of PLAN.md can start.
