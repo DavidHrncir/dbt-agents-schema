@@ -257,11 +257,6 @@ them, such as "holds 94 rows", "3 of 7 connectors" or "about 2M events a day", g
 stale, and an agent quotes it as current instead of running a query. The
 `measured_values_in_context` rule (warning by default) flags such lines.
 
-> **Status in 0.2.0:** the `check.measured_values` settings and the rule's severity are
-> validated, but the rule does not report findings yet. It is waiting on a change that
-> keeps standard identifiers such as "ISO 4217" from being flagged (see CHANGELOG). The
-> rest of this section describes how it will behave.
-
 Describe the method instead: say what the model counts and which query gives the
 current value.
 
@@ -294,8 +289,7 @@ check:
   measured_values:
     min_number: 10                 # numbers below this are never flagged
     allow:                         # a matching line may contain numbers
-      - '\bISO \d+'                # "ISO 4217 currency code"
-      - '\bHTTP \d{3}\b'
+      - '\bHTTP \d{3}\b'           # "returns HTTP 429 when rate limited"
     exempt:                        # a matching line may contain count phrases
       - 'sync_frequency'           # "stale when older than 2x the sync_frequency"
     count_nouns:                   # extra nouns for count phrases

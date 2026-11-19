@@ -226,7 +226,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
   SPEC.md. Fix correctness findings, update CHANGELOG.md with `0.1.0`, and make a local
   commit `release: 0.1.0`. Do not tag or push.
 
-- [H] **H2 Release.** Human reviews, tags `v0.1.0`, pushes, and decides where partners
+- [x] **H2 Release.** Human reviews, tags `v0.1.0`, pushes, and decides where partners
   install from.
 
 ## Phase 6 — v0.2.0: CI parse and published-context checks
@@ -300,9 +300,9 @@ updated. Each task cites the SPEC sections that proposal changes.
   Fix correctness findings. Set `__version__ = "0.2.0"`, finalize the CHANGELOG entry,
   and make a local commit `release: 0.2.0`. Do not tag or push.
 
-- [H] **H3 Live CI run.** Human points `dbt_fivetran_platform_governance` at the new
+- [x] **H3 Live CI run.** Human points `dbt_fivetran_platform_governance` at the new
   workflow with `schema` set to a test dataset; confirms the Fusion parse succeeds with
   the placeholder profile, that check annotates a pull request, and that publish writes
   the expected rows. Repeat the placeholder parse for each other warehouse partners use.
 
-- [H] **H4 Release.** Human reviews, tags `v0.2.0` and pushes.
+- [x] **H4 Release.** Human reviews, tags `v0.2.0` and pushes.

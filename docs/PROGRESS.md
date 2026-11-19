@@ -532,3 +532,15 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 - Decisions:
   - The saved patch's `test_bad_fixture_triggers_rule` had a line over 100 characters; the node id string was split across two literals. Same assertion.
   - Folded into 0.2.0 rather than a 0.2.1: 0.2.0 was never tagged or published, so the CHANGELOG entry was corrected instead of pinning every example and test to a new version.
+
+## T33 review — done
+- Ran the `spec-reviewer` subagent on c69954d (T33 landed after the T37 Phase 6 review). Result: 0 blockers, 2 should-fix, both stale text in `docs/partner-guide.md`. Code, tests and the SPEC update for proposal I match SPEC 3 and 8.
+- Changed: `docs/partner-guide.md` only. Removed the "Status in 0.2.0: the rule does not report findings yet" note, and replaced the `'\bISO \d+'` `allow` example (now built in) with a commented `'\bHTTP \d{3}\b'` example.
+- Evidence: `make verify` exit 0 (`812 passed, 18 deselected`; `config reference up to date`).
+
+## H3 Live CI run — done (reported by user, 2026-11-19)
+- `dbt_fivetran_platform_governance` runs `.github/workflows/agents-schema.yml` on its `main` branch, pinned to c69954d for both `uses:` and `package-spec`, with `warehouse: bigquery` and `dbt-fusion-version: 2.0.0-preview.177`. The user reports that the CI job succeeded. Only BigQuery was exercised; no other warehouse has had a placeholder parse yet.
+- Pointing the deployed Google agents at the new schema is tracked outside this repo.
+
+## H2 / H4 Release
+- `v0.1.0` tagged at 893fe77 (`release: 0.1.0`). `v0.2.0` tagged at c69954d, the commit the governance project runs, not the later docs-only fix. `v0.1` branch merged to `main` with a merge commit, so c69954d stays in `main`'s history.
