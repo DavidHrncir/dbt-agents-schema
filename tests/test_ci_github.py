@@ -390,12 +390,12 @@ def test_example_caller() -> None:
     assert caller["on"]["pull_request"]["paths"] == expected_paths
     assert caller["on"]["push"]["paths"] == expected_paths
     (job,) = caller["jobs"].values()
-    assert job["uses"].endswith(".github/workflows/dbt-agents-schema.yml@v0.2.0")
+    assert job["uses"].endswith(".github/workflows/dbt-agents-schema.yml@v0.2.1")
     w = job["with"]
     assert w["mode"] == "${{ github.event_name == 'pull_request' && 'check' || 'publish' }}"
     assert (w["warehouse"], w["package-version"], w["environment"]) == (
         "snowflake",
-        "0.2.0",
+        "0.2.1",
         "prod",
     )
     assert job["secrets"] == {"WAREHOUSE_CREDENTIALS": "${{ secrets.WAREHOUSE_CREDENTIALS }}"}

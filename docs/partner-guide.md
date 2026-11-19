@@ -1,6 +1,6 @@
 # dbt-agents-schema partner guide
 
-This guide covers dbt-agents-schema 0.2.0 (spec v1). It is for teams that publish dbt
+This guide covers dbt-agents-schema 0.2.1 (spec v1). It is for teams that publish dbt
 project metadata so AI agents can use it.
 
 ## What it does
@@ -35,14 +35,14 @@ completes the swap.
 Python 3.11 or later. Install the extra for your warehouse:
 
 ```bash
-pip install "dbt-agents-schema[snowflake]==0.2.0"   # or [bigquery], [databricks], [duckdb]
+pip install "dbt-agents-schema[snowflake]==0.2.1"   # or [bigquery], [databricks], [duckdb]
 dbt-agents-schema --version
 ```
 
 If your organisation installs from git rather than a package index:
 
 ```bash
-pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.0"
+pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.1"
 ```
 
 If the extra is missing, the CLI exits 2 and prints the `pip install` command to run.
@@ -341,12 +341,12 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   agents-schema:
-    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.2.0
+    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.2.1
     with:
       mode: ${{ github.event_name == 'pull_request' && 'check' || 'publish' }}
       environment: prod
       warehouse: snowflake
-      package-version: "0.2.0"
+      package-version: "0.2.1"
     secrets:
       WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
 ```
@@ -426,15 +426,15 @@ works, but it now parses with dbt Fusion; set `dbt-engine: core` to keep dbt-cor
 
 ```yaml
 include:
-  - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v0.2.0/templates/gitlab/dbt-agents-schema.yml
+  - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v0.2.1/templates/gitlab/dbt-agents-schema.yml
     inputs:
-      package_version: "0.2.0"
+      package_version: "0.2.1"
       warehouse: snowflake
       environment: prod
       # dbt_engine: core
 ```
 
-You can also use `include: project:` with `ref: v0.2.0` and
+You can also use `include: project:` with `ref: v0.2.1` and
 `file: templates/gitlab/dbt-agents-schema.yml`, or copy the template into your repository
 and use `include: local:`. The template does not use the GitLab CI/CD Catalog.
 
@@ -457,7 +457,7 @@ one publish runs at a time.
 ```yaml
 repos:
   - repo: https://github.com/DavidHrncir/dbt-agents-schema
-    rev: v0.2.0
+    rev: v0.2.1
     hooks:
       - id: dbt-agents-schema-check
         additional_dependencies: ["dbt-core>=1.8,<2", "dbt-snowflake"]

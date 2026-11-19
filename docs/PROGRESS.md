@@ -544,3 +544,8 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 
 ## H2 / H4 Release
 - `v0.1.0` tagged at 893fe77 (`release: 0.1.0`). `v0.2.0` tagged at c69954d, the commit the governance project runs, not the later docs-only fix. `v0.1` branch merged to `main` with a merge commit, so c69954d stays in `main`'s history.
+
+## release: 0.2.1
+- Why: `v0.2.0` (c69954d) predates the MIT LICENSE, so a partner pinning it got no license file. 0.2.1 is current `main`: LICENSE, README notice (personal, temporary, not an official Fivetran or dbt Labs product), the T33 review guide fixes, and the redaction in this file. No code changes.
+- Changed: version 0.2.1 in `pyproject.toml`, `__init__.py`, `uv.lock`; example callers, partner guide and README pin `v0.2.1`; CHANGELOG 0.2.1 entry. Tests that assert the current version or the example callers moved from `0.2.0` to `0.2.1` (test_cli.py x3, test_init.py::test_examples_match_init_templates, test_ci_github.py example-caller assertions, test_ci_gitlab.py::test_example_caller), with every assertion kept. Tests that pass `0.2.0` as an arbitrary input are unchanged.
+- Governance caller re-pinned from `@v0.2.0` to `@v0.2.1`.

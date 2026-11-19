@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/). The agents schema contract has its own
 integer `spec_version` (docs/SPEC.md section 11).
 
+## 0.2.1 — 2026-11-19
+
+Spec version 1 (unchanged). No code or behaviour changes from 0.2.0.
+
+### Added
+
+- MIT `LICENSE`, declared in the package metadata.
+- README notice: this is a personal, temporary project, not an official Fivetran or
+  dbt Labs product, and it may be removed once an official replacement exists.
+
+### Changed
+
+- Partner guide: removed the stale "rule does not report findings yet" note for
+  `measured_values_in_context`, and replaced an `allow` example that is now built in.
+- Example callers and the partner guide pin `v0.2.1`.
+
 ## 0.2.0 — 2026-11-18
 
 Spec version 1 (unchanged). CI parse and published-context checks.

@@ -4,7 +4,7 @@
 # environment in agents_schema.yml so `dbt parse` sees production names without a real
 # credential. Set the CI/CD variable WAREHOUSE_CREDENTIALS (type File, protected; see
 # the template header). Pin the URL to a release tag and set package_version to it.
-# Alternatives: `include: project: <group>/dbt-agents-schema` with `ref: v0.2.0` and
+# Alternatives: `include: project: <group>/dbt-agents-schema` with `ref: v0.2.1` and
 # `file: templates/gitlab/dbt-agents-schema.yml`, or a local copy with `include: local:`.
 
 workflow:
@@ -13,9 +13,9 @@ workflow:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 include:
-  - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v0.2.0/templates/gitlab/dbt-agents-schema.yml
+  - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v0.2.1/templates/gitlab/dbt-agents-schema.yml
     inputs:
-      package_version: "0.2.0"
+      package_version: "0.2.1"
       warehouse: snowflake
       environment: prod
       # dbt_engine: core            # dbt-core instead of dbt Fusion; installs dbt-snowflake
