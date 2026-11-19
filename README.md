@@ -1,5 +1,12 @@
 # dbt-agents-schema
 
+> **Personal project, temporary.** This is David Hrncir's personal repository. It is not
+> an official Fivetran or dbt Labs product, and neither company supports or maintains it.
+> It is a stopgap: it may be archived or removed from public view at any time, for
+> example once an official replacement is available. If you depend on it, pin a release
+> tag (such as `@v0.2.0`) and keep your own fork. Provided "as is" under the
+> [MIT License](LICENSE), with no warranty.
+
 Publishes dbt project metadata into a warehouse agents schema, so many dbt projects can
 share one schema without overwriting each other. Works with dbt v1, dbt v2 (Fusion) and
 dbt platform projects, from GitHub Actions or GitLab CI.
@@ -20,7 +27,7 @@ works through to build the tool.
 | `docs/GOALS.md` | One `/goal` line per phase, ready to paste |
 | `docs/PROGRESS.md` | Log Claude appends to after every task; read it between phases |
 | `CLAUDE.md` | Operating rules Claude Code loads every session |
-| `.claude/settings.json` | Pre-approved commands; blocks push, tag, curl, and reading secrets |
+| `.claude/settings.json` | Pre-approved commands; blocks history rewrites, curl, and reading secrets |
 | `.claude/agents/spec-reviewer.md` | Fresh-context reviewer run at the end of each phase |
 | `.claude/skills/next-task/` | `/next-task`: do exactly one task and commit it |
 | `scripts/run-phase.sh`, `scripts/run-all.sh` | Headless runners with logs |

@@ -377,8 +377,8 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
         parse_target:                     # optional; production shape for `dbt parse` in CI
           type: bigquery                  # snowflake | bigquery | databricks | duckdb; required
           name: prod                      # profile target name; default: the environment name
-          database: internal-sales        # Snowflake database, BigQuery project, Databricks catalog; required except duckdb
-          schema: dh_dbt_ft_platform_gov  # dbt target schema (BigQuery dataset); required
+          database: my-gcp-project        # Snowflake database, BigQuery project, Databricks catalog; required except duckdb
+          schema: analytics               # dbt target schema (BigQuery dataset); required
           location: US                    # BigQuery only; optional
     ```
     Plain strings, no templates. Unknown keys are a config error.
