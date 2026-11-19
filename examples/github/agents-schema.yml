@@ -41,12 +41,12 @@ concurrency:
 
 jobs:
   agents-schema:
-    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.2.1
+    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.2.2
     with:
       mode: ${{ github.event_name == 'pull_request' && 'check' || 'publish' }}
       environment: prod
       warehouse: snowflake
-      package-version: "0.2.1"
+      package-version: "0.2.2"
       # dbt-engine: core            # dbt-core instead of dbt Fusion; installs dbt-snowflake
       # parse-env: |                # variables your env_var() calls need at parse time
       #   DBT_ENV_NAME=prod

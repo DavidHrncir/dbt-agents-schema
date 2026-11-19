@@ -156,8 +156,8 @@ def test_init_invalid_dbt_name_leaves_project_unset(
 
 def test_examples_match_init_templates() -> None:
     for ci, example, version in (
-        ("github", ROOT / "examples/github/agents-schema.yml", "0.2.1"),
-        ("gitlab", ROOT / "examples/gitlab/.gitlab-ci.yml", "0.2.1"),
+        ("github", ROOT / "examples/github/agents-schema.yml", "0.2.2"),
+        ("gitlab", ROOT / "examples/gitlab/.gitlab-ci.yml", "0.2.2"),
     ):
         assert render_caller(ci, version=version, adapter="dbt-snowflake") == example.read_text()
 

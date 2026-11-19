@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/). The agents schema contract has its own
 integer `spec_version` (dev/SPEC.md section 11).
 
+## 0.2.2 — 2026-11-19
+
+Spec version 1 (unchanged). Documentation and repository layout only; no code or
+behaviour changes from 0.2.1.
+
+### Added
+
+- Partner guide: "What gets published", covering the six tables, their columns, the
+  `ROOT` keys, and example queries.
+
+### Changed
+
+- README rewritten for users: what it does, quick start, documentation, local demo.
+- Partner guide: Install leads with the git install, since the package is not on PyPI.
+- The build kit (spec, plan, build log, goals, headless runners) moved from `docs/` and
+  `scripts/` to `dev/`. None of it is needed to use the tool. The spec's path is now
+  `dev/SPEC.md`.
+- Example callers and the partner guide pin `v0.2.2`.
+
 ## 0.2.1 — 2026-11-19
 
 Spec version 1 (unchanged). No code or behaviour changes from 0.2.0.

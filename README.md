@@ -4,7 +4,7 @@
 > an official Fivetran or dbt Labs product, and neither company supports or maintains it.
 > It is a stopgap: it may be archived or removed from public view at any time, for
 > example once an official replacement is available. If you depend on it, pin a release
-> tag (such as `@v0.2.1`) and keep your own fork. Provided "as is" under the
+> tag (such as `@v0.2.2`) and keep your own fork. Provided "as is" under the
 > [MIT License](LICENSE), with no warranty.
 
 Publishes dbt project metadata (models, columns, lineage and markdown skills) into an
@@ -31,7 +31,7 @@ every project.
 Install from a release tag, with the extra for your warehouse:
 
 ```bash
-pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.1"
+pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.2"
 # or [bigquery], [databricks], [duckdb]
 ```
 

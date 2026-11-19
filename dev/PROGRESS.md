@@ -555,3 +555,7 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 - README rewritten for users: what it does, quick start, documentation, local demo, development, license.
 - Partner guide: new "What gets published" section (the six tables, their columns and `ROOT` keys, with example queries) replacing SPEC 5 as the user reference; Install now leads with the git install, since the package is not on PyPI.
 - Evidence: `make verify` exit 0 (`812 passed, 18 deselected`). The new section's column names, `ROOT` keys and `SKILL_USE` values were checked against a DuckDB publish from `scripts/demo_duckdb.sh`, and its four example queries run there.
+
+## release: 0.2.2
+- Why: `v0.2.1` predates the repository layout change, the new README and the partner guide's "What gets published" section. 0.2.2 tags current `main`. No code changes.
+- Changed: version 0.2.2 in `pyproject.toml`, `__init__.py`, `uv.lock`; example callers, partner guide and README pin `v0.2.2`; CHANGELOG 0.2.2 entry. The same version assertions as 0.2.1 moved to `0.2.2` (test_cli.py x3, test_init.py::test_examples_match_init_templates, test_ci_github.py and test_ci_gitlab.py example-caller assertions), with every assertion kept.
