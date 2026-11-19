@@ -1,6 +1,6 @@
 # dbt-agents-schema partner guide
 
-This guide covers dbt-agents-schema 0.1.0 (spec v1). It is for teams that publish dbt
+This guide covers dbt-agents-schema 0.2.0 (spec v1). It is for teams that publish dbt
 project metadata so AI agents can use it.
 
 ## What it does
@@ -35,14 +35,14 @@ completes the swap.
 Python 3.11 or later. Install the extra for your warehouse:
 
 ```bash
-pip install "dbt-agents-schema[snowflake]==0.1.0"   # or [bigquery], [databricks], [duckdb]
+pip install "dbt-agents-schema[snowflake]==0.2.0"   # or [bigquery], [databricks], [duckdb]
 dbt-agents-schema --version
 ```
 
 If your organisation installs from git rather than a package index:
 
 ```bash
-pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.1.0"
+pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.0"
 ```
 
 If the extra is missing, the CLI exits 2 and prints the `pip install` command to run.
@@ -78,17 +78,30 @@ environments:
     credentials: env
     database: ANALYTICS
     schema: AGENTS
+    parse_target:            # production shape for `dbt parse` in CI (see below)
+      type: snowflake
+      database: ANALYTICS
+      schema: FINANCE
   dev:
     credentials: dbt_profile
     schema: "{{ target_schema }}_AGENTS"
 check:
   description_scope: public
   external_schemas: []
+  measured_values:
+    min_number: 10
+    allow: []
+    exempt: []
+    count_nouns: []
   rules:
     config_missing: warning
     missing_model_description: warning
     missing_column_description: warning
     sampled_values_in_description: error
+    measured_values_in_context: warning
+    manifest_target_mismatch: error
+    manifest_empty: error
+    column_meta_missing: off
     skill_without_uses: warning
     skill_unresolved_uses: error
 ```
@@ -188,101 +201,266 @@ These options work with every command: `--project-dir` (default `.`), `--config`
 
 | Command | Options | What it does |
 | --- | --- | --- |
-| `dbt-agents-schema check` | `--parse`, `--format text\|json\|github\|gitlab`, `--output` | Validates config, manifest and skills. Needs no warehouse. `--parse` runs `dbt parse` first. `github` prints PR annotations; `gitlab` writes a Code Quality report to `--output` (default `gl-code-quality-report.json`) and prints text. |
-| `dbt-agents-schema publish` | `--env`, `--target`, `--profiles-dir`, `--dry-run`, `--force-takeover` | Checks, plans and replaces this project's rows in the agents schema for environment `--env`. `--dry-run` prints the plan and target schema without connecting. `--force-takeover` overrides the ownership guard (exit 4). |
+| `dbt-agents-schema check` | `--env`, `--parse`, `--format text\|json\|github\|gitlab`, `--output` | Validates config, manifest and skills. Needs no warehouse. `--env NAME` also runs the environment-dependent rule `manifest_target_mismatch` against that environment's `parse_target` (an undefined environment exits 2). `--parse` runs `dbt parse` first. `github` prints PR annotations; `gitlab` writes a Code Quality report to `--output` (default `gl-code-quality-report.json`) and prints text. |
+| `dbt-agents-schema publish` | `--env`, `--target`, `--profiles-dir`, `--dry-run`, `--force-takeover` | Checks (including `manifest_target_mismatch` for `--env`), plans and replaces this project's rows in the agents schema for environment `--env`. `--dry-run` prints the plan and target schema without connecting. `--force-takeover` overrides the ownership guard (exit 4). |
 | `dbt-agents-schema unpublish` | `--env`, `--target`, `--profiles-dir`, `--project`, `--yes` | Deletes one project's rows, including its `ROOT` rows. `--project` defaults to this project's key. Without `--yes` it asks for confirmation, and refuses when stdin is not a terminal. |
 | `dbt-agents-schema init` | `--ci github\|gitlab\|none`, `--force` | Writes starter files (see [Install](#install)). |
 | `dbt-agents-schema fetch-manifest` | `--account-id`, `--job-id`, `--host`, `--out` | Downloads the latest `manifest.json` of a dbt platform job (see [dbt platform projects](#dbt-platform-projects)). |
-| `dbt-agents-schema write-parse-profile` | `--out` | Writes `<out>/profiles.yml` from `WAREHOUSE_CREDENTIALS` so CI can run `dbt parse`. The file holds no secrets. |
+| `dbt-agents-schema write-parse-profile` | `--out`, `--env` | Writes `<out>/profiles.yml` (mode 0600) so CI can run `dbt parse`. With `--env NAME` and a `parse_target` on that environment, the profile is built from `parse_target` with placeholder credentials, and `WAREHOUSE_CREDENTIALS` is not read (see [Production parse target](#production-parse-target)). Otherwise it is built from `WAREHOUSE_CREDENTIALS`. Either way the file holds no secrets. Never overwrites an existing file. |
 
 `--target` and `--profiles-dir` only apply to environments with
 `credentials: dbt_profile`.
 
-## GitHub setup
+## Production parse target
 
-1. Add the repository secret `WAREHOUSE_CREDENTIALS` (Settings > Secrets and variables >
-   Actions). Optionally add `DBT_PROFILES_YML`, the `profiles.yml` that `dbt parse`
-   should use. Without it, the workflow runs `write-parse-profile`.
-2. Copy `examples/github/agents-schema.yml` to `.github/workflows/agents-schema.yml`
-   (`init --ci github` does this for you). It checks every pull request and publishes on
-   push to `main`:
+`dbt parse` writes each model's database and schema into the manifest, and publish
+copies them into `DBT_MODEL`. Agents use those names to query the models. If CI parses
+against a dev or CI target, the agents schema points agents at the wrong tables. Add a
+`parse_target` to the environment you publish:
 
 ```yaml
-jobs:
-  check:
-    if: github.event_name == 'pull_request'
-    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.1.0
-    with:
-      mode: check
-      package-version: "0.1.0"
-      dbt-adapter: dbt-snowflake
-    secrets:
-      WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
-      DBT_PROFILES_YML: ${{ secrets.DBT_PROFILES_YML }}
-  publish:
-    if: github.event_name == 'push'
-    concurrency:
-      group: dbt-agents-schema-${{ github.repository }}
-      cancel-in-progress: false
-    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.1.0
-    with:
-      mode: publish
-      package-version: "0.1.0"
-      dbt-adapter: dbt-snowflake
-      environment: prod
-    secrets:
-      WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
-      DBT_PROFILES_YML: ${{ secrets.DBT_PROFILES_YML }}
+environments:
+  prod:
+    credentials: env
+    schema: AGENTS
+    parse_target:
+      type: snowflake        # snowflake | bigquery | databricks | duckdb
+      database: ANALYTICS    # Snowflake database, BigQuery project, Databricks catalog
+      schema: FINANCE        # the dbt target schema (BigQuery dataset) of production
+      # name: prod           # profile target name; default: the environment name
+      # location: US         # BigQuery only
 ```
 
-Workflow inputs: `project-dir` (default `.`), `package-version` (required),
-`python-version` (default `3.12`), `dbt-adapter` (required), `dbt-version` (default
-`>=1.8,<2`), `mode` (`check` or `publish`), `environment` (default `prod`). Pin
-`uses:` to a release tag and set `package-version` to the same release. In check mode,
-findings show up as annotations on the pull request. Secrets go only to the steps that
-need them, never to `pip`, `dbt deps` or `dbt parse`.
+`parse_target` takes plain strings (no templates) and does not change where the agents
+schema is written. It does two things:
 
-If the dbt project lives in a subdirectory, set `project-dir`. For a monorepo with
-several dbt projects, add one `check` and one `publish` job per project. Give each its
-own `project-dir` and its own `concurrency` group.
+- `dbt-agents-schema write-parse-profile --env prod --out DIR` writes a profile with
+  these names and placeholder credentials. `dbt parse` never connects, so no real
+  credential is needed, and `WAREHOUSE_CREDENTIALS` is not read. Both CI wrappers use
+  this when `DBT_PROFILES_YML` is not set. Keep the target name (`name`) equal to the one
+  your project's `target.name` logic expects in production.
+- `check --env prod` and `publish --env prod` report `manifest_target_mismatch` (error)
+  for every published model whose database differs from `parse_target.database`, or
+  whose schema does not start with `parse_target.schema`. Both comparisons ignore case,
+  and the database comparison is skipped when `database` is unset (DuckDB). A mismatch
+  stops publish before it connects.
+
+Two related rules check the manifest itself: `manifest_empty` (error) when no model
+would be published, and `column_meta_missing` (`off` by default). dbt Fusion copies
+model `meta` to columns and dbt-core does not. If your agents rely on column `meta`, set
+`column_meta_missing: error` so a dbt-core parse fails the check.
+
+## Keep measurements out of published context
+
+Descriptions, `meta` and skills are published for agents to read. A number written into
+them, such as "holds 94 rows", "3 of 7 connectors" or "about 2M events a day", goes
+stale, and an agent quotes it as current instead of running a query. The
+`measured_values_in_context` rule (warning by default) flags such lines.
+
+> **Status in 0.2.0:** the `check.measured_values` settings and the rule's severity are
+> validated, but the rule does not report findings yet. It is waiting on a change that
+> keeps standard identifiers such as "ISO 4217" from being flagged (see CHANGELOG). The
+> rest of this section describes how it will behave. Describe the
+method instead: say what the model counts and which query gives the current value.
+
+It scans the description and `meta` of each published model and column (`meta` as JSON
+with sorted keys) and every line of every skill file. Each line is stripped of
+surrounding whitespace and one leading list marker (`10. `, `3) `), then checked in
+order:
+
+1. **Count phrases** are flagged unless the line matches an `exempt` pattern: a number
+   followed by a count noun (`rows`, `records`, `tables`, `columns`, `events`, `jobs`,
+   `users`, `customers`, `accounts`, `orders`, `transactions`, plus your
+   `count_nouns`), `N of M`, a multiplier (`2x`, `1.5x`) or a `K`/`M`/`B` suffix (`40K`,
+   `3M`; uppercase only). `1 row per` and `1 record per` are always exempt.
+2. **Allowed lines** are skipped: lines that match a built-in pattern (`>=`/`<=` with a
+   number, `0-100`, `one row per`, `1:1`, `accepted values`, `percentile`, `p95`-style
+   names) or one of your `allow` patterns.
+3. **Any other number** at or above `min_number` (default 10) is flagged.
+
+A count phrase is flagged even on an allowed line, so "p95 latency (94 rows)" is still
+reported. At most one finding is reported per line. Model and column findings name the
+node; skill findings give the file and line.
+
+Configure it under `check.measured_values`. Every pattern is a Python regular
+expression, matched case-insensitively. An invalid one is `config_invalid`, naming the
+key and index.
+
+```yaml
+check:
+  measured_values:
+    min_number: 10                 # numbers below this are never flagged
+    allow:                         # a matching line may contain numbers
+      - '\bISO \d+'                # "ISO 4217 currency code"
+      - '\bHTTP \d{3}\b'
+    exempt:                        # a matching line may contain count phrases
+      - 'sync_frequency'           # "stale when older than 2x the sync_frequency"
+    count_nouns:                   # extra nouns for count phrases
+      - 'grants?'
+      - 'syncs?'
+  rules:
+    measured_values_in_context: warning   # error to block, off to disable
+```
+
+| Line | Result |
+| --- | --- |
+| `Holds 94 rows.` | flagged (count phrase) |
+| `One row per order.` / `1 row per order.` | not flagged |
+| `10. Never name a model in prose.` | not flagged (list marker) |
+| `Retry after 30 seconds.` | flagged (number ≥ 10) unless an `allow` pattern matches |
+| `Stale when older than 2x the sync_frequency.` | flagged unless an `exempt` pattern matches |
+| `Keep 3 decimals.` | not flagged (below `min_number`) |
+
+`sampled_values_in_description` is a separate rule for profiling output in
+descriptions. Both may report the same line.
+
+## GitHub setup
+
+dbt Fusion is now the default engine. The reusable workflow installs dbt Fusion with the
+official installer, pinned to `dbt-fusion-version`, so column `meta` is published the
+way Fusion builds it. Set `dbt-engine: core` to keep dbt-core, as in 0.1.
+
+1. Add `parse_target` to the environment you publish (see
+   [Production parse target](#production-parse-target)). The workflow then writes a
+   placeholder profile, and no profile secret is needed.
+2. Add the repository secret `WAREHOUSE_CREDENTIALS` (Settings > Secrets and variables >
+   Actions). Only the publish steps receive it. If you cannot use `parse_target`, add
+   `DBT_PROFILES_YML` with the `profiles.yml` that `dbt parse` should use.
+3. Copy `examples/github/agents-schema.yml` to `.github/workflows/agents-schema.yml`
+   (`init --ci github` does this for you):
+
+```yaml
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ["models/**", "macros/**", "agents/skills/**", "dbt_project.yml",
+            "packages.yml", "package-lock.yml", "agents_schema.yml",
+            ".github/workflows/agents-schema.yml"]
+  push:
+    branches: [main]
+    paths: [...]                     # the same list
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('agents-schema-pr-{0}', github.ref) || 'agents-schema-publish' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  agents-schema:
+    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.2.0
+    with:
+      mode: ${{ github.event_name == 'pull_request' && 'check' || 'publish' }}
+      environment: prod
+      warehouse: snowflake
+      package-version: "0.2.0"
+    secrets:
+      WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
+```
+
+One job checks pull requests (findings show up as annotations) and publishes on push to
+`main` or a manual run. Checks of the same pull request cancel each other. Publishes
+share one queue and are never cancelled, so two never overlap.
+
+The workflow runs, in order: validate inputs, checkout, set up Python, install the dbt
+engine and the package, write the profile (`DBT_PROFILES_YML` when set, else
+`write-parse-profile --env <environment>`), `dbt deps`, `dbt parse --no-partial-parse`,
+then `check --env <environment> --format github` (check mode), or
+`publish --env <environment> --dry-run` followed by `publish --env <environment>`
+(publish mode).
+
+| Input | Default | Meaning |
+| --- | --- | --- |
+| `mode` | required | `check` or `publish`. |
+| `environment` | `prod` | Environment from `agents_schema.yml`. |
+| `warehouse` | required unless `dbt-adapter` is set | `snowflake`, `bigquery`, `databricks` or `duckdb`. Selects the package extra and, with dbt-core, the adapter. |
+| `dbt-engine` | `fusion` | `fusion` or `core`. |
+| `dbt-fusion-version` | see CHANGELOG | dbt Fusion version (engine `fusion`). |
+| `dbt-version` | `>=1.8,<2` | dbt-core specifier (engine `core`). |
+| `dbt-adapter` | `dbt-<warehouse>` | Adapter package (engine `core`). A 0.1 caller that sets only `dbt-adapter` keeps working: the warehouse is derived from it. |
+| `package-version` | required unless `package-spec` is set | Exact dbt-agents-schema version. |
+| `package-spec` | none | A full pip requirement, such as a git URL pinned to a commit. Replaces `package-version`. A bare URL gets the warehouse extra added. |
+| `parse-env` | none | `KEY=VALUE` lines exported to every later step, for `env_var()` calls at parse time. Blank and `#` lines are ignored. Keys must match `^[A-Z_][A-Z0-9_]*$` and cannot be `WAREHOUSE_CREDENTIALS`, `DBT_PROFILES_YML`, `DBT_PROFILES_DIR`, `PACKAGE_REPO_TOKEN` or start with `GITHUB_`/`RUNNER_`. Values are not masked, so never put secrets here. |
+| `project-dir` | `.` | dbt project directory. |
+| `python-version` | `3.12` | Python version. |
+
+Secrets: `WAREHOUSE_CREDENTIALS` (required for publish; only the publish steps receive
+it), `DBT_PROFILES_YML` (optional; only the profile step), `PACKAGE_REPO_TOKEN`
+(optional read-only token for installing `package-spec` from a private repository; only
+the install step, through a git `insteadOf` rule that the step removes again, never
+written inside the checkout).
+
+A reusable workflow does not see the caller's `env:`, so variables that `env_var()`
+needs during `dbt parse` go in `parse-env`:
+
+```yaml
+    with:
+      parse-env: |
+        DBT_ENV_NAME=prod
+        SOURCE_DATABASE=RAW
+```
+
+To install an unreleased commit from a private fork:
+
+```yaml
+    with:
+      package-spec: git+https://github.com/acme/dbt-agents-schema@0123abcd
+    secrets:
+      PACKAGE_REPO_TOKEN: ${{ secrets.PACKAGE_REPO_TOKEN }}
+```
+
+If the dbt project lives in a subdirectory, set `project-dir` and adjust `paths`. For a
+monorepo with several dbt projects, add one job per project, each with its own
+`project-dir` and its own concurrency group.
+
+**Upgrading a 0.1 caller.** A 0.1 caller (`dbt-adapter`, `package-version`) still
+works, but it now parses with dbt Fusion; set `dbt-engine: core` to keep dbt-core.
+`WAREHOUSE_CREDENTIALS` no longer reaches the profile step. Add `parse_target`, or pass
+`DBT_PROFILES_YML`, otherwise the profile step fails with exactly that message.
 
 ## GitLab setup
 
-1. Add the CI/CD variable `WAREHOUSE_CREDENTIALS` (Settings > CI/CD > Variables). Make
+1. Add `parse_target` to the environment you publish (see
+   [Production parse target](#production-parse-target)), so merge request checks need
+   no profile variable.
+2. Add the CI/CD variable `WAREHOUSE_CREDENTIALS` (Settings > CI/CD > Variables). Make
    it type **File** and **protected**, so only default-branch pipelines receive it.
-   GitLab cannot mask a multi-line JSON or YAML document, so don't rely on masking.
-2. For merge request checks, also set an unprotected `DBT_PROFILES_YML`. Use the output
+   GitLab cannot mask a multi-line JSON or YAML document, so don't rely on masking. If
+   you cannot use `parse_target`, set an unprotected `DBT_PROFILES_YML` with the output
    of `dbt-agents-schema write-parse-profile`, which holds no secrets.
 3. Include the template from your `.gitlab-ci.yml` (see `examples/gitlab/.gitlab-ci.yml`;
    `init --ci gitlab` writes it):
 
 ```yaml
 include:
-  - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v0.1.0/templates/gitlab/dbt-agents-schema.yml
+  - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v0.2.0/templates/gitlab/dbt-agents-schema.yml
     inputs:
-      package_version: "0.1.0"
-      dbt_adapter: dbt-snowflake
+      package_version: "0.2.0"
+      warehouse: snowflake
       environment: prod
+      # dbt_engine: core
 ```
 
-You can also use `include: project:` with `ref: v0.1.0` and
+You can also use `include: project:` with `ref: v0.2.0` and
 `file: templates/gitlab/dbt-agents-schema.yml`, or copy the template into your repository
 and use `include: local:`. The template does not use the GitLab CI/CD Catalog.
 
-Inputs: `project_dir`, `package_version`, `python_version`, `dbt_adapter`,
-`dbt_version`, `mode` (`auto` (default), `check` or `publish`), `environment`. With
-`mode: auto` there are two jobs. `dbt-agents-schema-check` runs on merge request
-pipelines and its findings appear in the Code Quality widget.
-`dbt-agents-schema-publish` runs on the default branch, and
-`resource_group: dbt-agents-schema-$CI_PROJECT_PATH` makes sure only one publish runs
-at a time.
+Inputs have the same meaning and defaults as on GitHub, in snake_case: `project_dir`,
+`python_version`, `mode` (`auto` (default), `check` or `publish`), `environment`,
+`warehouse`, `dbt_engine` (default `fusion`), `dbt_fusion_version`, `dbt_version`,
+`dbt_adapter`, `package_version`, `package_spec`. There is no `parse_env`: included jobs
+already see the project's CI/CD variables, so define the variables your `env_var()`
+calls need there. `WAREHOUSE_CREDENTIALS` and `DBT_PROFILES_YML` are unset before
+`dbt deps` and `dbt parse --no-partial-parse` run.
+
+With `mode: auto` there are two jobs. `dbt-agents-schema-check` runs
+`check --env <environment>` on merge request pipelines, and its findings appear in the
+Code Quality widget. `dbt-agents-schema-publish` runs on the default branch: a dry run,
+then the publish. `resource_group: dbt-agents-schema-$CI_PROJECT_PATH` makes sure only
+one publish runs at a time.
 
 **Pre-commit.** To run `check --parse` locally before each commit:
 
 ```yaml
 repos:
   - repo: https://github.com/DavidHrncir/dbt-agents-schema
-    rev: v0.1.0
+    rev: v0.2.0
     hooks:
       - id: dbt-agents-schema-check
         additional_dependencies: ["dbt-core>=1.8,<2", "dbt-snowflake"]
@@ -412,6 +590,11 @@ connects. Common causes:
 
 - `sampled_values_in_description`: a description contains profiling output (for example
   `min: 0`, `12% null`, `1,000 rows`). Rewrite it as prose, or set the rule to `warning`.
+- `manifest_target_mismatch`: the manifest was parsed against another target than the
+  environment's `parse_target`. Parse with the profile from
+  `write-parse-profile --env <environment>`, or fix `parse_target`.
+- `manifest_empty`: the manifest has no model to publish. Check that `dbt parse` ran in
+  the right project.
 - `skill_unresolved_uses`: a skill's `uses` names a schema or table that no published
   model has. Fix the name, or list the schema in `check.external_schemas`.
 - `skill_key_duplicate`, `skill_frontmatter_invalid`, `config_invalid`,

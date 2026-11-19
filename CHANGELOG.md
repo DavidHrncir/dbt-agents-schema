@@ -6,11 +6,44 @@ integer `spec_version` (docs/SPEC.md section 11).
 
 ## 0.2.0 — unreleased
 
+Spec version 1 (unchanged). CI parse and published-context checks.
+
 ### Changed
 
-- GitHub reusable workflow: dbt Fusion is the default engine (`dbt-engine: fusion`),
-  pinned to `dbt-fusion-version` (default `2.0.0`). Set `dbt-engine: core` for the v0.1
-  behaviour.
+- **The GitHub workflow and GitLab template now parse with dbt Fusion by default.**
+  Callers that do not set `dbt-engine` (GitLab: `dbt_engine`) switch from dbt-core to
+  dbt Fusion, which copies model `meta` to columns. Set `dbt-engine: core` to restore
+  the 0.1 behaviour. The default `dbt-fusion-version` is `2.0.0`; it is installed with
+  the official installer (`public.cdn.getdbt.com/fs/install/install.sh`).
+- **GitHub: `WAREHOUSE_CREDENTIALS` reaches only the publish steps.** The parse profile
+  is no longer built from it. A 0.1 caller must add `parse_target` to the environment
+  (recommended) or pass `DBT_PROFILES_YML`; otherwise the profile step fails and says
+  so. GitLab still accepts the credentials-based profile.
+- Both wrappers run `dbt parse --no-partial-parse`, run `check --env <environment>`, and
+  run `publish --dry-run` before every publish.
+- The GitHub example caller is one job: `check` on pull requests and `publish` on push
+  to `main` or a manual run, filtered by `paths`. Checks of a pull request cancel each
+  other; publishes share one queue that is never cancelled.
+
+### Added
+
+- `environments.<name>.parse_target` in `agents_schema.yml`: the production database
+  and schema for `dbt parse` in CI.
+- `write-parse-profile --env NAME`: a placeholder profile from `parse_target` that needs
+  no credential and never reads `WAREHOUSE_CREDENTIALS`.
+- `check --env NAME`, and the rules `manifest_target_mismatch` (error; also run by
+  `publish --env` before it connects), `manifest_empty` (error) and
+  `column_meta_missing` (off).
+- `check.measured_values` settings (`min_number`, `allow`, `exempt`, `count_nouns`) and
+  the `measured_values_in_context` rule id (warning). **Not enforced yet:** the rule
+  reports no findings in this release. The SPEC algorithm flags standard identifiers
+  such as "ISO 4217"; the fix is proposed as SPEC CHANGE PROPOSAL I in
+  docs/PROGRESS.md.
+- GitHub workflow inputs `warehouse`, `dbt-engine`, `dbt-fusion-version`,
+  `package-spec`, `parse-env`, and the secret `PACKAGE_REPO_TOKEN`. `dbt-adapter` and
+  `package-version` are now optional; a 0.1 caller keeps validating.
+- GitLab template inputs `warehouse`, `dbt_engine`, `dbt_fusion_version`,
+  `package_spec`.
 
 ## 0.1.0 — 2026-11-18
 

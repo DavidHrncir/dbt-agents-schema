@@ -286,7 +286,7 @@ updated. Each task cites the SPEC sections that proposal changes.
   `--no-partial-parse`, `check --env`, the dry run before publish, and that secrets are
   still unset before `dbt deps`/`dbt parse`.
 
-- [ ] **T36 Docs.** Partner guide: rewrite GitHub and GitLab setup around the new caller
+- [x] **T36 Docs.** Partner guide: rewrite GitHub and GitLab setup around the new caller
   and `parse_target`; add sections "Production parse target" and "Keep measurements out
   of published context" (why, what the rule flags, `allow`/`exempt`/`count_nouns`,
   examples); update the CLI reference for `check --env` and `write-parse-profile --env`;

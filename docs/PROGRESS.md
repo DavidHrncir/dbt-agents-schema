@@ -501,3 +501,11 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 - Decisions:
   - Unlike GitHub, `WAREHOUSE_CREDENTIALS` is still present when the GitLab profile is written. SPEC 10.2 only requires secrets to be unset before `dbt deps`/`dbt parse`, and this keeps v0.1 includes without `parse_target` working through the credentials-based profile. With `parse_target` it is not read (T31).
   - The validation block is executed with bash in the tests, the same way as the GitHub one.
+
+## T36 Docs — done
+- Changed: `docs/partner-guide.md`: version 0.2.0; config example with `parse_target`, `measured_values` and the new rules; CLI reference for `check --env` and `write-parse-profile --env`; GitHub and GitLab setup rewritten around the new caller and `parse_target`; new sections "Production parse target" and "Keep measurements out of published context"; the Fusion-default note; troubleshooting entries for `manifest_target_mismatch` and `manifest_empty`. `CHANGELOG.md`: unreleased 0.2.0 entry.
+- Evidence: `make verify` exit 0 (`747 passed, 18 deselected`). `tests/test_partner_guide.py`: 19 passed (every flag, choice and config key appears; config reference up to date).
+- Decisions:
+  - T33 is blocked, so the measured-values section documents the SPEC behaviour under a "Status in 0.2.0" note: the settings are validated but the rule reports nothing yet. CHANGELOG says the same. If proposal I is accepted and T33 lands before release, remove both notes.
+  - CHANGELOG lists two behaviour changes for 0.1 callers: the default engine (Fusion; `dbt-engine: core` restores dbt-core) and, on GitHub, that `WAREHOUSE_CREDENTIALS` no longer reaches the profile step. It records the default `dbt-fusion-version` `2.0.0`, still to be confirmed in H3.
+  - The example `allow` pattern `\bISO \d+` in the guide shows how a project can work around the false positive itself in the meantime.
