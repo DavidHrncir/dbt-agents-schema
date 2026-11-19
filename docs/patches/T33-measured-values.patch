@@ -1,0 +1,495 @@
+diff --git a/src/dbt_agents_schema/check.py b/src/dbt_agents_schema/check.py
+index f40b491..9ceb421 100644
+--- a/src/dbt_agents_schema/check.py
++++ b/src/dbt_agents_schema/check.py
+@@ -32,6 +32,7 @@ from dbt_agents_schema.manifest import (
+     load_manifest,
+     read_models,
+ )
++from dbt_agents_schema.measured import MeasuredValues
+ from dbt_agents_schema.skills import Skill, SkillSet, load_skills
+ 
+ FindingSeverity = Literal["error", "warning", "info"]
+@@ -168,6 +169,8 @@ def check_project(
+         )
+         broken = {f.node for f in skills.findings if f.rule == "skill_frontmatter_invalid"}
+         findings.extend(_skill_without_uses(skills.skills, broken))
++        measured = MeasuredValues(config.check.measured_values)
++        findings.extend(_measured_in_skills(measured, skills.skills))
+         if manifest is not None:
+             root_package = manifest.project_name or dbt_project_name(project_dir)
+             try:
+@@ -189,6 +192,9 @@ def check_project(
+                 )
+                 findings.extend(_unresolved_uses(skills.skills, content, config))
+                 findings.extend(_manifest_findings(manifest_file, content))
++                findings.extend(
++                    _measured_in_models(measured, project_dir, root_package, content, manifest)
++                )
+                 if env is not None and env in config.environments:
+                     findings.extend(
+                         _target_mismatch(config, env, content, manifest, project_dir, root_package)
+@@ -287,6 +293,59 @@ def _description_findings(
+             )
+ 
+ 
++def _measured_in_skills(measured: MeasuredValues, skills: Iterable[Skill]) -> Iterable[Finding]:
++    for skill in skills:
++        for line, msg in measured.scan(skill.content):
++            yield Finding(
++                "measured_values_in_context",
++                "warning",
++                f"skill {skill.key}: {msg}",
++                file=str(skill.file),
++                line=line,
++                node=skill.key,
++            )
++
++
++def _measured_in_models(
++    measured: MeasuredValues,
++    project_dir: Path,
++    root_package: str | None,
++    content: ManifestContent,
++    manifest: Manifest,
++) -> Iterable[Finding]:
++    nodes: dict[str, Any] = dict(manifest.raw["nodes"])
++    models = {m.unique_id: m for m in content.models}
++
++    def texts(description: str, meta: Any) -> Iterable[tuple[str, str]]:
++        yield "description", description
++        if meta:
++            yield "meta", json.dumps(meta, sort_keys=True, default=str)
++
++    for model in content.models:
++        file = _model_file(project_dir, root_package, nodes.get(model.unique_id), model)
++        for where, text in texts(model.description, model.meta):
++            for _, msg in measured.scan(text):
++                yield Finding(
++                    "measured_values_in_context",
++                    "warning",
++                    f"{where} of model {model.name}: {msg}",
++                    file=file,
++                    node=model.unique_id,
++                )
++    for column in content.columns:
++        model = models[column.model_id]
++        file = _model_file(project_dir, root_package, nodes.get(model.unique_id), model)
++        for where, text in texts(column.description, column.meta):
++            for _, msg in measured.scan(text):
++                yield Finding(
++                    "measured_values_in_context",
++                    "warning",
++                    f"{where} of column {column.column_name} of model {model.name}: {msg}",
++                    file=file,
++                    node=f"{column.model_id}.{column.column_name}",
++                )
++
++
+ def _manifest_findings(manifest_file: Path, content: ManifestContent) -> Iterable[Finding]:
+     if not content.models:
+         yield Finding(
+diff --git a/src/dbt_agents_schema/measured.py b/src/dbt_agents_schema/measured.py
+new file mode 100644
+index 0000000..174a0bf
+--- /dev/null
++++ b/src/dbt_agents_schema/measured.py
+@@ -0,0 +1,94 @@
++"""`measured_values_in_context` detection (SPEC 8). Pure logic.
++
++Published text should describe method, not measurements. Each line is checked in order:
++count phrases (unless exempt), then allow patterns, then any number >= `min_number`.
++"""
++
++from __future__ import annotations
++
++import re
++from dataclasses import dataclass, field
++
++from dbt_agents_schema.config import MeasuredValuesConfig
++
++BUILTIN_NOUNS = (
++    r"rows?|records?|tables?|columns?|events?|jobs?|users?|customers?|accounts?|orders?"
++    r"|transactions?"
++)
++BUILTIN_EXEMPT = (r"\b1 (row|record) per\b",)
++BUILTIN_ALLOW = (
++    r"[<>]=\s*\d",
++    r"\b0-100\b",
++    r"\bone (row|record) per\b",
++    r"\b1:1\b",
++    r"accepted values",
++    r"percentile",
++    r"\bp\d{2}\b",
++)
++_LIST_MARKER = re.compile(r"^\d+[.)]\s+")
++_NUMBER = re.compile(r"(?<![\w.\-])\d[\d,]*(\.\d+)?")
++_FIX = (
++    "use qualitative wording or the query that derives the value, or add a pattern to "
++    "check.measured_values.allow / exempt"
++)
++
++
++@dataclass(frozen=True)
++class MeasuredValues:
++    """Compiled patterns for one `check.measured_values` setting."""
++
++    settings: MeasuredValuesConfig
++    _count: tuple[re.Pattern[str], ...] = field(init=False, repr=False)
++    _exempt: tuple[re.Pattern[str], ...] = field(init=False, repr=False)
++    _allow: tuple[re.Pattern[str], ...] = field(init=False, repr=False)
++
++    def __post_init__(self) -> None:
++        nouns = "|".join((BUILTIN_NOUNS, *(f"(?:{n})" for n in self.settings.count_nouns)))
++        count = (
++            re.compile(rf"\d[\d,]*\s*({nouns})\b", re.IGNORECASE),
++            re.compile(r"\b\d[\d,]*\s+of\s+\d", re.IGNORECASE),
++            re.compile(r"\b\d+(\.\d+)?x\b", re.IGNORECASE),
++            re.compile(r"\b\d+(\.\d+)?[KMB]\b"),  # suffix case-sensitive
++        )
++        object.__setattr__(self, "_count", count)
++        object.__setattr__(self, "_exempt", _compile((*BUILTIN_EXEMPT, *self.settings.exempt)))
++        object.__setattr__(self, "_allow", _compile((*BUILTIN_ALLOW, *self.settings.allow)))
++
++    def match(self, raw_line: str) -> str | None:
++        """The matched text if `raw_line` contains a measured value, else None."""
++        line = _LIST_MARKER.sub("", raw_line.strip(), count=1)
++        if not line:
++            return None
++        # 1. Count phrases, unless the line is exempt.
++        for pattern in self._count:
++            found = pattern.search(line)
++            if found is not None:
++                if any(p.search(line) for p in self._exempt):
++                    break
++                return found.group(0)
++        # 2. Allowed lines may contain numbers.
++        if any(p.search(line) for p in self._allow):
++            return None
++        # 3. Any number at or above min_number.
++        for found in _NUMBER.finditer(line):
++            if float(found.group(0).replace(",", "")) >= self.settings.min_number:
++                return found.group(0)
++        return None
++
++    def scan(self, text: str) -> list[tuple[int, str]]:
++        """(1-based line number, message) for each line of `text` with a measured value."""
++        out: list[tuple[int, str]] = []
++        for number, line in enumerate(text.splitlines(), start=1):
++            matched = self.match(line)
++            if matched is not None:
++                out.append((number, message(matched, line)))
++        return out
++
++
++def message(matched: str, line: str) -> str:
++    excerpt = line.strip()[:100]
++    return f'measured value "{matched}" in published text (line: "{excerpt}"); {_FIX}'
++
++
++def _compile(patterns: tuple[str, ...]) -> tuple[re.Pattern[str], ...]:
++    return tuple(re.compile(p, re.IGNORECASE) for p in patterns)
+diff --git a/tests/test_measured_values.py b/tests/test_measured_values.py
+new file mode 100644
+index 0000000..3d84ba2
+--- /dev/null
++++ b/tests/test_measured_values.py
+@@ -0,0 +1,298 @@
++"""`measured_values_in_context` (SPEC 8, T33)."""
++
++from __future__ import annotations
++
++import json
++import shutil
++from pathlib import Path
++from typing import Any
++
++import pytest
++from fakes import MANIFESTS, PROJECTS
++
++from dbt_agents_schema.check import Finding, check_project
++from dbt_agents_schema.config import MeasuredValuesConfig
++from dbt_agents_schema.measured import MeasuredValues
++
++DEFAULT = MeasuredValues(MeasuredValuesConfig())
++
++
++def hit(line: str, settings: MeasuredValues = DEFAULT) -> str | None:
++    return settings.match(line)
++
++
++# --- step 1: count phrases ---------------------------------------------------------
++
++
++@pytest.mark.parametrize(
++    ("line", "matched"),
++    [
++        ("The table has 94 rows.", "94 rows"),
++        ("Covers 3 tables in the raw schema", "3 tables"),
++        ("Joins 1,200 customers to orders", "1,200 customers"),
++        ("about 12 accounts are active", "12 accounts"),
++        ("5 of 7 connectors sync hourly", "5 of 7"),
++        ("runs 2x per day", "2x"),
++        ("roughly 1.5x the baseline", "1.5x"),
++        ("about 3M events a day", "3M"),
++        ("about 40K", "40K"),
++        ("2 Events per user", "2 Events"),
++        ("1 column only", "1 column"),
++    ],
++)
++def test_step1_count_phrases_flagged(line: str, matched: str) -> None:
++    found = hit(line)
++    assert found is not None
++    assert matched in found
++
++
++@pytest.mark.parametrize(
++    "line",
++    [
++        "Rows are deduplicated on order_id.",
++        "Use the 3m interval only in staging",  # lowercase m: suffix is case-sensitive, 3 < 10
++        "Customers who placed an order",
++        "one row per order",
++        "1 row per order",
++        "1 record per customer per day",
++        "x2 is a column name",
++    ],
++)
++def test_step1_negatives(line: str) -> None:
++    assert hit(line) is None
++
++
++def test_count_phrase_on_allow_line_is_flagged() -> None:
++    # "(94 rows)" on a line that also matches a built-in allow pattern (`percentile`)
++    assert hit("p95 percentile latency (94 rows)") is not None
++    configured = MeasuredValues(MeasuredValuesConfig(allow=("latency",)))
++    assert hit("latency sample (94 rows)", configured) is not None
++
++
++def test_multiplier_passes_only_with_exempt() -> None:
++    line = "Stale when older than 2x the connection's sync_frequency"
++    assert hit(line) is not None
++    exempt = MeasuredValues(MeasuredValuesConfig(exempt=(r"sync_frequency",)))
++    assert hit(line, exempt) is None
++
++
++def test_exempt_line_still_runs_step3() -> None:
++    exempt = MeasuredValues(MeasuredValuesConfig(exempt=("staging",)))
++    assert hit("staging holds 94 rows", exempt) is not None  # 94 >= 10 at step 3
++    assert hit("staging holds 4 rows", exempt) is None
++
++
++def test_configured_count_nouns() -> None:
++    line = "The role has 4 grants"
++    assert hit(line) is None
++    nouns = MeasuredValues(MeasuredValuesConfig(count_nouns=("grants?",)))
++    assert hit(line, nouns) is not None
++    assert hit("The role has 1 grant", nouns) is not None
++
++
++def test_exempt_is_case_insensitive() -> None:
++    exempt = MeasuredValues(MeasuredValuesConfig(exempt=("SYNC",)))
++    assert hit("runs 2x per sync", exempt) is None
++
++
++# --- step 2: allow -----------------------------------------------------------------
++
++
++@pytest.mark.parametrize(
++    "line",
++    [
++        "Score from 0-100 where 100 is best",
++        "amount >= 1000 means a large order",
++        "ratio <= 250",
++        "Joins 1:1 to dim_customers on id 2024",
++        "accepted values are 10, 20 and 30",
++        "the 95th percentile of latency",
++        "p99 latency in milliseconds over 500",
++        "one row per order since 2019",
++    ],
++)
++def test_step2_builtin_allow(line: str) -> None:
++    assert hit(line) is None
++
++
++@pytest.mark.parametrize(
++    "line", ["Released in 2019", "Status code 404 means missing", "Retry after 30 seconds"]
++)
++def test_step2_configured_allow(line: str) -> None:
++    assert hit(line) is not None
++    allow = MeasuredValues(MeasuredValuesConfig(allow=(r"released|status code|retry",)))
++    assert hit(line, allow) is None
++
++
++# --- step 3: numbers ---------------------------------------------------------------
++
++
++@pytest.mark.parametrize(
++    ("line", "matched"),
++    [
++        ("Revenue reached 1,234,567 last quarter", "1,234,567"),
++        ("Average basket is 42.5 dollars", "42.5"),
++        ("Updated 15 minutes after the hour", "15"),
++        ("Threshold: 10", "10"),
++    ],
++)
++def test_step3_numbers_flagged(line: str, matched: str) -> None:
++    found = hit(line)
++    assert found is not None
++    assert matched in found
++
++
++@pytest.mark.parametrize(
++    "line",
++    [
++        "10. Never name a model in prose",
++        "12) Always filter on is_deleted",
++        "Keep 3 decimals",
++        "Uses fct_orders_v2 and dim_2024_calendar",  # digits inside identifiers
++        "version 1.25 of the API",  # 1 < 10; .25 is part of the same number
++        "Region eu-west-1",
++        "9 is the maximum",
++    ],
++)
++def test_step3_negatives(line: str) -> None:
++    assert hit(line) is None
++
++
++def test_below_min_number_not_flagged() -> None:
++    assert hit("Wait 9 seconds") is None
++    assert hit("Wait 10 seconds") is not None
++    high = MeasuredValues(MeasuredValuesConfig(min_number=100))
++    assert hit("Wait 99 seconds", high) is None
++    assert hit("Wait 100 seconds", high) is not None
++    zero = MeasuredValues(MeasuredValuesConfig(min_number=0))
++    assert hit("Wait 0 seconds", zero) is not None
++
++
++def test_list_marker_stripped_once() -> None:
++    assert hit("10. 20. steps") is not None  # only the first marker is stripped
++
++
++# --- scanning: one finding per line, messages --------------------------------------
++
++
++def test_scan_text_one_finding_per_line() -> None:
++    text = "94 rows and 3 tables\nfine prose\n\n  10. Never name a model\nupdated 2024 daily"
++    found = DEFAULT.scan(text)
++    assert [line for line, _ in found] == [1, 5]
++
++
++def test_message_has_match_line_and_fix() -> None:
++    long_line = "Holds 94 rows " + "x" * 200
++    [(line, message)] = DEFAULT.scan(long_line)
++    assert line == 1
++    assert "94 rows" in message
++    assert long_line[:100] in message
++    assert long_line[:101] not in message
++    assert "qualitative" in message
++    assert "check.measured_values.allow" in message and "exempt" in message
++
++
++# --- check integration -------------------------------------------------------------
++
++
++def finance_copy(tmp_path: Path, config_extra: str = "") -> Path:
++    root = tmp_path / "finance"
++    shutil.copytree(PROJECTS / "finance", root)
++    cfg = root / "agents_schema.yml"
++    cfg.write_text(cfg.read_text() + config_extra)
++    return root
++
++
++def patched_manifest(tmp_path: Path, edit: Any) -> Path:
++    data: dict[str, Any] = json.loads((MANIFESTS / "finance.json").read_text())
++    edit(data["nodes"])
++    path = tmp_path / "manifest.json"
++    path.write_text(json.dumps(data))
++    return path
++
++
++def measured(root: Path, manifest: Path) -> list[Finding]:
++    result = check_project(root, manifest_path=manifest)
++    return [f for f in result.findings if f.rule == "measured_values_in_context"]
++
++
++def test_check_flags_model_and_column_descriptions_with_node(tmp_path: Path) -> None:
++    def edit(nodes: dict[str, Any]) -> None:
++        node = nodes["model.finance.fct_revenue"]
++        node["description"] = "Revenue facts.\nHolds 94 rows today."
++        first = next(iter(node["columns"].values()))
++        first["description"] = "Sum of 1,200 invoices"
++
++    root = finance_copy(tmp_path)
++    found = measured(root, patched_manifest(tmp_path, edit))
++    nodes = {f.node for f in found}
++    assert "model.finance.fct_revenue" in nodes
++    column = next(
++        iter(
++            json.loads((MANIFESTS / "finance.json").read_text())["nodes"][
++                "model.finance.fct_revenue"
++            ]["columns"]
++        )
++    )
++    assert f"model.finance.fct_revenue.{column}" in nodes
++    assert all(f.severity == "warning" for f in found)
++
++
++def test_check_scans_model_and_column_meta(tmp_path: Path) -> None:
++    def edit(nodes: dict[str, Any]) -> None:
++        node = nodes["model.finance.dim_customers"]
++        node["meta"] = {"owner": "finance", "row_count_note": "about 5000 rows"}
++        node.setdefault("config", {})["meta"] = node["meta"]
++        col = next(iter(node["columns"].values()))
++        col["meta"] = {"z": 1, "a": "seen 7 of 9 times"}
++
++    root = finance_copy(tmp_path)
++    found = measured(root, patched_manifest(tmp_path, edit))
++    by_node = {f.node: f for f in found}
++    assert "model.finance.dim_customers" in by_node
++    assert "5000 rows" in by_node["model.finance.dim_customers"].message
++    col_nodes = [n for n in by_node if n and n.startswith("model.finance.dim_customers.")]
++    assert col_nodes
++    # meta is scanned as JSON with sorted keys: "a" comes first in the quoted line
++    assert '{"a": "seen 7 of 9 times", "z": 1}'[:60] in by_node[col_nodes[0]].message
++
++
++def test_check_flags_skill_lines_with_file_and_line(tmp_path: Path) -> None:
++    root = finance_copy(tmp_path)
++    skill = root / "agents" / "skills" / "counts.md"
++    skill.write_text(
++        "---\nuses:\n  schemas: [finance_marts]\n---\n# Counts\n\nfct_revenue has 94 rows.\n"
++        "1. Use one row per order.\n"
++    )
++    found = measured(root, MANIFESTS / "finance.json")
++    skill_hits = [f for f in found if f.file == str(skill)]
++    assert [(f.line, f.node) for f in skill_hits] == [(7, "skill/finance/counts")]
++
++
++def test_check_respects_config_allow_and_severity(tmp_path: Path) -> None:
++    root = finance_copy(
++        tmp_path,
++        "check:\n  measured_values:\n    exempt: ['rows']\n    min_number: 1000\n"
++        "  rules:\n    measured_values_in_context: error\n",
++    )
++    skill = root / "agents" / "skills" / "counts.md"
++    skill.write_text("---\nuses:\n  schemas: [finance_marts]\n---\nHas 94 rows.\nHas 5000 users.\n")
++    found = [f for f in measured(root, MANIFESTS / "finance.json") if f.file == str(skill)]
++    assert [(f.line, f.severity) for f in found] == [(6, "error")]
++
++
++def test_check_rule_off(tmp_path: Path) -> None:
++    root = finance_copy(tmp_path, "check:\n  rules:\n    measured_values_in_context: off\n")
++    (root / "agents" / "skills" / "counts.md").write_text("Has 94 rows.\n")
++    assert measured(root, MANIFESTS / "finance.json") == []
++
++
++def test_bad_fixture_triggers_rule() -> None:
++    result = check_project(PROJECTS / "bad", manifest_path=MANIFESTS / "bad.json")
++    found = [f for f in result.findings if f.rule == "measured_values_in_context"]
++    assert any(
++        f.node
++        == "model.bad_project_with_an_intentionally_long_name_that_breaks_the_project_key_rule.customers"
++        and "1,204,331 rows" in f.message
++        for f in found
++    )

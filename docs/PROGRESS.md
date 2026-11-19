@@ -464,3 +464,20 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - `check --env` with an environment that is not defined exits 2 and lists the defined ones. An environment without `parse_target` adds no findings.
   - `column_meta_missing` is not reported when `manifest_empty` fires, because an empty manifest has no columns to check. Both point at the manifest file.
   - A draft test for `manifest_empty` with every package excluded was dropped before commit: root models are always published (SPEC 5.7), so that case cannot happen.
+
+## T33 `measured_values_in_context` rule — blocked
+- Status: `[!]`, following the T33 instruction "If a fixture description now produces a warning that breaks an existing assertion, stop and log it in PROGRESS.md instead of editing the assertion."
+- What happened: implemented the rule as written in SPEC 8. New module `measured.py`, wired into `check.py`, 55 new tests in `tests/test_measured_values.py`, all passing; the `bad` fixture triggers the rule on "1,204,331 rows". The full suite then failed in 8 existing tests: test_check.py::test_finance_is_clean_except_skill_without_uses, ::test_marketing_is_clean_except_skill_without_uses, ::test_rule_severity_override_and_off, ::test_manifest_without_project_name_falls_back_to_dbt_project_yml; test_cli_check.py::test_clean_finance_exits_0_with_warnings, ::test_format_json, ::test_format_gitlab_output_path, ::test_output_for_json. They count warnings on the clean fixtures, and the new rule adds one per line containing "ISO 4217":
+  - finance `stg_invoices.currency_code`: "ISO 4217 currency of the invoice."
+  - `shared_pkg` `dim_currency.currency_code` (in finance and marketing): "ISO 4217 code."
+  Step 3 flags 4217 because it is ≥ `min_number`. It is the name of a standard, not a measurement.
+- Work kept: `docs/patches/T33-measured-values.patch` (applies cleanly to this commit with `git apply`). Not merged, so `make verify` stays green.
+
+### SPEC CHANGE PROPOSAL I — standard identifiers in `measured_values_in_context` (SPEC 8)
+- Problem: step 3 flags any number ≥ `min_number`, including standard identifiers ("ISO 4217", "ISO 8601", "RFC 3339", "UTF 8" is below the limit), which are common in column descriptions and never go stale. Every partner with currency or timestamp columns gets the warning. The clean fixtures already do, which breaks 8 existing test assertions.
+- Options:
+  - (a) Add a built-in `allow` pattern for standard identifiers, for example `\b(ISO|RFC|IEC|IEEE|EN|DIN)[ -]?\d+`. As with every allow pattern, a count phrase on the same line is still flagged at step 1.
+  - (b) Keep the algorithm and add `check.measured_values.allow: ['\bISO \d+']` to the finance and marketing fixture configs. The tests stay unchanged, but every real project must learn to add the same pattern.
+  - (c) Keep the algorithm and update the 8 assertions to expect the extra warnings. This conflicts with the plan's instruction for T33.
+- Recommendation: (a). Proposed SPEC 8 text: add `\b(ISO|RFC|IEC|IEEE)[ -]?\d+` to the built-in allow list in step 2, and add "ISO 4217 currency code" as a required negative test case.
+- On acceptance: apply the patch, add the pattern and test case, and re-run `make verify`.
