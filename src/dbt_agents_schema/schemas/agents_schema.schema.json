@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agents_schema.yml",
+  "description": "Project config for dbt-agents-schema (spec v1, section 3).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version"],
+  "properties": {
+    "version": {
+      "const": 1,
+      "description": "Config format version. Only 1 is valid."
+    },
+    "project": {
+      "type": "string",
+      "description": "Key that owns this project's rows. Pattern ^[a-z][a-z0-9_]{0,62}$. Must be unique within an agents schema.",
+      "x-default": "manifest metadata.project_name, lowercased, - replaced by _"
+    },
+    "owner": {
+      "type": "string",
+      "description": "Free text, for example a team email. Published to DBT_PROJECT."
+    },
+    "description": {
+      "type": "string",
+      "description": "Free text. Published to DBT_PROJECT and the project/<project> ROOT row."
+    },
+    "include_packages": {
+      "type": "boolean",
+      "description": "Also publish models from installed dbt packages.",
+      "default": true
+    },
+    "exclude_packages": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Package names never published, even when include_packages is true.",
+      "default": []
+    },
+    "skills_dir": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Directory of markdown skill files, relative to the project. A missing directory means no skills.",
+      "default": "agents/skills"
+    },
+    "environments": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]{0,30}$"},
+      "additionalProperties": {"$ref": "#/$defs/environment"},
+      "description": "Named publish targets. Names match ^[a-z][a-z0-9_]{0,30}$.",
+      "x-default": "prod (credentials: env, schema: AGENTS) and dev (credentials: dbt_profile, schema: \"{{ target_schema }}_AGENTS\")"
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Settings for `dbt-agents-schema check` (also run by publish).",
+      "properties": {
+        "description_scope": {
+          "enum": ["public", "all"],
+          "description": "Models the description rules apply to: public = models with access: public; all = every published model.",
+          "default": "public"
+        },
+        "external_schemas": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Schemas skills may reference in uses that dbt does not build.",
+          "default": []
+        },
+        "measured_values": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Settings for the measured_values_in_context rule.",
+          "properties": {
+            "min_number": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Numbers below this are never flagged.",
+              "default": 10
+            },
+            "allow": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Regular expressions; a line that matches one may contain numbers (count phrases are still flagged).",
+              "default": []
+            },
+            "exempt": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Regular expressions; a line that matches one may contain count phrases.",
+              "default": []
+            },
+            "count_nouns": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Extra regex nouns for count phrases, for example grants?.",
+              "default": []
+            }
+          }
+        },
+        "rules": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Severity per configurable rule.",
+          "properties": {
+            "config_missing": {
+              "$ref": "#/$defs/severity",
+              "description": "No agents_schema.yml found.",
+              "default": "warning"
+            },
+            "missing_model_description": {
+              "$ref": "#/$defs/severity",
+              "description": "A model in description_scope has an empty description.",
+              "default": "warning"
+            },
+            "missing_column_description": {
+              "$ref": "#/$defs/severity",
+              "description": "A column of a model in description_scope has an empty description.",
+              "default": "warning"
+            },
+            "sampled_values_in_description": {
+              "$ref": "#/$defs/severity",
+              "description": "A description looks like data profiling output (min/max, null rates, sample values, row counts).",
+              "default": "error"
+            },
+            "measured_values_in_context": {
+              "$ref": "#/$defs/severity",
+              "description": "Published text (model and column descriptions and meta, skill files) contains a measured value such as a row count.",
+              "default": "warning"
+            },
+            "manifest_target_mismatch": {
+              "$ref": "#/$defs/severity",
+              "description": "With --env: a published model's database or schema differs from the environment's parse_target.",
+              "default": "error"
+            },
+            "manifest_empty": {
+              "$ref": "#/$defs/severity",
+              "description": "The manifest has no published models.",
+              "default": "error"
+            },
+            "column_meta_missing": {
+              "$ref": "#/$defs/severity",
+              "description": "No column of any published model has a non-empty meta (set error when relying on dbt Fusion copying model meta to columns).",
+              "default": "off"
+            },
+            "skill_without_uses": {
+              "$ref": "#/$defs/severity",
+              "description": "A skill file has no uses frontmatter.",
+              "default": "warning"
+            },
+            "skill_unresolved_uses": {
+              "$ref": "#/$defs/severity",
+              "description": "A uses.schemas or uses.tables entry matches no published model and is not in external_schemas.",
+              "default": "error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "severity": {"enum": ["error", "warning", "off"]},
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["credentials", "schema"],
+      "properties": {
+        "credentials": {
+          "enum": ["env", "dbt_profile"],
+          "description": "env = WAREHOUSE_CREDENTIALS from the environment (CI); dbt_profile = the project's dbt profile (developers)."
+        },
+        "database": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Snowflake database, BigQuery project, Databricks catalog or DuckDB catalog. Template allowed.",
+          "x-default": "from the credentials"
+        },
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Agents schema (BigQuery dataset). Template allowed: {{ target_schema }}, {{ target_database }} (dbt_profile only), {{ project }}, {{ env }}."
+        },
+        "parse_target": {"$ref": "#/$defs/parse_target"}
+      }
+    },
+    "parse_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "schema"],
+      "description": "Production shape for `dbt parse` in CI: used by write-parse-profile --env and the manifest_target_mismatch rule. Plain strings, no templates. Does not change where the agents schema is written.",
+      "x-default": "none",
+      "properties": {
+        "type": {
+          "enum": ["snowflake", "bigquery", "databricks", "duckdb"],
+          "description": "Warehouse type of the parse profile."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Profile target name.",
+          "x-default": "the environment name"
+        },
+        "database": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Snowflake database, BigQuery project or Databricks catalog. Required except for duckdb.",
+          "x-default": "required except for duckdb"
+        },
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "dbt target schema (BigQuery dataset)."
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1,
+          "description": "BigQuery dataset location. BigQuery only."
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"not": {"const": "duckdb"}}}, "required": ["type"]},
+          "then": {"required": ["database"]}
+        },
+        {
+          "if": {"properties": {"type": {"not": {"const": "bigquery"}}}, "required": ["type"]},
+          "then": {"not": {"required": ["location"]}}
+        }
+      ]
+    }
+  }
+}

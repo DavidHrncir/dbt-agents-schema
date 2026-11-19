@@ -1,0 +1,5 @@
+name: shared_pkg
+version: "1.0.0"
+config-version: 2
+profile: shared_pkg
+model-paths: ["models"]

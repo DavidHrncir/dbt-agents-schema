@@ -74,17 +74,32 @@ environments:                    # default: the prod and dev entries shown here
     credentials: env             # env | dbt_profile
     database: ANALYTICS          # optional; default from the credentials
     schema: AGENTS               # required; template allowed
+    parse_target:                # optional; production shape for `dbt parse` in CI (no default)
+      type: snowflake            # snowflake | bigquery | databricks | duckdb; required
+      name: prod                 # profile target name; default: the environment name
+      database: ANALYTICS        # Snowflake database, BigQuery project, Databricks catalog; required except duckdb
+      schema: FINANCE            # dbt target schema (BigQuery dataset); required
+      location: US               # BigQuery only; optional
   dev:
     credentials: dbt_profile
     schema: "{{ target_schema }}_AGENTS"
 check:
   description_scope: public      # public | all — which models the description rules apply to
   external_schemas: []           # schemas skills may reference that dbt does not build
+  measured_values:               # settings for measured_values_in_context (section 8)
+    min_number: 10               # numbers below this are never flagged
+    allow: []                    # regexes; a matching line may contain numbers
+    exempt: []                   # regexes; a matching line may contain count phrases
+    count_nouns: []              # extra regex nouns for count phrases, e.g. "grants?"
   rules:                         # severity per rule: error | warning | off
     config_missing: warning
     missing_model_description: warning
     missing_column_description: warning
     sampled_values_in_description: error
+    measured_values_in_context: warning
+    manifest_target_mismatch: error
+    manifest_empty: error
+    column_meta_missing: off
     skill_without_uses: warning
     skill_unresolved_uses: error
 ```
@@ -104,6 +119,13 @@ check:
 - `description_scope: public` means models whose `access` is `public`. If a project
   sets no `access` anywhere, `public` covers nothing and `check` emits one info line
   suggesting `all`.
+- `parse_target`: plain strings, no templates; unknown keys are a config error. It does
+  not change where the agents schema is written. `write-parse-profile --env` uses it to
+  build a profile for `dbt parse` (section 7), and `manifest_target_mismatch` checks the
+  parsed models against it (section 8).
+- `measured_values`: `min_number` is an integer ≥ 0. Every entry of `allow`, `exempt`
+  and `count_nouns` must compile as a Python regular expression; an invalid one is
+  `config_invalid`, naming the key and list index.
 
 ---
 
@@ -127,6 +149,11 @@ existing CI secrets carry over:
   `serverHostName`), `http_path` (alias `httpPath`), `catalog`, `token` (aliases
   `access_token`, `personal_access_token`, `personalAccessToken`).
 - DuckDB: `type: duckdb`, `path` (file path; `:memory:` allowed).
+- Every warehouse also accepts an optional `schema` key (BigQuery: `dataset`, falling
+  back to `schema`): the dbt target schema the models build into. Only
+  `write-parse-profile` reads it (section 7); `publish` ignores it. DuckDB defaults to
+  `main`; on the other warehouses `write-parse-profile` exits 2 without it, naming the
+  key and the `DBT_PROFILES_YML` alternative.
 
 Mapping of "database" and "schema" per warehouse:
 
@@ -178,7 +205,9 @@ one place per writer.
 | json | VARIANT | JSON | STRING (JSON text) | JSON |
 
 Table names are uppercase: `ROOT`, `DBT_PROJECT`, `DBT_MODEL`, `DBT_COLUMN`,
-`DBT_DEPENDENCY`, `SKILL_USE`. Column names are lowercase. Primary keys are declared
+`DBT_DEPENDENCY`, `SKILL_USE`. Column names are lowercase, except on Snowflake, where
+table and column names are stored uppercase (quoted) so unquoted SQL such as
+`SELECT project FROM DBT_MODEL` resolves on every warehouse. Primary keys are declared
 where the warehouse supports informational constraints; uniqueness is guaranteed by the
 writer, not the database.
 
@@ -291,8 +320,8 @@ Rows this tool owns, all with `provider = 'dbt'`:
 1. **Load.** Config (section 3), manifest (`--manifest` or
    `<project-dir>/target/manifest.json`), skills. A missing manifest exits 2 with
    "run `dbt parse` first".
-2. **Check.** Run the check engine (section 8). Any error-severity finding exits 1
-   without connecting.
+2. **Check.** Run the check engine (section 8), with the environment-dependent rules for
+   `--env`. Any error-severity finding exits 1 without connecting.
 3. **Plan.** Build every row in memory with a pure function. No I/O.
 4. **Connect** with the environment's credentials. Resolve database and schema.
 5. **Ensure structure.** `CREATE SCHEMA IF NOT EXISTS`. For each table:
@@ -342,12 +371,12 @@ Common options: `--project-dir PATH` (default `.`), `--config PATH` (default
 
 | Command | Purpose |
 | --- | --- |
-| `check [--parse] [--format text\|json\|github\|gitlab] [--output PATH]` | Validate config, manifest and skills. `--parse` runs `dbt parse` first via subprocess. `github` prints `::error file=…,line=…::` / `::warning …` annotations. `gitlab` writes a GitLab Code Quality JSON report to `--output` (default `gl-code-quality-report.json`) and also prints text. Exit 1 on any error finding. Needs no warehouse access. |
+| `check [--env NAME] [--parse] [--format text\|json\|github\|gitlab] [--output PATH]` | Validate config, manifest and skills. `--env` turns on the environment-dependent rules (`manifest_target_mismatch`, section 8) for that environment; `publish --env` turns them on too. `--parse` runs `dbt parse` first via subprocess. `github` prints `::error file=…,line=…::` / `::warning …` annotations. `gitlab` writes a GitLab Code Quality JSON report to `--output` (default `gl-code-quality-report.json`) and also prints text. Exit 1 on any error finding. Needs no warehouse access. |
 | `publish --env NAME [--target T] [--profiles-dir P] [--dry-run] [--force-takeover]` | Section 6. |
 | `unpublish --env NAME [--project P] [--yes]` | Delete one project's rows from the environment's agents schema, including its ROOT rows. Refuses without `--yes` when stdin is not a TTY. |
 | `init [--ci github\|gitlab\|none] [--force]` | Write `agents_schema.yml`, `agents/skills/example.md`, and the CI caller file for the chosen platform, plus a `.pre-commit-config.yaml` snippet printed to stdout. Never overwrites without `--force`. |
 | `fetch-manifest --account-id ID --job-id ID [--host HOST] [--out PATH]` | Download the latest `manifest.json` from a dbt platform job. Token from `DBT_CLOUD_API_TOKEN`. Default host `cloud.getdbt.com`, default out `target/manifest.json`. Verify the endpoint against current dbt platform Admin API docs before implementing; record the URL used in PROGRESS. |
-| `write-parse-profile --out DIR` | Write a minimal `profiles.yml` from `WAREHOUSE_CREDENTIALS` so CI can run `dbt parse` without a separate profiles secret. Profile name = `profile` in `dbt_project.yml`. |
+| `write-parse-profile --out DIR [--env NAME]` | Write a minimal `profiles.yml` so CI can run `dbt parse` without a separate profiles secret. Profile name = `profile` in `dbt_project.yml`. File mode 0600. **With `--env` naming an environment that has `parse_target`:** target = `parse_target.name`, database/schema/location from `parse_target`, and connection fields filled with obvious placeholders (BigQuery `method: service-account-json` with a dummy key, Snowflake `password`, Databricks `token`, DuckDB `path: ":memory:"`); `WAREHOUSE_CREDENTIALS` is not read. `dbt parse` never connects, so no real credential is needed. **Otherwise:** the profile is built from `WAREHOUSE_CREDENTIALS`, and the output's schema comes from the optional `schema`/`dataset` key in it (section 4.1); exit 2 when it is required and missing. |
 | `--version` | Print the package version. |
 
 **Git metadata** for `DBT_PROJECT`: GitHub (`GITHUB_SERVER_URL`/`GITHUB_REPOSITORY`,
@@ -381,6 +410,10 @@ and `line`, optional `node` (unique_id or skill key). Severity comes from
 | `missing_model_description` | warning | Model in `description_scope` has an empty description. |
 | `missing_column_description` | warning | Column of a model in `description_scope` has an empty description. |
 | `sampled_values_in_description` | error | A model or column description looks like it contains data profiling output (below). |
+| `measured_values_in_context` | warning | Published text contains a measured value (below). |
+| `manifest_target_mismatch` | error | Only with `--env` and that environment's `parse_target`. A published model's `database` differs from `parse_target.database`, or its `schema` does not start with `parse_target.schema` (both case-insensitive; the database comparison is skipped when `parse_target.database` is unset). One finding per model, naming the model, its resolved `database.schema` and the expected values. |
+| `manifest_empty` | error | The manifest has no published models. |
+| `column_meta_missing` | off | No column of any published model has a non-empty `meta`. Projects that rely on dbt Fusion copying model `meta` to columns (dbt-core does not) set it to `error`. |
 | `skill_without_uses` | warning | Skill file has no `uses` frontmatter. |
 | `skill_unresolved_uses` | error | A `uses.schemas` entry is not the schema of any published model and not in `external_schemas`; or a `uses.tables` entry does not match any published model's `schema.alias` or `database.schema.alias` (case-insensitive) and its schema is not in `external_schemas`. |
 
@@ -395,6 +428,39 @@ and `line`, optional `node` (unique_id or skill key). Severity comes from
 Tests must include at least three positive and three negative examples per heuristic.
 Negatives must include ordinary prose such as "Maximum order value allowed by policy"
 and "Percent of revenue recognized".
+
+**`measured_values_in_context`.** Published text must describe method, not
+measurements: a count written into a description goes stale, and an agent quotes it as
+current instead of querying. This rule is separate from `sampled_values_in_description`;
+both may report the same line.
+
+- Scope: the description and `meta` of each published model, the description and `meta`
+  of each of its columns, and the full text of each skill file. `meta` is scanned as JSON
+  with sorted keys.
+- Each line is stripped of surrounding whitespace and one leading list marker
+  (`^\d+[.)]\s+`), then checked in order:
+  1. **Count phrase** → finding, unless the line matches an `exempt` pattern. Count
+     phrases: `\d[\d,]*\s*(<nouns>)\b` with built-in nouns
+     `rows?|records?|tables?|columns?|events?|jobs?|users?|customers?|accounts?|orders?|transactions?`
+     plus `count_nouns`; `\b\d[\d,]*\s+of\s+\d`; `\b\d+(\.\d+)?x\b`;
+     `\b\d+(\.\d+)?[KMB]\b` (suffix case-sensitive). Built-in exemption:
+     `\b1 (row|record) per\b`.
+  2. Otherwise a line matching a built-in or configured `allow` pattern is skipped.
+     Built-in: `[<>]=\s*\d`, `\b0-100\b`, `\bone (row|record) per\b`, `\b1:1\b`,
+     `accepted values`, `percentile`, `\bp\d{2}\b`, and standard identifiers
+     `\b(ISO|RFC|IEC|IEEE)[ -]?\d+`.
+  3. Otherwise any number (`(?<![\w.\-])\d[\d,]*(\.\d+)?`, commas removed) with value
+     ≥ `min_number` is a finding.
+- Matching is case-insensitive except where noted. At most one finding per line. The
+  message gives the matched text, the first 100 characters of the line, and the fix:
+  use qualitative wording or the query that derives the value, or add a pattern to
+  `check.measured_values.allow` / `exempt`. Skill findings carry `file` and `line`; model
+  and column findings carry `node`.
+- Tests must include at least three positive and three negative examples per step, and
+  these cases: "(94 rows)" on a line that also matches an `allow` pattern is flagged;
+  "10. Never name a model" is not; "one row per order" and "1 row per order" are not;
+  "older than 2x the connection's sync_frequency" passes only with an `exempt` pattern;
+  numbers below `min_number` are not flagged; "ISO 4217 currency code" is not flagged.
 
 **Skill frontmatter** (same convention as the dbt Labs tool):
 
@@ -429,33 +495,70 @@ under `src/dbt_agents_schema/skills/`. Publish the one matching the destination 
 
 ## 10. CI wrappers
 
-All wrappers pin a package version, install it, run `dbt deps` and `dbt parse`, then call
-the CLI. They contain no publishing logic.
+All wrappers install a pinned dbt-agents-schema (`package-version`, or a pinned
+`package-spec`) and a pinned dbt engine, run `dbt deps` and `dbt parse
+--no-partial-parse`, then call the CLI. They contain no publishing logic.
 
 ### 10.1 GitHub
 
 - Reusable workflow at `.github/workflows/dbt-agents-schema.yml` (`on: workflow_call`).
-  Inputs: `project-dir` (default `.`), `package-version` (required), `python-version`
-  (default `3.12`), `dbt-adapter` (required, for example `dbt-snowflake`),
-  `dbt-version` (default `>=1.8,<2`), `mode` (`check` | `publish`), `environment`
-  (default `prod`). Secrets: `WAREHOUSE_CREDENTIALS` (required for publish),
-  `DBT_PROFILES_YML` (optional; when absent, run `write-parse-profile`).
-- `check` mode runs `check --format github` so findings annotate the PR.
-- Example caller at `examples/github/agents-schema.yml`: `check` on `pull_request`,
-  `publish` on `push` to `main`, with `concurrency` set so two publishes of the same
+  Inputs:
+  - `project-dir` (default `.`), `python-version` (default `3.12`), `mode` (`check` |
+    `publish`), `environment` (default `prod`).
+  - `warehouse` (`snowflake` | `bigquery` | `databricks` | `duckdb`): selects the
+    package extra and, with dbt-core, the adapter. Required unless `dbt-adapter` is
+    given, in which case it is derived from it (v0.1 callers keep working).
+  - `dbt-engine` (`fusion` | `core`, default `fusion`). Fusion is installed with the
+    official installer, pinned to `dbt-fusion-version` (default: the version this
+    release was tested with, recorded in CHANGELOG). `core` installs
+    `dbt-core<dbt-version>` (default `>=1.8,<2`) and `dbt-adapter` (default
+    `dbt-<warehouse>`).
+  - `package-version`: required unless `package-spec` is set. `package-spec`
+    (optional): a full pip requirement, such as a git URL pinned to a commit; when set it
+    replaces `package-version`.
+  - `parse-env` (optional): lines of `KEY=VALUE` exported to every later step. Blank
+    lines and `#` lines are ignored. Keys must match `^[A-Z_][A-Z0-9_]*$` and must not
+    be `WAREHOUSE_CREDENTIALS`, `DBT_PROFILES_YML`, `DBT_PROFILES_DIR`,
+    `PACKAGE_REPO_TOKEN`, or start with `GITHUB_` or `RUNNER_`. Not for secrets: values
+    are not masked.
+- Secrets: `WAREHOUSE_CREDENTIALS` (required for publish), `DBT_PROFILES_YML`
+  (optional), `PACKAGE_REPO_TOKEN` (optional: read-only token for installing
+  `package-spec` from a private git repository; given only to the install step, through
+  a git `insteadOf` rule that the same step removes, never written inside the checkout).
+- Steps, in order: validate inputs → checkout → set up Python → install the dbt engine
+  and the package → profile (`DBT_PROFILES_YML` when set, else `write-parse-profile
+  --env <environment>`) → `dbt deps` → `dbt parse --no-partial-parse` → check mode:
+  `check --env <environment> --format github`, so findings annotate the PR; publish
+  mode: `publish --env <environment> --dry-run`, then `publish --env <environment>`.
+- Example caller at `examples/github/agents-schema.yml` (`init --ci github` writes the
+  same file): triggers `workflow_dispatch`, plus `pull_request` and `push` to `main`
+  filtered by `paths` (`models/**`, `macros/**`, the skills directory,
+  `dbt_project.yml`, `packages.yml`, `package-lock.yml`, `agents_schema.yml`, and the
+  caller file itself); one job whose `mode` is `check` on pull requests and `publish`
+  otherwise; `concurrency` per pull request ref, and one shared, queued
+  (`cancel-in-progress: false`) group for publishes, so two publishes of the same
   project never overlap.
 
 ### 10.2 GitLab
 
 - Template at `templates/gitlab/dbt-agents-schema.yml` using `spec: inputs` with the
-  same inputs as GitHub (snake_case names). Usable through `include: remote:` (raw URL
+  same inputs as GitHub (snake_case names), except that `mode` is `auto` | `check` |
+  `publish` (default `auto`: check on merge requests, publish on the default branch), so
+  a single `include` creates both jobs. Usable through `include: remote:` (raw URL
   pinned to a tag), `include: project:`, or copied into the consumer repo. Do not
   depend on the GitLab CI/CD Catalog.
+- Includes `warehouse`, `dbt_engine`, `dbt_fusion_version` and `package_spec` with the
+  same meaning and defaults as 10.1, and the same profile, parse, check (`--env`) and
+  dry-run steps. No `parse_env` input: included jobs already see the project's CI/CD
+  variables.
 - Jobs: `dbt-agents-schema-check` on merge request pipelines, writing the Code Quality
   report as `artifacts:reports:codequality`; `dbt-agents-schema-publish` on the default
   branch with `resource_group: dbt-agents-schema-$CI_PROJECT_PATH` to serialize
   publishes.
-- Credentials from a masked CI/CD variable `WAREHOUSE_CREDENTIALS`.
+- Credentials from a protected CI/CD variable `WAREHOUSE_CREDENTIALS`, type File
+  recommended; the wrapper reads the file and passes its contents to the CLI. GitLab
+  cannot mask a multi-line JSON/YAML document, so the template does not rely on
+  masking.
 - Example caller at `examples/gitlab/.gitlab-ci.yml`.
 
 ### 10.3 Pre-commit

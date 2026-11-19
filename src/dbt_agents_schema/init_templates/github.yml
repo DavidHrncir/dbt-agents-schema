@@ -1,0 +1,54 @@
+# Example caller: copy to .github/workflows/agents-schema.yml in your dbt project repo.
+# Checks on every pull request (findings annotate the PR) and publishes on push to main
+# or on a manual run. Add `parse_target` to the prod environment in agents_schema.yml so
+# `dbt parse` sees production database and schema names without a real credential.
+# Set the WAREHOUSE_CREDENTIALS repository secret (only the publish steps receive it).
+# Pin `uses:` to a release tag and set package-version to the same release.
+name: agents-schema
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "models/**"
+      - "macros/**"
+      - "agents/skills/**"
+      - "dbt_project.yml"
+      - "packages.yml"
+      - "package-lock.yml"
+      - "agents_schema.yml"
+      - ".github/workflows/agents-schema.yml"
+  push:
+    branches: [main]
+    paths:
+      - "models/**"
+      - "macros/**"
+      - "agents/skills/**"
+      - "dbt_project.yml"
+      - "packages.yml"
+      - "package-lock.yml"
+      - "agents_schema.yml"
+      - ".github/workflows/agents-schema.yml"
+
+permissions:
+  contents: read
+
+# Pull requests: one run per PR ref; a newer push cancels the older check.
+# Publishes: one shared queue, never cancelled, so two publishes never overlap.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('agents-schema-pr-{0}', github.ref) || 'agents-schema-publish' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  agents-schema:
+    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v@PACKAGE_VERSION@
+    with:
+      mode: ${{ github.event_name == 'pull_request' && 'check' || 'publish' }}
+      environment: prod
+      warehouse: @WAREHOUSE@
+      package-version: "@PACKAGE_VERSION@"
+      # dbt-engine: core            # dbt-core instead of dbt Fusion; installs @DBT_ADAPTER@
+      # parse-env: |                # variables your env_var() calls need at parse time
+      #   DBT_ENV_NAME=prod
+    secrets:
+      WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}

@@ -1,0 +1,11 @@
+version: 1
+project: finance
+owner: finance-data@example.com
+description: Finance marts
+environments:
+  prod:
+    credentials: env
+    schema: AGENTS
+  dev:
+    credentials: dbt_profile
+    schema: "{{ target_schema }}_AGENTS"

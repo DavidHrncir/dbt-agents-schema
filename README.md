@@ -4,12 +4,17 @@ Publishes dbt project metadata into a warehouse agents schema, so many dbt proje
 share one schema without overwriting each other. Works with dbt v1, dbt v2 (Fusion) and
 dbt platform projects, from GitHub Actions or GitLab CI.
 
-**This repository is a build kit.** It holds the contract and plan that Claude Code
-works through to build the tool. Partner-facing docs arrive in `docs/partner-guide.md`
-during Phase 5.
+**Using the tool?** Read the partner guide: [`docs/partner-guide.md`](docs/partner-guide.md).
+It covers install, configuration, GitHub and GitLab setup, the developer workflow, dbt
+platform projects, migrating from the dbt Labs tool, warehouse permissions and
+troubleshooting.
+
+**This repository is also a build kit.** It holds the contract and plan that Claude Code
+works through to build the tool.
 
 | File | What it is |
 | --- | --- |
+| `docs/partner-guide.md` | Partner-facing guide: install, config reference, CI setup, troubleshooting |
 | `docs/SPEC.md` | The contract: config, credentials, tables, publish algorithm, CLI, checks, CI wrappers |
 | `docs/PLAN.md` | 29 tasks in 6 phases, each with testable **Done when** criteria |
 | `docs/GOALS.md` | One `/goal` line per phase, ready to paste |

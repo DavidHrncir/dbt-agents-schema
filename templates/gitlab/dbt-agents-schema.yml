@@ -1,0 +1,156 @@
+# GitLab CI template: check or publish a dbt project's metadata to its agents schema.
+# SPEC 10, 10.2. Holds no publishing logic: it installs a pinned dbt-agents-schema and a
+# pinned dbt engine, runs `dbt deps` and `dbt parse --no-partial-parse`, then calls the
+# CLI. Use it with `include: remote:` (raw URL pinned to a tag), `include: project:`, or
+# copy it into your repository. It does not use the GitLab CI/CD Catalog. Example:
+# examples/gitlab/.gitlab-ci.yml.
+#
+# Variables (Settings > CI/CD > Variables):
+#   WAREHOUSE_CREDENTIALS  required to publish. Use type "File" and mark it protected so
+#                          only default-branch pipelines receive it. GitLab cannot mask a
+#                          multi-line JSON/YAML document, so do not rely on masking.
+#   DBT_PROFILES_YML       optional profiles.yml (plain or file type) for `dbt parse`.
+#                          Usually not needed: add `parse_target` to the environment in
+#                          agents_schema.yml and the template writes a placeholder profile
+#                          (`write-parse-profile --env`) that holds no secrets.
+# Both are removed from the environment before `dbt deps` and `dbt parse` run. Variables
+# that your `env_var()` calls need at parse time are ordinary CI/CD variables: included
+# jobs already see them.
+spec:
+  inputs:
+    project_dir:
+      description: dbt project directory, relative to the repository root.
+      default: "."
+    python_version:
+      description: Python version (selects the python:<version> image).
+      default: "3.12"
+    mode:
+      description: "auto: check on merge requests and publish on the default branch; check or publish: only that job."
+      options: [auto, check, publish]
+      default: auto
+    environment:
+      description: Environment name from agents_schema.yml, used by check (--env) and publish.
+      default: prod
+    warehouse:
+      description: "snowflake, bigquery, databricks or duckdb. Selects the package extra and, with dbt-core, the adapter. Required unless dbt_adapter is set."
+      default: ""
+    dbt_engine:
+      description: "fusion (dbt Fusion, the default) or core (dbt-core plus dbt_adapter)."
+      options: [fusion, core]
+      default: fusion
+    dbt_fusion_version:
+      description: dbt Fusion version installed with the official installer (dbt_engine fusion).
+      default: "2.0.0"
+    dbt_version:
+      description: dbt-core version specifier (dbt_engine core).
+      default: ">=1.8,<2"
+    dbt_adapter:
+      description: dbt adapter package (dbt_engine core). Default dbt-<warehouse>. A v0.1 include that sets only dbt_adapter gets the warehouse derived from it.
+      default: ""
+    package_version:
+      description: Exact dbt-agents-schema version to install, for example 0.2.0. Required unless package_spec is set.
+      default: ""
+    package_spec:
+      description: "Full pip requirement for dbt-agents-schema, such as a git URL pinned to a commit. Replaces package_version. A bare URL gets the warehouse extra added."
+      default: ""
+---
+.dbt-agents-schema-base:
+  image: python:$[[ inputs.python_version ]]
+  variables:
+    PROJECT_DIR: "$[[ inputs.project_dir ]]"
+    AGENTS_ENVIRONMENT: "$[[ inputs.environment ]]"
+    AGENTS_INPUT_WAREHOUSE: "$[[ inputs.warehouse ]]"
+    DBT_ENGINE: "$[[ inputs.dbt_engine ]]"
+    DBT_FUSION_VERSION: "$[[ inputs.dbt_fusion_version ]]"
+    DBT_VERSION: "$[[ inputs.dbt_version ]]"
+    DBT_ADAPTER: "$[[ inputs.dbt_adapter ]]"
+    PACKAGE_VERSION: "$[[ inputs.package_version ]]"
+    PACKAGE_SPEC: "$[[ inputs.package_spec ]]"
+    DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
+    PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  before_script:
+    - |
+      # Validate inputs and resolve the package requirement.
+      EXTRA="$AGENTS_INPUT_WAREHOUSE"
+      if [ -z "$EXTRA" ]; then
+        if [ -z "$DBT_ADAPTER" ]; then
+          echo "error: set input warehouse (snowflake, bigquery, databricks or duckdb)" >&2; exit 2
+        fi
+        EXTRA="${DBT_ADAPTER#dbt-}"
+      fi
+      case "$EXTRA" in
+        snowflake|bigquery|databricks|duckdb) ;;
+        *) echo "error: input warehouse must be one of snowflake, bigquery, databricks, duckdb; got '$EXTRA' (from warehouse or dbt_adapter)" >&2; exit 2 ;;
+      esac
+      AGENTS_DBT_ADAPTER="${DBT_ADAPTER:-dbt-$EXTRA}"
+      if [ -n "$PACKAGE_SPEC" ]; then
+        case "$PACKAGE_SPEC" in
+          *" @ "*|dbt-agents-schema*) AGENTS_PACKAGE_REQUIREMENT="$PACKAGE_SPEC" ;;
+          *://*) AGENTS_PACKAGE_REQUIREMENT="dbt-agents-schema[${EXTRA}] @ $PACKAGE_SPEC" ;;
+          *) echo "error: input package_spec must be a pip requirement or a URL such as git+https://gitlab.com/GROUP/dbt-agents-schema@COMMIT" >&2; exit 2 ;;
+        esac
+      elif [ -n "$PACKAGE_VERSION" ]; then
+        AGENTS_PACKAGE_REQUIREMENT="dbt-agents-schema[${EXTRA}]==$PACKAGE_VERSION"
+      else
+        echo "error: set input package_version (for example 0.2.0) or package_spec" >&2; exit 2
+      fi
+    - python -m pip install "$AGENTS_PACKAGE_REQUIREMENT"
+    - |
+      if [ "$DBT_ENGINE" = core ]; then
+        python -m pip install "dbt-core${DBT_VERSION}" "$AGENTS_DBT_ADAPTER"
+      else
+        curl -fsSL https://public.cdn.getdbt.com/fs/install/install.sh | sh -s -- --update --version "$DBT_FUSION_VERSION"
+        export PATH="$HOME/.local/bin:$PATH"
+      fi
+    - dbt --version
+    - dbt-agents-schema --version
+    - |
+      # A file-type variable holds a path; the CLI expects the document itself.
+      if [ -n "${WAREHOUSE_CREDENTIALS:-}" ] && [ -f "$WAREHOUSE_CREDENTIALS" ]; then
+        WAREHOUSE_CREDENTIALS="$(cat "$WAREHOUSE_CREDENTIALS")"
+      fi
+      # Profile for `dbt parse`, kept outside the checkout so it is never uploaded.
+      export DBT_PROFILES_DIR="$(mktemp -d)"
+      if [ -n "${DBT_PROFILES_YML:-}" ]; then
+        umask 077
+        if [ -f "$DBT_PROFILES_YML" ]; then
+          cp "$DBT_PROFILES_YML" "$DBT_PROFILES_DIR/profiles.yml"
+        else
+          printf '%s\n' "$DBT_PROFILES_YML" > "$DBT_PROFILES_DIR/profiles.yml"
+        fi
+      elif ! dbt-agents-schema write-parse-profile --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT" --out "$DBT_PROFILES_DIR"; then
+        echo "error: cannot write a parse profile: add parse_target to environments.$AGENTS_ENVIRONMENT in agents_schema.yml, or set the DBT_PROFILES_YML variable" >&2
+        exit 2
+      fi
+      # Keep secrets out of the environment of `dbt deps` and `dbt parse`, which run
+      # third-party package code. Publish gets the credentials back explicitly.
+      _agents_schema_credentials="${WAREHOUSE_CREDENTIALS:-}"
+      unset WAREHOUSE_CREDENTIALS DBT_PROFILES_YML
+    - (cd "$PROJECT_DIR" && dbt deps && dbt parse --no-partial-parse)
+
+dbt-agents-schema-check:
+  extends: .dbt-agents-schema-base
+  stage: test
+  rules:
+    - if: '"$[[ inputs.mode ]]" != "publish" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+  script:
+    - dbt-agents-schema check --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT" --format gitlab --output gl-code-quality-report.json
+  artifacts:
+    when: always
+    reports:
+      codequality: gl-code-quality-report.json
+
+dbt-agents-schema-publish:
+  extends: .dbt-agents-schema-base
+  stage: deploy
+  rules:
+    - if: '"$[[ inputs.mode ]]" != "check" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  resource_group: dbt-agents-schema-$CI_PROJECT_PATH
+  script:
+    - |
+      if [ -z "${_agents_schema_credentials:-}" ]; then
+        echo "error: publish needs the WAREHOUSE_CREDENTIALS CI/CD variable (Settings > CI/CD > Variables)" >&2
+        exit 2
+      fi
+    - WAREHOUSE_CREDENTIALS="$_agents_schema_credentials" dbt-agents-schema publish --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT" --dry-run
+    - WAREHOUSE_CREDENTIALS="$_agents_schema_credentials" dbt-agents-schema publish --project-dir "$PROJECT_DIR" --env "$AGENTS_ENVIRONMENT"

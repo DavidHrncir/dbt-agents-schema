@@ -1,0 +1,7 @@
+# The name is longer than 63 characters on purpose: the default project key derived from
+# it fails the `project` pattern (project_key_invalid).
+name: bad_project_with_an_intentionally_long_name_that_breaks_the_project_key_rule
+version: "1.0.0"
+config-version: 2
+profile: bad
+model-paths: ["models"]

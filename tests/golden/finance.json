@@ -1,0 +1,462 @@
+{
+  "project": "finance",
+  "tables": {
+    "DBT_COLUMN": [
+      {
+        "column_name": "customer_id",
+        "data_type": "",
+        "description": "Customer identifier.",
+        "meta": {},
+        "model_id": "model.finance.dim_customers",
+        "project": "finance"
+      },
+      {
+        "column_name": "amount",
+        "data_type": "",
+        "description": "Amount paid.",
+        "meta": {},
+        "model_id": "model.finance.fct_payments",
+        "project": "finance"
+      },
+      {
+        "column_name": "invoice_id",
+        "data_type": "",
+        "description": "Invoice the payment settles.",
+        "meta": {},
+        "model_id": "model.finance.fct_payments",
+        "project": "finance"
+      },
+      {
+        "column_name": "paid_at",
+        "data_type": "",
+        "description": "Time the payment cleared.",
+        "meta": {},
+        "model_id": "model.finance.fct_payments",
+        "project": "finance"
+      },
+      {
+        "column_name": "payment_id",
+        "data_type": "",
+        "description": "Payment identifier.",
+        "meta": {},
+        "model_id": "model.finance.fct_payments",
+        "project": "finance"
+      },
+      {
+        "column_name": "customer_id",
+        "data_type": "",
+        "description": "Customer identifier.",
+        "meta": {},
+        "model_id": "model.finance.fct_revenue",
+        "project": "finance"
+      },
+      {
+        "column_name": "invoice_date",
+        "data_type": "date",
+        "description": "Date the revenue is recognized.",
+        "meta": {
+          "grain": "day"
+        },
+        "model_id": "model.finance.fct_revenue",
+        "project": "finance"
+      },
+      {
+        "column_name": "revenue_usd",
+        "data_type": "double",
+        "description": "Revenue converted to US dollars.",
+        "meta": {},
+        "model_id": "model.finance.fct_revenue",
+        "project": "finance"
+      },
+      {
+        "column_name": "amount",
+        "data_type": "",
+        "description": "Invoice amount in the invoice currency.",
+        "meta": {},
+        "model_id": "model.finance.stg_invoices",
+        "project": "finance"
+      },
+      {
+        "column_name": "currency_code",
+        "data_type": "",
+        "description": "ISO 4217 currency of the invoice.",
+        "meta": {},
+        "model_id": "model.finance.stg_invoices",
+        "project": "finance"
+      },
+      {
+        "column_name": "customer_id",
+        "data_type": "",
+        "description": "Customer identifier.",
+        "meta": {},
+        "model_id": "model.finance.stg_invoices",
+        "project": "finance"
+      },
+      {
+        "column_name": "invoice_date",
+        "data_type": "",
+        "description": "Date the invoice was issued.",
+        "meta": {},
+        "model_id": "model.finance.stg_invoices",
+        "project": "finance"
+      },
+      {
+        "column_name": "invoice_id",
+        "data_type": "",
+        "description": "Invoice identifier.",
+        "meta": {},
+        "model_id": "model.finance.stg_invoices",
+        "project": "finance"
+      },
+      {
+        "column_name": "amount",
+        "data_type": "",
+        "description": "Amount paid.",
+        "meta": {},
+        "model_id": "model.finance.stg_payments",
+        "project": "finance"
+      },
+      {
+        "column_name": "invoice_id",
+        "data_type": "",
+        "description": "Invoice the payment settles.",
+        "meta": {},
+        "model_id": "model.finance.stg_payments",
+        "project": "finance"
+      },
+      {
+        "column_name": "paid_at",
+        "data_type": "",
+        "description": "Time the payment cleared.",
+        "meta": {},
+        "model_id": "model.finance.stg_payments",
+        "project": "finance"
+      },
+      {
+        "column_name": "payment_id",
+        "data_type": "",
+        "description": "Payment identifier.",
+        "meta": {},
+        "model_id": "model.finance.stg_payments",
+        "project": "finance"
+      },
+      {
+        "column_name": "calendar_date",
+        "data_type": "",
+        "description": "The calendar day.",
+        "meta": {},
+        "model_id": "model.shared_pkg.dim_calendar",
+        "project": "finance"
+      },
+      {
+        "column_name": "currency_code",
+        "data_type": "",
+        "description": "ISO 4217 code.",
+        "meta": {},
+        "model_id": "model.shared_pkg.dim_currency",
+        "project": "finance"
+      },
+      {
+        "column_name": "currency_name",
+        "data_type": "",
+        "description": "English currency name.",
+        "meta": {},
+        "model_id": "model.shared_pkg.dim_currency",
+        "project": "finance"
+      }
+    ],
+    "DBT_DEPENDENCY": [
+      {
+        "downstream_id": "model.finance.fct_revenue",
+        "downstream_type": "model",
+        "project": "finance",
+        "upstream_id": "model.finance.int_invoice_lines",
+        "upstream_project": "finance",
+        "upstream_type": "model"
+      },
+      {
+        "downstream_id": "model.finance.dim_customers",
+        "downstream_type": "model",
+        "project": "finance",
+        "upstream_id": "model.finance.stg_invoices",
+        "upstream_project": "finance",
+        "upstream_type": "model"
+      },
+      {
+        "downstream_id": "model.finance.int_invoice_lines",
+        "downstream_type": "model",
+        "project": "finance",
+        "upstream_id": "model.finance.stg_invoices",
+        "upstream_project": "finance",
+        "upstream_type": "model"
+      },
+      {
+        "downstream_id": "model.finance.fct_payments",
+        "downstream_type": "model",
+        "project": "finance",
+        "upstream_id": "model.finance.stg_payments",
+        "upstream_project": "finance",
+        "upstream_type": "model"
+      },
+      {
+        "downstream_id": "model.finance.fct_revenue",
+        "downstream_type": "model",
+        "project": "finance",
+        "upstream_id": "model.shared_pkg.dim_calendar",
+        "upstream_project": "finance",
+        "upstream_type": "model"
+      },
+      {
+        "downstream_id": "model.finance.fct_revenue",
+        "downstream_type": "model",
+        "project": "finance",
+        "upstream_id": "seed.finance.fx_rates",
+        "upstream_project": "finance",
+        "upstream_type": "seed"
+      },
+      {
+        "downstream_id": "model.finance.stg_invoices",
+        "downstream_type": "model",
+        "project": "finance",
+        "upstream_id": "source.finance.erp.invoices",
+        "upstream_project": "finance",
+        "upstream_type": "source"
+      },
+      {
+        "downstream_id": "model.finance.stg_payments",
+        "downstream_type": "model",
+        "project": "finance",
+        "upstream_id": "source.finance.erp.payments",
+        "upstream_project": "finance",
+        "upstream_type": "source"
+      }
+    ],
+    "DBT_MODEL": [
+      {
+        "access": "public",
+        "alias": "dim_customers",
+        "database_name": "memory",
+        "description": "Customers that have been invoiced.",
+        "file_path": "models/marts/dim_customers.sql",
+        "materialization": "view",
+        "meta": {
+          "tier": "gold"
+        },
+        "name": "dim_customers",
+        "package_name": "finance",
+        "project": "finance",
+        "relation_name": "\"memory\".\"finance_marts\".\"dim_customers\"",
+        "schema_name": "finance_marts",
+        "tags": [],
+        "unique_id": "model.finance.dim_customers"
+      },
+      {
+        "access": "public",
+        "alias": "fct_payments",
+        "database_name": "memory",
+        "description": "One row per customer payment.",
+        "file_path": "models/marts/fct_payments.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "fct_payments",
+        "package_name": "finance",
+        "project": "finance",
+        "relation_name": "\"memory\".\"finance_marts\".\"fct_payments\"",
+        "schema_name": "finance_marts",
+        "tags": [],
+        "unique_id": "model.finance.fct_payments"
+      },
+      {
+        "access": "public",
+        "alias": "fct_revenue",
+        "database_name": "memory",
+        "description": "Recognized revenue per invoice in US dollars.",
+        "file_path": "models/marts/fct_revenue.sql",
+        "materialization": "view",
+        "meta": {
+          "owner": "revenue-team"
+        },
+        "name": "fct_revenue",
+        "package_name": "finance",
+        "project": "finance",
+        "relation_name": "\"memory\".\"finance_marts\".\"fct_revenue\"",
+        "schema_name": "finance_marts",
+        "tags": [
+          "finance",
+          "revenue"
+        ],
+        "unique_id": "model.finance.fct_revenue"
+      },
+      {
+        "access": "protected",
+        "alias": "int_invoice_lines",
+        "database_name": "memory",
+        "description": "Invoice lines prepared for revenue.",
+        "file_path": "models/staging/int_invoice_lines.sql",
+        "materialization": "ephemeral",
+        "meta": {},
+        "name": "int_invoice_lines",
+        "package_name": "finance",
+        "project": "finance",
+        "relation_name": null,
+        "schema_name": "finance_staging",
+        "tags": [],
+        "unique_id": "model.finance.int_invoice_lines"
+      },
+      {
+        "access": "protected",
+        "alias": "stg_invoices",
+        "database_name": "memory",
+        "description": "Invoices cleaned from the ERP.",
+        "file_path": "models/staging/stg_invoices.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "stg_invoices",
+        "package_name": "finance",
+        "project": "finance",
+        "relation_name": "\"memory\".\"finance_staging\".\"stg_invoices\"",
+        "schema_name": "finance_staging",
+        "tags": [],
+        "unique_id": "model.finance.stg_invoices"
+      },
+      {
+        "access": "protected",
+        "alias": "stg_payments",
+        "database_name": "memory",
+        "description": "Payments cleaned from the ERP.",
+        "file_path": "models/staging/stg_payments.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "stg_payments",
+        "package_name": "finance",
+        "project": "finance",
+        "relation_name": "\"memory\".\"finance_staging\".\"stg_payments\"",
+        "schema_name": "finance_staging",
+        "tags": [],
+        "unique_id": "model.finance.stg_payments"
+      },
+      {
+        "access": "protected",
+        "alias": "dim_calendar",
+        "database_name": "memory",
+        "description": "One row per calendar day, shared by every project.",
+        "file_path": "models/dim_calendar.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "dim_calendar",
+        "package_name": "shared_pkg",
+        "project": "finance",
+        "relation_name": "\"memory\".\"finance\".\"dim_calendar\"",
+        "schema_name": "finance",
+        "tags": [],
+        "unique_id": "model.shared_pkg.dim_calendar"
+      },
+      {
+        "access": "protected",
+        "alias": "dim_currency",
+        "database_name": "memory",
+        "description": "ISO currencies used across projects.",
+        "file_path": "models/dim_currency.sql",
+        "materialization": "view",
+        "meta": {},
+        "name": "dim_currency",
+        "package_name": "shared_pkg",
+        "project": "finance",
+        "relation_name": "\"memory\".\"finance\".\"dim_currency\"",
+        "schema_name": "finance",
+        "tags": [],
+        "unique_id": "model.shared_pkg.dim_currency"
+      }
+    ],
+    "DBT_PROJECT": [
+      {
+        "column_count": 20,
+        "dbt_project_name": "finance",
+        "dbt_version": "1.12.7",
+        "dependency_count": 8,
+        "description": "Finance marts",
+        "environment": "prod",
+        "git_branch": "main",
+        "git_sha": "0123456789abcdef0123456789abcdef01234567",
+        "manifest_generated_at": "2026-11-18T05:21:37.536412+00:00",
+        "model_count": 8,
+        "owner": "finance-data@example.com",
+        "project": "finance",
+        "published_at": "2026-01-02T03:04:05+00:00",
+        "publisher_version": "0.1.0",
+        "repo_url": "https://github.com/example/analytics",
+        "skill_count": 2,
+        "spec_version": 1
+      }
+    ],
+    "ROOT": [
+      {
+        "content": "# DBT_COLUMN\n\nOne row per documented column of a published model, keyed by (project, model_id, column_name). model_id joins to DBT_MODEL.unique_id within the same project. Columns: project, model_id, column_name, data_type, description, meta (JSON object).\n",
+        "key": "column",
+        "provider": "dbt"
+      },
+      {
+        "content": "# DBT_DEPENDENCY\n\nOne row per lineage edge into a published model, keyed by (project, upstream_id, downstream_id). upstream_type is the node type (model, source, seed, snapshot, ...); downstream_type is always model. upstream_project is the publishing project when the upstream node is in its manifest, else null. Join upstream_id or downstream_id to DBT_MODEL.unique_id; the same model may be published by several projects.\n",
+        "key": "dependency",
+        "provider": "dbt"
+      },
+      {
+        "content": "# DBT_MODEL\n\nOne row per published dbt model, keyed by (project, unique_id). Columns: project, unique_id, name, package_name, database_name, schema_name, alias, relation_name (null for ephemeral models), materialization, access, description, file_path, tags (JSON array), meta (JSON object). Query a model through relation_name, or database_name.schema_name.alias.\n",
+        "key": "model",
+        "provider": "dbt"
+      },
+      {
+        "content": "# dbt agents schema\n\nThis schema holds metadata about one or more dbt projects, published by dbt-agents-schema. Every row in the DBT_* and SKILL_USE tables carries a `project` column naming the dbt project that owns it; filter on it to look at one project. Tables: ROOT (this catalog of keys and markdown content), DBT_PROJECT (one row per published project), DBT_MODEL, DBT_COLUMN, DBT_DEPENDENCY (model lineage) and SKILL_USE (which schemas and tables each skill uses). Project overviews are under ROOT keys `project/<project>`, skills under `skill/<project>/<path>`. Start with `SELECT * FROM DBT_PROJECT ORDER BY project`.\n",
+        "key": "overview",
+        "provider": "dbt"
+      },
+      {
+        "content": "# DBT_PROJECT\n\nOne row per dbt project published into this schema, keyed by `project`. Columns: project, dbt_project_name, owner, description, environment, repo_url, git_sha, git_branch, dbt_version, manifest_generated_at, publisher_version, spec_version, published_at, model_count, column_count, dependency_count, skill_count.\n",
+        "key": "project",
+        "provider": "dbt"
+      },
+      {
+        "content": "# Project `finance`\n\n- project: finance\n- dbt project name: finance\n- owner: finance-data@example.com\n- description: Finance marts\n- environment: prod\n- repository: https://github.com/example/analytics\n- git SHA: 0123456789abcdef0123456789abcdef01234567\n- git branch: main\n- dbt version: 1.12.7\n- published at: 2026-01-02T03:04:05+00:00\n- models: 8\n- columns: 20\n- dependencies: 8\n- skills: 2\n\nRows in DBT_MODEL, DBT_COLUMN, DBT_DEPENDENCY and SKILL_USE carry `project`. To see only this project's models:\n\n```sql\nSELECT name, schema_name, alias, description\nFROM DBT_MODEL\nWHERE project = 'finance'\nORDER BY name;\n```\n",
+        "key": "project/finance",
+        "provider": "dbt"
+      },
+      {
+        "content": "# dbt agents schema analyst (duckdb)\n\nUse this skill to answer questions about the dbt projects published into this agents\nschema: which projects exist, what their models and columns mean, how models depend on\neach other (also across projects), and which project skills apply.\n\n**Read-only.** Run `SELECT` statements only. Never `INSERT`, `UPDATE`, `DELETE`,\n`MERGE`, `CREATE`, `ALTER` or `DROP` anything in this schema; publishing is done by CI.\n\nSet the agents schema as current schema first: `SET search_path = '<agents schema>';`.\n\nThe example values (`'finance'`, `'revenue'`, `'model.finance.fct_revenue'`,\n`'model.shared_pkg.dim_calendar'`, `'skill/finance/revenue_overview'`) are placeholders.\nReplace them with values you found in the earlier steps.\n\n## 1. Start at ROOT\n\n`ROOT` holds the description of every table and one overview per project\n(`project/<project>`). Read it first.\n\n```sql\nSELECT key, content\nFROM ROOT\nWHERE provider = 'dbt'\nORDER BY key;\n```\n\n## 2. See which projects are present\n\nMany dbt projects share this schema. `DBT_PROJECT` has one row per project.\n\n```sql\nSELECT project, dbt_project_name, owner, description, environment, repo_url,\n       git_sha, published_at, model_count, column_count\nFROM DBT_PROJECT\nORDER BY project;\n```\n\nRead one project's overview:\n\n```sql\nSELECT content\nFROM ROOT\nWHERE provider = 'dbt' AND key = 'project/' || 'finance';\n```\n\n## 3. Filter to one project\n\nEvery row in every `DBT_*` table carries `project`. Filter on it whenever the question is\nabout one project; leave it out to search across all of them.\n\n```sql\nSELECT name, materialization, access, relation_name, description\nFROM DBT_MODEL\nWHERE project = 'finance'\nORDER BY name;\n```\n\n## 4. Find a model by name or description\n\n```sql\nSELECT project, unique_id, name, relation_name, description\nFROM DBT_MODEL\nWHERE LOWER(name) LIKE '%revenue%'\n   OR LOWER(description) LIKE '%revenue%'\nORDER BY project, name;\n```\n\nUse `relation_name` (the fully qualified table or view) when you query the model's data.\n`tags` and `meta` hold extra context: `tags` and `meta` are `JSON`. Read a key with `json_extract_string(meta, '$.<key>')` and expand an array with `unnest(CAST(tags AS VARCHAR[]))`.\n\n```sql\nSELECT name, tags, json_extract_string(meta, '$.owner') AS meta_owner\nFROM DBT_MODEL\nWHERE project = 'finance'\nORDER BY name;\n```\n\n## 5. Read a model's columns\n\n`DBT_COLUMN.model_id` is the model's `unique_id`. Join on `project` too.\n\n```sql\nSELECT c.column_name, c.data_type, c.description\nFROM DBT_COLUMN AS c\nJOIN DBT_MODEL AS m\n  ON m.project = c.project AND m.unique_id = c.model_id\nWHERE m.project = 'finance' AND m.name = 'fct_revenue'\nORDER BY c.column_name;\n```\n\n## 6. Lineage\n\n`DBT_DEPENDENCY` has one row per edge, `upstream_id` \u2192 `downstream_id`. Upstream ids can\nbe models, sources, seeds or snapshots (`upstream_type`). Walk edges by `unique_id`\nwithout filtering on `project`, so lineage crosses projects; then join back to\n`DBT_MODEL` on `unique_id` to see which project publishes each model. Nodes that are not\npublished models (sources, seeds) have no `DBT_MODEL` row.\n\nEverything upstream of a model:\n\n```sql\nWITH RECURSIVE upstream AS (\n  SELECT d.upstream_id AS unique_id, d.upstream_type AS node_type, 1 AS depth\n  FROM DBT_DEPENDENCY AS d\n  WHERE d.downstream_id = 'model.finance.fct_revenue'\n  UNION ALL\n  SELECT d.upstream_id AS unique_id, d.upstream_type AS node_type, u.depth + 1 AS depth\n  FROM DBT_DEPENDENCY AS d\n  JOIN upstream AS u ON d.downstream_id = u.unique_id\n  WHERE u.depth < 20\n)\nSELECT DISTINCT u.unique_id, u.node_type, u.depth, m.project, m.name, m.description\nFROM upstream AS u\nLEFT JOIN DBT_MODEL AS m ON m.unique_id = u.unique_id\nORDER BY u.depth, u.unique_id;\n```\n\nEverything downstream of a model, in any project:\n\n```sql\nWITH RECURSIVE downstream AS (\n  SELECT d.downstream_id AS unique_id, 1 AS depth\n  FROM DBT_DEPENDENCY AS d\n  WHERE d.upstream_id = 'model.shared_pkg.dim_calendar'\n  UNION ALL\n  SELECT d.downstream_id AS unique_id, w.depth + 1 AS depth\n  FROM DBT_DEPENDENCY AS d\n  JOIN downstream AS w ON d.upstream_id = w.unique_id\n  WHERE w.depth < 20\n)\nSELECT DISTINCT w.unique_id, w.depth, m.project, m.name, m.description\nFROM downstream AS w\nJOIN DBT_MODEL AS m ON m.unique_id = w.unique_id\nORDER BY w.depth, m.project, w.unique_id;\n```\n\n## 7. Skills\n\nProjects publish their own skills as `ROOT` rows keyed `skill/<project>/<path>`. List\nthem, then read the ones that match the question:\n\n```sql\nSELECT key\nFROM ROOT\nWHERE provider = 'dbt' AND key LIKE 'skill/%'\nORDER BY key;\n```\n\n```sql\nSELECT content\nFROM ROOT\nWHERE provider = 'dbt' AND key = 'skill/finance/revenue_overview';\n```\n\n`SKILL_USE` records which schemas and tables each skill is about (`use_kind` is `schema`\nor `table`). Use it to find the skills that apply to the objects you are working with:\n\n```sql\nSELECT project, skill_key, use_kind, object_ref\nFROM SKILL_USE\nORDER BY project, skill_key, use_kind, object_ref;\n```\n",
+        "key": "skill/dbt-agents-schema-analyst",
+        "provider": "dbt"
+      },
+      {
+        "content": "---\nuses:\n  schemas: [finance_marts]\n  tables: [FINANCE_MARTS.FCT_PAYMENTS]\n---\n# Payment reconciliation\n\nMatch payments to invoices and list unpaid invoices.\n",
+        "key": "skill/finance/payments/reconciliation",
+        "provider": "dbt"
+      },
+      {
+        "content": "# Revenue overview\n\nSummarize recognized revenue by month from the finance marts.\n",
+        "key": "skill/finance/revenue_overview",
+        "provider": "dbt"
+      },
+      {
+        "content": "# SKILL_USE\n\nWhich schemas and tables each skill declares in its `uses` frontmatter, keyed by (project, skill_key, use_kind, object_ref). provider is always dbt; skill_key is the ROOT key of the skill; use_kind is `schema` or `table`.\n",
+        "key": "skill_use",
+        "provider": "dbt"
+      }
+    ],
+    "SKILL_USE": [
+      {
+        "object_ref": "finance_marts",
+        "project": "finance",
+        "provider": "dbt",
+        "skill_key": "skill/finance/payments/reconciliation",
+        "use_kind": "schema"
+      },
+      {
+        "object_ref": "FINANCE_MARTS.FCT_PAYMENTS",
+        "project": "finance",
+        "provider": "dbt",
+        "skill_key": "skill/finance/payments/reconciliation",
+        "use_kind": "table"
+      }
+    ]
+  },
+  "warehouse": "duckdb"
+}

@@ -1,0 +1,19 @@
+# dbt-agents-schema config. Every key is described in the partner guide.
+# Validated by `dbt-agents-schema check` and before every publish.
+version: 1
+@PROJECT_LINE@
+# owner: data-team@example.com
+# description: What this project's models cover
+include_packages: true        # also publish models from installed dbt packages
+exclude_packages: []          # package names never published
+skills_dir: agents/skills
+environments:
+  prod:
+    credentials: env           # WAREHOUSE_CREDENTIALS (set as a CI secret or variable)
+    schema: AGENTS
+  dev:
+    credentials: dbt_profile   # your dbt profile, for publishing from a laptop
+    schema: "{{ target_schema }}_AGENTS"
+check:
+  description_scope: public    # public | all: which models the description rules cover
+  external_schemas: []         # schemas skills may reference that dbt does not build

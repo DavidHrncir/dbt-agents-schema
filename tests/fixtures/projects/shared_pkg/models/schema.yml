@@ -1,0 +1,14 @@
+version: 2
+models:
+  - name: dim_calendar
+    description: One row per calendar day, shared by every project.
+    columns:
+      - name: calendar_date
+        description: The calendar day.
+  - name: dim_currency
+    description: ISO currencies used across projects.
+    columns:
+      - name: currency_code
+        description: ISO 4217 code.
+      - name: currency_name
+        description: English currency name.

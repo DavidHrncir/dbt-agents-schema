@@ -1,0 +1,10 @@
+version: 1
+owner: marketing-analytics@example.com
+description: Marketing performance marts
+environments:
+  prod:
+    credentials: env
+    schema: AGENTS
+  dev:
+    credentials: dbt_profile
+    schema: "{{ target_schema }}_AGENTS"

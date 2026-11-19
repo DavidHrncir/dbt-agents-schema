@@ -1,0 +1,9 @@
+# pre-commit hook definitions (SPEC 10.3). Use from your dbt project's
+# .pre-commit-config.yaml; `dbt-agents-schema init` prints a snippet.
+- id: dbt-agents-schema-check
+  name: dbt-agents-schema check
+  description: Validate agents_schema.yml, model descriptions and agent skills.
+  language: python
+  entry: dbt-agents-schema check --parse
+  pass_filenames: false
+  files: ^(models/|agents/|agents_schema\.yml|dbt_project\.yml)
