@@ -522,3 +522,13 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 - Evidence: `make verify` exit 0 (`749 passed, 18 deselected`).
 - Phase 6 status: T30, T31, T32, T34, T35, T36 and T37 done. T33 blocked on SPEC CHANGE PROPOSAL I; patch kept at `docs/patches/T33-measured-values.patch`. H3 and H4 are for a human. Not tagged or pushed.
 - Test change for the bump: the three tests in `tests/test_cli.py` pin the expected version string; it changed from `"0.1.0"` to `"0.2.0"`, with every assertion kept.
+
+## SPEC update — proposal I accepted
+- Changed: docs/SPEC.md only. 8, step 2: built-in allow pattern for standard identifiers `\b(ISO|RFC|IEC|IEEE)[ -]?\d+`; "ISO 4217 currency code" added to the required negative test cases (I, option a, user decision 2026-11-18).
+
+## T33 `measured_values_in_context` rule — done
+- Changed: `src/dbt_agents_schema/measured.py` (new; plus the standard-identifier allow pattern), `src/dbt_agents_schema/check.py` (rule wired in), `tests/test_measured_values.py` (new), `docs/partner-guide.md` (built-in allow list names standard identifiers), `CHANGELOG.md` (0.2.0 entry: the rule is enforced). Removed `docs/patches/T33-measured-values.patch`, now merged.
+- Evidence: `make verify` exit 0 (`812 passed, 18 deselected`; check-jsonschema `ok` for GitHub and GitLab; `config reference up to date`). The 8 tests that blocked T33 pass unchanged (test_check.py::test_finance_is_clean_except_skill_without_uses, ::test_marketing_is_clean_except_skill_without_uses, ::test_rule_severity_override_and_off, ::test_manifest_without_project_name_falls_back_to_dbt_project_yml; test_cli_check.py::test_clean_finance_exits_0_with_warnings, ::test_format_json, ::test_format_gitlab_output_path, ::test_output_for_json). New tests: test_step2_builtin_allow[ISO 4217 currency code|Timestamp in ISO-8601 format|Formatted per RFC 3339|Units follow IEC 80000|Floating point per IEEE 754], test_standard_identifier_allow_limits[3] (a count phrase on an ISO line is still flagged; look-alikes are not allowed), plus the 55 tests from the saved patch.
+- Decisions:
+  - The saved patch's `test_bad_fixture_triggers_rule` had a line over 100 characters; the node id string was split across two literals. Same assertion.
+  - Folded into 0.2.0 rather than a 0.2.1: 0.2.0 was never tagged or published, so the CHANGELOG entry was corrected instead of pinning every example and test to a new version.

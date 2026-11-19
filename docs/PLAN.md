@@ -260,7 +260,7 @@ updated. Each task cites the SPEC sections that proposal changes.
   `off` and `error`; `publish` exits 1 on a mismatch without connecting; `check` without
   `--env` never reports `manifest_target_mismatch`.
 
-- [!] **T33 `measured_values_in_context` rule.** *Blocked: SPEC CHANGE PROPOSAL I (PROGRESS.md).* Per SPEC 8.
+- [x] **T33 `measured_values_in_context` rule.** Per SPEC 8.
   **Done when:** tests hold at least three positive and three negative examples for each
   step, plus every case listed in the SPEC; findings carry `node` for models and columns
   and `file`/`line` for skills; `meta` is scanned; the `bad` fixture triggers the rule

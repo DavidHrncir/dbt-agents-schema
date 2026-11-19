@@ -447,7 +447,8 @@ both may report the same line.
      `\b1 (row|record) per\b`.
   2. Otherwise a line matching a built-in or configured `allow` pattern is skipped.
      Built-in: `[<>]=\s*\d`, `\b0-100\b`, `\bone (row|record) per\b`, `\b1:1\b`,
-     `accepted values`, `percentile`, `\bp\d{2}\b`.
+     `accepted values`, `percentile`, `\bp\d{2}\b`, and standard identifiers
+     `\b(ISO|RFC|IEC|IEEE)[ -]?\d+`.
   3. Otherwise any number (`(?<![\w.\-])\d[\d,]*(\.\d+)?`, commas removed) with value
      ≥ `min_number` is a finding.
 - Matching is case-insensitive except where noted. At most one finding per line. The
@@ -459,7 +460,7 @@ both may report the same line.
   these cases: "(94 rows)" on a line that also matches an `allow` pattern is flagged;
   "10. Never name a model" is not; "one row per order" and "1 row per order" are not;
   "older than 2x the connection's sync_frequency" passes only with an `exempt` pattern;
-  numbers below `min_number` are not flagged.
+  numbers below `min_number` are not flagged; "ISO 4217 currency code" is not flagged.
 
 **Skill frontmatter** (same convention as the dbt Labs tool):
 

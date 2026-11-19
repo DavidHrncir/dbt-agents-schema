@@ -35,10 +35,9 @@ Spec version 1 (unchanged). CI parse and published-context checks.
   `publish --env` before it connects), `manifest_empty` (error) and
   `column_meta_missing` (off).
 - `check.measured_values` settings (`min_number`, `allow`, `exempt`, `count_nouns`) and
-  the `measured_values_in_context` rule id (warning). **Not enforced yet:** the rule
-  reports no findings in this release. The SPEC algorithm flags standard identifiers
-  such as "ISO 4217"; the fix is proposed as SPEC CHANGE PROPOSAL I in
-  docs/PROGRESS.md.
+  the `measured_values_in_context` rule (warning): flags row counts, ratios and other
+  measured values in model and column descriptions and `meta`, and in skill files.
+  Standard identifiers such as "ISO 4217" or "RFC 3339" are allowed built in.
 - GitHub workflow inputs `warehouse`, `dbt-engine`, `dbt-fusion-version`,
   `package-spec`, `parse-env`, and the secret `PACKAGE_REPO_TOKEN`. `dbt-adapter` and
   `package-version` are now optional; a 0.1 caller keeps validating.

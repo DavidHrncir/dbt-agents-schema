@@ -32,6 +32,7 @@ from dbt_agents_schema.manifest import (
     load_manifest,
     read_models,
 )
+from dbt_agents_schema.measured import MeasuredValues
 from dbt_agents_schema.skills import Skill, SkillSet, load_skills
 
 FindingSeverity = Literal["error", "warning", "info"]
@@ -168,6 +169,8 @@ def check_project(
         )
         broken = {f.node for f in skills.findings if f.rule == "skill_frontmatter_invalid"}
         findings.extend(_skill_without_uses(skills.skills, broken))
+        measured = MeasuredValues(config.check.measured_values)
+        findings.extend(_measured_in_skills(measured, skills.skills))
         if manifest is not None:
             root_package = manifest.project_name or dbt_project_name(project_dir)
             try:
@@ -189,6 +192,9 @@ def check_project(
                 )
                 findings.extend(_unresolved_uses(skills.skills, content, config))
                 findings.extend(_manifest_findings(manifest_file, content))
+                findings.extend(
+                    _measured_in_models(measured, project_dir, root_package, content, manifest)
+                )
                 if env is not None and env in config.environments:
                     findings.extend(
                         _target_mismatch(config, env, content, manifest, project_dir, root_package)
@@ -285,6 +291,59 @@ def _description_findings(
                 file=file,
                 node=node,
             )
+
+
+def _measured_in_skills(measured: MeasuredValues, skills: Iterable[Skill]) -> Iterable[Finding]:
+    for skill in skills:
+        for line, msg in measured.scan(skill.content):
+            yield Finding(
+                "measured_values_in_context",
+                "warning",
+                f"skill {skill.key}: {msg}",
+                file=str(skill.file),
+                line=line,
+                node=skill.key,
+            )
+
+
+def _measured_in_models(
+    measured: MeasuredValues,
+    project_dir: Path,
+    root_package: str | None,
+    content: ManifestContent,
+    manifest: Manifest,
+) -> Iterable[Finding]:
+    nodes: dict[str, Any] = dict(manifest.raw["nodes"])
+    models = {m.unique_id: m for m in content.models}
+
+    def texts(description: str, meta: Any) -> Iterable[tuple[str, str]]:
+        yield "description", description
+        if meta:
+            yield "meta", json.dumps(meta, sort_keys=True, default=str)
+
+    for model in content.models:
+        file = _model_file(project_dir, root_package, nodes.get(model.unique_id), model)
+        for where, text in texts(model.description, model.meta):
+            for _, msg in measured.scan(text):
+                yield Finding(
+                    "measured_values_in_context",
+                    "warning",
+                    f"{where} of model {model.name}: {msg}",
+                    file=file,
+                    node=model.unique_id,
+                )
+    for column in content.columns:
+        model = models[column.model_id]
+        file = _model_file(project_dir, root_package, nodes.get(model.unique_id), model)
+        for where, text in texts(column.description, column.meta):
+            for _, msg in measured.scan(text):
+                yield Finding(
+                    "measured_values_in_context",
+                    "warning",
+                    f"{where} of column {column.column_name} of model {model.name}: {msg}",
+                    file=file,
+                    node=f"{column.model_id}.{column.column_name}",
+                )
 
 
 def _manifest_findings(manifest_file: Path, content: ManifestContent) -> Iterable[Finding]:

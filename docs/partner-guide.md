@@ -277,7 +277,8 @@ order:
    `3M`; uppercase only). `1 row per` and `1 record per` are always exempt.
 2. **Allowed lines** are skipped: lines that match a built-in pattern (`>=`/`<=` with a
    number, `0-100`, `one row per`, `1:1`, `accepted values`, `percentile`, `p95`-style
-   names) or one of your `allow` patterns.
+   names, and standard identifiers such as `ISO 4217`, `ISO-8601`, `RFC 3339`,
+   `IEC 80000` or `IEEE 754`) or one of your `allow` patterns.
 3. **Any other number** at or above `min_number` (default 10) is flagged.
 
 A count phrase is flagged even on an allowed line, so "p95 latency (94 rows)" is still
