@@ -251,7 +251,7 @@ updated. Each task cites the SPEC sections that proposal changes.
   read even when set; without `--env`, or with an environment that has no
   `parse_target`, the existing tests pass unchanged.
 
-- [ ] **T32 Manifest target rules.** `check --env NAME`, and the rules
+- [x] **T32 Manifest target rules.** `check --env NAME`, and the rules
   `manifest_target_mismatch`, `manifest_empty` and `column_meta_missing` (SPEC 7, 8);
   `publish --env` applies them before connecting.
   **Done when:** tests use the fixture manifests with a `parse_target` that matches

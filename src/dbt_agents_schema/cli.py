@@ -70,6 +70,12 @@ def build_parser() -> argparse.ArgumentParser:
         description="Validate config, manifest and skills. Exit 1 on any error finding.",
     )
     check.add_argument(
+        "--env",
+        default=None,
+        help="also run the environment-dependent rules (manifest_target_mismatch) for this "
+        "environment",
+    )
+    check.add_argument(
         "--parse", action="store_true", help="run `dbt parse` in the project directory first"
     )
     check.add_argument(
@@ -229,7 +235,20 @@ def _cmd_check(args: argparse.Namespace) -> int:
         project_dir,
         config_path=Path(args.config) if args.config else None,
         manifest_path=Path(args.manifest) if args.manifest else None,
+        env=args.env,
     )
+    if (
+        args.env is not None
+        and result.config is not None
+        and args.env not in result.config.environments
+    ):
+        available = ", ".join(sorted(result.config.environments))
+        print(
+            f"error: {result.config.path}: environment {args.env!r} is not defined; "
+            f"available: {available}. Pass one of them to --env",
+            file=sys.stderr,
+        )
+        return EXIT_INPUT_ERROR
 
     if args.format == "gitlab":
         report_path = Path(args.output or DEFAULT_GITLAB_REPORT)
@@ -264,6 +283,7 @@ def _cmd_publish(args: argparse.Namespace) -> int:
             project_dir,
             config_path=Path(args.config) if args.config else None,
             manifest_path=Path(args.manifest) if args.manifest else None,
+            env=args.env,
         )
         if (
             checked.has_errors

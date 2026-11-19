@@ -86,7 +86,9 @@ def publish(
     started = time.monotonic()
 
     # 1-2. Load and check.
-    result = check_project(project_dir, config_path=config_path, manifest_path=manifest_path)
+    result = check_project(
+        project_dir, config_path=config_path, manifest_path=manifest_path, env=env
+    )
     if result.findings:
         out.write(format_text(result))
     if result.manifest_missing:

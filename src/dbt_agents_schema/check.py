@@ -103,8 +103,13 @@ def check_project(
     *,
     config_path: Path | None = None,
     manifest_path: Path | None = None,
+    env: str | None = None,
 ) -> CheckResult:
-    """Run every check rule for the dbt project at `project_dir`."""
+    """Run every check rule for the dbt project at `project_dir`.
+
+    `env` turns on the environment-dependent rules (`manifest_target_mismatch`) for that
+    environment; an environment that is not defined, or has no `parse_target`, adds none.
+    """
     findings: list[Finding] = []
 
     manifest_file = (
@@ -183,6 +188,11 @@ def check_project(
                     _description_findings(project_dir, root_package, content, manifest, config)
                 )
                 findings.extend(_unresolved_uses(skills.skills, content, config))
+                findings.extend(_manifest_findings(manifest_file, content))
+                if env is not None and env in config.environments:
+                    findings.extend(
+                        _target_mismatch(config, env, content, manifest, project_dir, root_package)
+                    )
 
     return CheckResult(
         findings=_apply_severities(findings, config),
@@ -275,6 +285,63 @@ def _description_findings(
                 file=file,
                 node=node,
             )
+
+
+def _manifest_findings(manifest_file: Path, content: ManifestContent) -> Iterable[Finding]:
+    if not content.models:
+        yield Finding(
+            "manifest_empty",
+            "error",
+            f"manifest {manifest_file} has no published models; check that `dbt parse` ran in "
+            f"the right project and that include_packages/exclude_packages in {CONFIG_FILENAME} "
+            "do not exclude every package",
+            file=str(manifest_file),
+        )
+        return
+    if not any(c.meta for c in content.columns):
+        yield Finding(
+            "column_meta_missing",
+            "warning",
+            "no column of any published model has a non-empty `meta`; parse with dbt Fusion "
+            "(which copies model meta to columns) or set column meta in the properties YAML",
+            file=str(manifest_file),
+        )
+
+
+def _target_mismatch(
+    config: Config,
+    env: str,
+    content: ManifestContent,
+    manifest: Manifest,
+    project_dir: Path,
+    root_package: str | None,
+) -> Iterable[Finding]:
+    target = config.environments[env].parse_target
+    if target is None:
+        return
+    nodes: dict[str, Any] = dict(manifest.raw["nodes"])
+    want_db = target.database.lower() if target.database is not None else None
+    want_schema = target.schema.lower()
+    expected = (
+        f"database {target.database}, schema starting with {target.schema}"
+        if target.database is not None
+        else f"schema starting with {target.schema}"
+    )
+    for model in content.models:
+        db_ok = want_db is None or (model.database_name or "").lower() == want_db
+        schema_ok = (model.schema_name or "").lower().startswith(want_schema)
+        if db_ok and schema_ok:
+            continue
+        yield Finding(
+            "manifest_target_mismatch",
+            "error",
+            f"model {model.name} ({model.unique_id}) resolves to "
+            f"{model.database_name}.{model.schema_name}, but environments.{env}.parse_target "
+            f"expects {expected}; run `dbt parse` against the production target "
+            f"(`write-parse-profile --env {env}`) or fix parse_target in {CONFIG_FILENAME}",
+            file=_model_file(project_dir, root_package, nodes.get(model.unique_id), model),
+            node=model.unique_id,
+        )
 
 
 def _model_file(project_dir: Path, root_package: str | None, node: Any, model: ModelRecord) -> str:
