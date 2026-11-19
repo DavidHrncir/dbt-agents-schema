@@ -38,7 +38,8 @@ share one schema without overwriting each other.
 - After 3 failed attempts at the same task, mark it `[!]` with what you tried and move on.
 - No network in tests except `@pytest.mark.live`. No credentials in the repo. Never read
   `.env` files or real `~/.dbt/profiles.yml`.
-- Never `git push`, tag, or rewrite history. Commit locally on the current branch.
+- Pushing and tagging are allowed. Never rewrite history (no force-push, rebase or
+  hard reset). Commit on the current branch.
 - Keep each diff to its task. No drive-by refactors.
 
 ## Code conventions
