@@ -24,6 +24,7 @@ TEMPLATE_VARIABLES = ("target_schema", "target_database", "project", "env")
 PROFILE_ONLY_VARIABLES = frozenset({"target_schema", "target_database"})
 
 Credentials = Literal["env", "dbt_profile"]
+WarehouseType = Literal["snowflake", "bigquery", "databricks", "duckdb"]
 Severity = Literal["error", "warning", "off"]
 DescriptionScope = Literal["public", "all"]
 ProjectSource = Literal["config", "manifest", "dbt_project"]
@@ -34,6 +35,10 @@ DEFAULT_RULES: Mapping[str, Severity] = MappingProxyType(
         "missing_model_description": "warning",
         "missing_column_description": "warning",
         "sampled_values_in_description": "error",
+        "measured_values_in_context": "warning",
+        "manifest_target_mismatch": "error",
+        "manifest_empty": "error",
+        "column_meta_missing": "off",
         "skill_without_uses": "warning",
         "skill_unresolved_uses": "error",
     }
@@ -75,17 +80,40 @@ class ConfigError(Exception):
 
 
 @dataclass(frozen=True)
+class ParseTarget:
+    """Production shape for `dbt parse` in CI (`environments.<name>.parse_target`)."""
+
+    type: WarehouseType
+    name: str
+    schema: str
+    database: str | None = None
+    location: str | None = None
+
+
+@dataclass(frozen=True)
 class EnvironmentConfig:
     name: str
     credentials: Credentials
     schema: str
     database: str | None = None
+    parse_target: ParseTarget | None = None
+
+
+@dataclass(frozen=True)
+class MeasuredValuesConfig:
+    """Settings for the `measured_values_in_context` rule (`check.measured_values`)."""
+
+    min_number: int = 10
+    allow: tuple[str, ...] = ()
+    exempt: tuple[str, ...] = ()
+    count_nouns: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
 class CheckConfig:
     description_scope: DescriptionScope = "public"
     external_schemas: tuple[str, ...] = ()
+    measured_values: MeasuredValuesConfig = field(default_factory=MeasuredValuesConfig)
     rules: Mapping[str, Severity] = field(default_factory=lambda: DEFAULT_RULES)
 
 
@@ -201,9 +229,16 @@ def _build(
     environments = _environments(path, data.get("environments", _DEFAULT_ENVIRONMENTS))
     check_raw: dict[str, Any] = data.get("check", {})
     rules: dict[str, Severity] = {**DEFAULT_RULES, **check_raw.get("rules", {})}
+    mv_raw: dict[str, Any] = check_raw.get("measured_values", {})
     check = CheckConfig(
         description_scope=check_raw.get("description_scope", "public"),
         external_schemas=tuple(check_raw.get("external_schemas", ())),
+        measured_values=MeasuredValuesConfig(
+            min_number=int(mv_raw.get("min_number", 10)),
+            allow=tuple(mv_raw.get("allow", ())),
+            exempt=tuple(mv_raw.get("exempt", ())),
+            count_nouns=tuple(mv_raw.get("count_nouns", ())),
+        ),
         rules=MappingProxyType(rules),
     )
     project, source = _resolve_project(path, project_dir, data, manifest_project_name)
@@ -292,7 +327,50 @@ def _parse_and_validate(path: Path) -> dict[str, Any]:
         ]
         raise ConfigError(path, issues)
     assert isinstance(data, dict)
+    issues = _parse_target_issues(data) + _regex_issues(data)
+    if issues:
+        for i, issue in enumerate(issues):
+            parts: list[str | int] = [
+                int(p) if p.isdigit() else p for p in re.split(r"[.\[\]]+", issue.path[2:]) if p
+            ]
+            issues[i] = ConfigIssue(issue.path, issue.message, _line_for(root_node, parts))
+        raise ConfigError(path, issues)
     return data
+
+
+def _parse_target_issues(data: Mapping[str, Any]) -> list[ConfigIssue]:
+    """`parse_target` values are plain strings: any template syntax is an error."""
+    issues: list[ConfigIssue] = []
+    for env_name, spec in data.get("environments", {}).items():
+        for key, value in spec.get("parse_target", {}).items():
+            if isinstance(value, str) and _STRAY_JINJA.search(value):
+                issues.append(
+                    ConfigIssue(
+                        f"$.environments.{env_name}.parse_target.{key}",
+                        f"{value!r} contains template syntax; parse_target takes plain "
+                        "strings only, so write the literal value",
+                    )
+                )
+    return issues
+
+
+def _regex_issues(data: Mapping[str, Any]) -> list[ConfigIssue]:
+    """Every `check.measured_values` pattern must compile as a Python regex."""
+    issues: list[ConfigIssue] = []
+    measured = data.get("check", {}).get("measured_values", {})
+    for key in ("allow", "exempt", "count_nouns"):
+        for index, pattern in enumerate(measured.get(key, ())):
+            try:
+                re.compile(pattern)
+            except re.error as exc:
+                issues.append(
+                    ConfigIssue(
+                        f"$.check.measured_values.{key}[{index}]",
+                        f"{pattern!r} is not a valid Python regular expression ({exc}); "
+                        "fix or remove this entry",
+                    )
+                )
+    return issues
 
 
 def _line_for(node: yaml.Node | None, parts: list[str | int]) -> int | None:
@@ -322,11 +400,24 @@ def _environments(path: Path, raw: Mapping[str, Any]) -> dict[str, EnvironmentCo
     issues: list[ConfigIssue] = []
     envs: dict[str, EnvironmentConfig] = {}
     for name, spec in raw.items():
+        pt_raw: Mapping[str, Any] | None = spec.get("parse_target")
+        parse_target = (
+            ParseTarget(
+                type=pt_raw["type"],
+                name=pt_raw.get("name", name),
+                schema=pt_raw["schema"],
+                database=pt_raw.get("database"),
+                location=pt_raw.get("location"),
+            )
+            if pt_raw is not None
+            else None
+        )
         env = EnvironmentConfig(
             name=name,
             credentials=spec["credentials"],
             schema=spec["schema"],
             database=spec.get("database"),
+            parse_target=parse_target,
         )
         for key in ("schema", "database"):
             template = getattr(env, key)

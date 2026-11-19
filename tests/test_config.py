@@ -11,6 +11,8 @@ import pytest
 from dbt_agents_schema.config import (
     DEFAULT_RULES,
     ConfigError,
+    MeasuredValuesConfig,
+    ParseTarget,
     load_config,
     normalize_project_name,
     resolve_target,
@@ -65,11 +67,17 @@ def test_defaults_with_no_file(tmp_path: Path) -> None:
     )
     assert cfg.check.description_scope == "public"
     assert cfg.check.external_schemas == ()
+    assert prod.parse_target is None and dev.parse_target is None
+    assert cfg.check.measured_values == MeasuredValuesConfig()
     assert dict(cfg.check.rules) == {
         "config_missing": "warning",
         "missing_model_description": "warning",
         "missing_column_description": "warning",
         "sampled_values_in_description": "error",
+        "measured_values_in_context": "warning",
+        "manifest_target_mismatch": "error",
+        "manifest_empty": "error",
+        "column_meta_missing": "off",
         "skill_without_uses": "warning",
         "skill_unresolved_uses": "error",
     }
@@ -438,3 +446,188 @@ def test_other_warehouses_keep_case(tmp_path: Path, warehouse: str) -> None:
     target = resolve_target(cfg, "dev", warehouse=warehouse, target_schema="Dbt_Alice")
     assert target.schema == "Dbt_Alice_agents"
     assert target.database == "Analytics"
+
+
+# --- parse_target (T30) --------------------------------------------------------------
+
+
+def parse_target_config(tmp_path: Path, body: str) -> Path:
+    return write(
+        tmp_path,
+        "version: 1\nproject: finance\nenvironments:\n  prod:\n    credentials: env\n"
+        "    schema: AGENTS\n    parse_target:\n" + body,
+    )
+
+
+def test_parse_target_all_keys(tmp_path: Path) -> None:
+    parse_target_config(
+        tmp_path,
+        "      type: bigquery\n      name: ci\n      database: my-proj\n"
+        "      schema: finance\n      location: EU\n",
+    )
+    cfg = load_config(tmp_path)
+    assert cfg.environments["prod"].parse_target == ParseTarget(
+        type="bigquery", name="ci", database="my-proj", schema="finance", location="EU"
+    )
+
+
+def test_parse_target_name_defaults_to_environment(tmp_path: Path) -> None:
+    parse_target_config(
+        tmp_path, "      type: snowflake\n      database: ANALYTICS\n      schema: FINANCE\n"
+    )
+    pt = load_config(tmp_path).environments["prod"].parse_target
+    assert pt is not None
+    assert pt.name == "prod"
+    assert pt.location is None
+
+
+@pytest.mark.parametrize("warehouse", ["snowflake", "bigquery", "databricks"])
+def test_parse_target_database_required_except_duckdb(tmp_path: Path, warehouse: str) -> None:
+    parse_target_config(tmp_path, f"      type: {warehouse}\n      schema: FINANCE\n")
+    with pytest.raises(ConfigError) as exc:
+        load_config(tmp_path)
+    assert "$.environments.prod.parse_target" in paths(exc.value)
+    assert "database" in str(exc.value)
+
+
+def test_parse_target_duckdb_needs_no_database(tmp_path: Path) -> None:
+    parse_target_config(tmp_path, "      type: duckdb\n      schema: main\n")
+    pt = load_config(tmp_path).environments["prod"].parse_target
+    assert pt is not None
+    assert (pt.type, pt.database, pt.schema) == ("duckdb", None, "main")
+
+
+@pytest.mark.parametrize("missing", ["type", "schema"])
+def test_parse_target_type_and_schema_required(tmp_path: Path, missing: str) -> None:
+    keys = {"type": "snowflake", "database": "ANALYTICS", "schema": "FINANCE"}
+    del keys[missing]
+    parse_target_config(tmp_path, "".join(f"      {k}: {v}\n" for k, v in keys.items()))
+    with pytest.raises(ConfigError) as exc:
+        load_config(tmp_path)
+    assert "$.environments.prod.parse_target" in paths(exc.value)
+    assert missing in str(exc.value)
+
+
+def test_parse_target_type_enum(tmp_path: Path) -> None:
+    parse_target_config(tmp_path, "      type: postgres\n      database: X\n      schema: Y\n")
+    with pytest.raises(ConfigError) as exc:
+        load_config(tmp_path)
+    assert "$.environments.prod.parse_target.type" in paths(exc.value)
+
+
+def test_parse_target_unknown_key(tmp_path: Path) -> None:
+    parse_target_config(
+        tmp_path,
+        "      type: snowflake\n      database: X\n      schema: Y\n      warehouse: WH\n",
+    )
+    with pytest.raises(ConfigError) as exc:
+        load_config(tmp_path)
+    assert "$.environments.prod.parse_target" in paths(exc.value)
+    assert "warehouse" in str(exc.value)
+
+
+@pytest.mark.parametrize("key", ["name", "database", "schema", "location"])
+def test_parse_target_refuses_templates(tmp_path: Path, key: str) -> None:
+    keys = {"type": "bigquery", "database": "proj", "schema": "finance"}
+    keys[key] = '"{{ env }}_x"'
+    parse_target_config(tmp_path, "".join(f"      {k}: {v}\n" for k, v in keys.items()))
+    with pytest.raises(ConfigError) as exc:
+        load_config(tmp_path)
+    assert f"$.environments.prod.parse_target.{key}" in paths(exc.value)
+    assert "template" in str(exc.value)
+
+
+# --- check.measured_values (T30) -----------------------------------------------------
+
+
+def test_measured_values_defaults(tmp_path: Path) -> None:
+    write(tmp_path, "version: 1\n")
+    mv = load_config(tmp_path, manifest_project_name="finance").check.measured_values
+    assert (mv.min_number, mv.allow, mv.exempt, mv.count_nouns) == (10, (), (), ())
+
+
+def test_measured_values_partial_keeps_defaults(tmp_path: Path) -> None:
+    write(tmp_path, "version: 1\ncheck:\n  measured_values:\n    allow: ['^SLA']\n")
+    mv = load_config(tmp_path, manifest_project_name="finance").check.measured_values
+    assert (mv.min_number, mv.allow, mv.exempt, mv.count_nouns) == (10, ("^SLA",), (), ())
+
+
+def test_measured_values_all_keys(tmp_path: Path) -> None:
+    write(
+        tmp_path,
+        "version: 1\ncheck:\n  measured_values:\n    min_number: 0\n    allow: [a]\n"
+        "    exempt: [b, c]\n    count_nouns: ['grants?']\n",
+    )
+    mv = load_config(tmp_path, manifest_project_name="finance").check.measured_values
+    assert mv == MeasuredValuesConfig(
+        min_number=0, allow=("a",), exempt=("b", "c"), count_nouns=("grants?",)
+    )
+
+
+@pytest.mark.parametrize("value", ["-1", "1.5", "'10'"])
+def test_measured_values_min_number_integer_ge_0(tmp_path: Path, value: str) -> None:
+    err = errors_for(tmp_path, f"version: 1\ncheck:\n  measured_values:\n    min_number: {value}\n")
+    assert "$.check.measured_values.min_number" in paths(err)
+
+
+def test_measured_values_unknown_key(tmp_path: Path) -> None:
+    err = errors_for(tmp_path, "version: 1\ncheck:\n  measured_values:\n    deny: []\n")
+    assert "$.check.measured_values" in paths(err)
+
+
+@pytest.mark.parametrize("key", ["allow", "exempt", "count_nouns"])
+def test_measured_values_invalid_regex_names_key_and_index(tmp_path: Path, key: str) -> None:
+    err = errors_for(
+        tmp_path, f"version: 1\ncheck:\n  measured_values:\n    {key}: ['ok', '(unclosed']\n"
+    )
+    assert paths(err) == [f"$.check.measured_values.{key}[1]"]
+    assert "(unclosed" in str(err)
+    assert "regular expression" in str(err)
+    assert err.issues[0].line == 4
+
+
+def test_invalid_regex_reported_as_config_invalid_by_check(tmp_path: Path) -> None:
+    from dbt_agents_schema.check import check_project
+
+    write(tmp_path, "version: 1\nproject: finance\ncheck:\n  measured_values:\n    exempt: ['[']\n")
+    result = check_project(tmp_path)
+    invalid = [f for f in result.findings if f.rule == "config_invalid"]
+    assert invalid
+    assert "$.check.measured_values.exempt[0]" in invalid[0].message
+
+
+# --- new rule ids (T30) --------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("rule", "default"),
+    [
+        ("measured_values_in_context", "warning"),
+        ("manifest_target_mismatch", "error"),
+        ("manifest_empty", "error"),
+        ("column_meta_missing", "off"),
+    ],
+)
+def test_new_rule_defaults_and_configurable(tmp_path: Path, rule: str, default: str) -> None:
+    assert DEFAULT_RULES[rule] == default
+    other = "error" if default != "error" else "warning"
+    write(tmp_path, f"version: 1\ncheck:\n  rules:\n    {rule}: {other}\n")
+    cfg = load_config(tmp_path, manifest_project_name="finance")
+    assert cfg.check.rules[rule] == other
+
+
+def test_new_rules_in_json_schema() -> None:
+    from dbt_agents_schema.config import config_schema
+
+    rules = config_schema()["properties"]["check"]["properties"]["rules"]["properties"]
+    for rule, default in DEFAULT_RULES.items():
+        assert rules[rule]["default"] == default
+
+
+def test_parse_target_location_is_bigquery_only(tmp_path: Path) -> None:
+    parse_target_config(
+        tmp_path, "      type: snowflake\n      database: X\n      schema: Y\n      location: US\n"
+    )
+    with pytest.raises(ConfigError) as exc:
+        load_config(tmp_path)
+    assert "$.environments.prod.parse_target" in paths(exc.value)

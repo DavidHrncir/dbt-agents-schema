@@ -64,6 +64,37 @@
           "description": "Schemas skills may reference in uses that dbt does not build.",
           "default": []
         },
+        "measured_values": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Settings for the measured_values_in_context rule.",
+          "properties": {
+            "min_number": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Numbers below this are never flagged.",
+              "default": 10
+            },
+            "allow": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Regular expressions; a line that matches one may contain numbers (count phrases are still flagged).",
+              "default": []
+            },
+            "exempt": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Regular expressions; a line that matches one may contain count phrases.",
+              "default": []
+            },
+            "count_nouns": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Extra regex nouns for count phrases, for example grants?.",
+              "default": []
+            }
+          }
+        },
         "rules": {
           "type": "object",
           "additionalProperties": false,
@@ -88,6 +119,26 @@
               "$ref": "#/$defs/severity",
               "description": "A description looks like data profiling output (min/max, null rates, sample values, row counts).",
               "default": "error"
+            },
+            "measured_values_in_context": {
+              "$ref": "#/$defs/severity",
+              "description": "Published text (model and column descriptions and meta, skill files) contains a measured value such as a row count.",
+              "default": "warning"
+            },
+            "manifest_target_mismatch": {
+              "$ref": "#/$defs/severity",
+              "description": "With --env: a published model's database or schema differs from the environment's parse_target.",
+              "default": "error"
+            },
+            "manifest_empty": {
+              "$ref": "#/$defs/severity",
+              "description": "The manifest has no published models.",
+              "default": "error"
+            },
+            "column_meta_missing": {
+              "$ref": "#/$defs/severity",
+              "description": "No column of any published model has a non-empty meta (set error when relying on dbt Fusion copying model meta to columns).",
+              "default": "off"
             },
             "skill_without_uses": {
               "$ref": "#/$defs/severity",
@@ -125,8 +176,54 @@
           "type": "string",
           "minLength": 1,
           "description": "Agents schema (BigQuery dataset). Template allowed: {{ target_schema }}, {{ target_database }} (dbt_profile only), {{ project }}, {{ env }}."
-        }
+        },
+        "parse_target": {"$ref": "#/$defs/parse_target"}
       }
+    },
+    "parse_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "schema"],
+      "description": "Production shape for `dbt parse` in CI: used by write-parse-profile --env and the manifest_target_mismatch rule. Plain strings, no templates. Does not change where the agents schema is written.",
+      "x-default": "none",
+      "properties": {
+        "type": {
+          "enum": ["snowflake", "bigquery", "databricks", "duckdb"],
+          "description": "Warehouse type of the parse profile."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Profile target name.",
+          "x-default": "the environment name"
+        },
+        "database": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Snowflake database, BigQuery project or Databricks catalog. Required except for duckdb.",
+          "x-default": "required except for duckdb"
+        },
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "dbt target schema (BigQuery dataset)."
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1,
+          "description": "BigQuery dataset location. BigQuery only."
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"not": {"const": "duckdb"}}}, "required": ["type"]},
+          "then": {"required": ["database"]}
+        },
+        {
+          "if": {"properties": {"type": {"not": {"const": "bigquery"}}}, "required": ["type"]},
+          "then": {"not": {"required": ["location"]}}
+        }
+      ]
     }
   }
 }

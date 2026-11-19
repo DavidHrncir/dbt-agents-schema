@@ -234,7 +234,7 @@ using a schema named `DBT_AGENTS_SCHEMA_TEST_<random>` that the test drops after
 Starts only after SPEC CHANGE PROPOSALS E–H (PROGRESS.md) are accepted and SPEC.md is
 updated. Each task cites the SPEC sections that proposal changes.
 
-- [ ] **T30 Config: `parse_target` and `measured_values`.** Extend
+- [x] **T30 Config: `parse_target` and `measured_values`.** Extend
   `schemas/agents_schema.schema.json` and the loader with `environments.<name>.parse_target`
   (SPEC 3) and `check.measured_values` (SPEC 3), and register the new rule ids
   `manifest_target_mismatch`, `manifest_empty`, `column_meta_missing` and

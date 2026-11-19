@@ -112,14 +112,29 @@ fails when it is stale.
 | `environments.<name>.credentials` | `env` \| `dbt_profile` | required | env = WAREHOUSE_CREDENTIALS from the environment (CI); dbt_profile = the project's dbt profile (developers). |
 | `environments.<name>.database` | string | from the credentials | Snowflake database, BigQuery project, Databricks catalog or DuckDB catalog. Template allowed. |
 | `environments.<name>.schema` | string | required | Agents schema (BigQuery dataset). Template allowed: {{ target_schema }}, {{ target_database }} (dbt_profile only), {{ project }}, {{ env }}. |
+| `environments.<name>.parse_target` | mapping | none | Production shape for `dbt parse` in CI: used by write-parse-profile --env and the manifest_target_mismatch rule. Plain strings, no templates. Does not change where the agents schema is written. |
+| `environments.<name>.parse_target.type` | `snowflake` \| `bigquery` \| `databricks` \| `duckdb` | required | Warehouse type of the parse profile. |
+| `environments.<name>.parse_target.name` | string | the environment name | Profile target name. |
+| `environments.<name>.parse_target.database` | string | required except for duckdb | Snowflake database, BigQuery project or Databricks catalog. Required except for duckdb. |
+| `environments.<name>.parse_target.schema` | string | required | dbt target schema (BigQuery dataset). |
+| `environments.<name>.parse_target.location` | string | none | BigQuery dataset location. BigQuery only. |
 | `check` | mapping | none | Settings for `dbt-agents-schema check` (also run by publish). |
 | `check.description_scope` | `public` \| `all` | `"public"` | Models the description rules apply to: public = models with access: public; all = every published model. |
 | `check.external_schemas` | list of string | `[]` | Schemas skills may reference in uses that dbt does not build. |
+| `check.measured_values` | mapping | none | Settings for the measured_values_in_context rule. |
+| `check.measured_values.min_number` | integer | `10` | Numbers below this are never flagged. |
+| `check.measured_values.allow` | list of string | `[]` | Regular expressions; a line that matches one may contain numbers (count phrases are still flagged). |
+| `check.measured_values.exempt` | list of string | `[]` | Regular expressions; a line that matches one may contain count phrases. |
+| `check.measured_values.count_nouns` | list of string | `[]` | Extra regex nouns for count phrases, for example grants?. |
 | `check.rules` | mapping | none | Severity per configurable rule. |
 | `check.rules.config_missing` | `error` \| `warning` \| `off` | `"warning"` | No agents_schema.yml found. |
 | `check.rules.missing_model_description` | `error` \| `warning` \| `off` | `"warning"` | A model in description_scope has an empty description. |
 | `check.rules.missing_column_description` | `error` \| `warning` \| `off` | `"warning"` | A column of a model in description_scope has an empty description. |
 | `check.rules.sampled_values_in_description` | `error` \| `warning` \| `off` | `"error"` | A description looks like data profiling output (min/max, null rates, sample values, row counts). |
+| `check.rules.measured_values_in_context` | `error` \| `warning` \| `off` | `"warning"` | Published text (model and column descriptions and meta, skill files) contains a measured value such as a row count. |
+| `check.rules.manifest_target_mismatch` | `error` \| `warning` \| `off` | `"error"` | With --env: a published model's database or schema differs from the environment's parse_target. |
+| `check.rules.manifest_empty` | `error` \| `warning` \| `off` | `"error"` | The manifest has no published models. |
+| `check.rules.column_meta_missing` | `error` \| `warning` \| `off` | `"off"` | No column of any published model has a non-empty meta (set error when relying on dbt Fusion copying model meta to columns). |
 | `check.rules.skill_without_uses` | `error` \| `warning` \| `off` | `"warning"` | A skill file has no uses frontmatter. |
 | `check.rules.skill_unresolved_uses` | `error` \| `warning` \| `off` | `"error"` | A uses.schemas or uses.tables entry matches no published model and is not in external_schemas. |
 
