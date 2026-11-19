@@ -372,3 +372,16 @@ def test_parse_target_refuses_overwrite(project: Path, tmp_path: Path) -> None:
     with_parse_target(project, "duckdb")
     assert run_wpp(project, tmp_path / "out", "--env", "prod") == 0
     assert run_wpp(project, tmp_path / "out", "--env", "prod") == 2
+
+
+@pytest.mark.usefixtures("no_creds")
+def test_parse_target_duckdb_with_database(project: Path, tmp_path: Path) -> None:
+    # dbt-duckdb names the catalog after the path's stem, so the manifest's database
+    # matches parse_target.database and manifest_target_mismatch passes.
+    (project / "agents_schema.yml").write_text(
+        "version: 1\nenvironments:\n  prod:\n    credentials: env\n    schema: AGENTS\n"
+        "    parse_target:\n      type: duckdb\n      database: analytics\n      schema: main\n"
+    )
+    assert run_wpp(project, tmp_path / "out", "--env", "prod") == 0
+    _, out = written(tmp_path / "out")
+    assert out == {"type": "duckdb", "path": "analytics.duckdb", "schema": "main"}

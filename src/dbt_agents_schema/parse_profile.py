@@ -74,8 +74,9 @@ def build_placeholder_profile(project_dir: Path, parse_target: ParseTarget) -> d
             "schema": parse_target.schema,
             "token": PLACEHOLDER,
         }
-    else:  # duckdb
-        output = {"type": "duckdb", "path": ":memory:", "schema": parse_target.schema}
+    else:  # duckdb: the catalog is named after the path's stem (in memory: `memory`)
+        path = f"{parse_target.database}.duckdb" if parse_target.database else ":memory:"
+        output = {"type": "duckdb", "path": path, "schema": parse_target.schema}
     name = parse_target.name
     return {_profile_name(project_dir): {"target": name, "outputs": {name: output}}}
 

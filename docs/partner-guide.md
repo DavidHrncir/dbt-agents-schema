@@ -260,8 +260,10 @@ stale, and an agent quotes it as current instead of running a query. The
 > **Status in 0.2.0:** the `check.measured_values` settings and the rule's severity are
 > validated, but the rule does not report findings yet. It is waiting on a change that
 > keeps standard identifiers such as "ISO 4217" from being flagged (see CHANGELOG). The
-> rest of this section describes how it will behave. Describe the
-method instead: say what the model counts and which query gives the current value.
+> rest of this section describes how it will behave.
+
+Describe the method instead: say what the model counts and which query gives the
+current value.
 
 It scans the description and `meta` of each published model and column (`meta` as JSON
 with sorted keys) and every line of every skill file. Each line is stripped of

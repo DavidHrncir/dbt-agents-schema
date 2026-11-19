@@ -271,3 +271,27 @@ def test_publish_matching_target_succeeds(tmp_path: Path, monkeypatch: pytest.Mo
         ]
     )
     assert code == 0
+
+
+def test_check_cli_invalid_config_reports_findings_not_unknown_env(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = project(tmp_path)
+    (root / "agents_schema.yml").write_text(
+        "version: 1\nenvironments:\n  staging:\n    credentials: env\n    schema: A\n    bogus: 1\n"
+    )
+    code = main(
+        [
+            "check",
+            "--project-dir",
+            str(root),
+            "--manifest",
+            str(MANIFESTS / "finance.json"),
+            "--env",
+            "staging",
+        ]
+    )
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "config_invalid" in captured.out
+    assert "is not defined" not in captured.err

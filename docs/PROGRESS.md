@@ -509,3 +509,16 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
   - T33 is blocked, so the measured-values section documents the SPEC behaviour under a "Status in 0.2.0" note: the settings are validated but the rule reports nothing yet. CHANGELOG says the same. If proposal I is accepted and T33 lands before release, remove both notes.
   - CHANGELOG lists two behaviour changes for 0.1 callers: the default engine (Fusion; `dbt-engine: core` restores dbt-core) and, on GitHub, that `WAREHOUSE_CREDENTIALS` no longer reaches the profile step. It records the default `dbt-fusion-version` `2.0.0`, still to be confirmed in H3.
   - The example `allow` pattern `\bISO \d+` in the guide shows how a project can work around the false positive itself in the meantime.
+
+## T37 Phase 6 review and version — done
+- Reviewer: Phase 6 review: 0 blockers, 1 should-fix, 3 nits
+- Fixed (should-fix): `write-parse-profile --env` ignored `parse_target.database` for DuckDB, so a DuckDB project that set it could never pass `manifest_target_mismatch`. The profile path is now `<database>.duckdb`; dbt-duckdb names the catalog after the stem, and `dbt parse` does not open the file. Test: test_parse_target_duckdb_with_database. This replaces the T31 decision to always write `:memory:`.
+- Fixed (nits):
+  - `check --env X` with an invalid config no longer says "environment not defined"; it reports the `config_invalid` findings and exits 1. Test: test_check_cli_invalid_config_reports_findings_not_unknown_env.
+  - The guide's "Status in 0.2.0" blockquote no longer swallows the next paragraph.
+  - `V01_CALLER` in `test_ci_github.py` now pairs v0.1-style inputs with `package-version: "0.2.0"`, a combination that would actually run.
+- Not fixed, for H3: whether dbt Fusion supports DuckDB with the default `dbt-engine: fusion`. If it does not, the guide must tell DuckDB users to set `dbt-engine: core`. H3 should also confirm the default `dbt-fusion-version` `2.0.0` and the installer's `--version` flag (see T34).
+- Version: `__version__` and `pyproject.toml` set to `0.2.0`; `uv.lock` refreshed; CHANGELOG 0.2.0 dated 2026-11-18 with a Fixed section.
+- Evidence: `make verify` exit 0 (`749 passed, 18 deselected`).
+- Phase 6 status: T30, T31, T32, T34, T35, T36 and T37 done. T33 blocked on SPEC CHANGE PROPOSAL I; patch kept at `docs/patches/T33-measured-values.patch`. H3 and H4 are for a human. Not tagged or pushed.
+- Test change for the bump: the three tests in `tests/test_cli.py` pin the expected version string; it changed from `"0.1.0"` to `"0.2.0"`, with every assertion kept.

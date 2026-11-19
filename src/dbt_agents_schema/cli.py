@@ -241,6 +241,7 @@ def _cmd_check(args: argparse.Namespace) -> int:
         args.env is not None
         and result.config is not None
         and args.env not in result.config.environments
+        and not any(f.rule == "config_invalid" for f in result.findings)
     ):
         available = ", ".join(sorted(result.config.environments))
         print(

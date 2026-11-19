@@ -296,7 +296,7 @@ updated. Each task cites the SPEC sections that proposal changes.
   **Done when:** `tests/test_partner_guide.py` passes (every flag, choice and config key
   appears) and `make verify` exits 0.
 
-- [ ] **T37 Phase 6 review and version.** Run the `spec-reviewer` subagent on Phase 6.
+- [x] **T37 Phase 6 review and version.** Run the `spec-reviewer` subagent on Phase 6.
   Fix correctness findings. Set `__version__ = "0.2.0"`, finalize the CHANGELOG entry,
   and make a local commit `release: 0.2.0`. Do not tag or push.
 

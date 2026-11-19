@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/). The agents schema contract has its own
 integer `spec_version` (docs/SPEC.md section 11).
 
-## 0.2.0 — unreleased
+## 0.2.0 — 2026-11-18
 
 Spec version 1 (unchanged). CI parse and published-context checks.
 
@@ -44,6 +44,14 @@ Spec version 1 (unchanged). CI parse and published-context checks.
   `package-version` are now optional; a 0.1 caller keeps validating.
 - GitLab template inputs `warehouse`, `dbt_engine`, `dbt_fusion_version`,
   `package_spec`.
+
+### Fixed
+
+- `write-parse-profile --env` for DuckDB honours `parse_target.database`: the profile
+  path becomes `<database>.duckdb`, so the parsed catalog name matches and
+  `manifest_target_mismatch` passes.
+- `check --env` with an invalid `agents_schema.yml` reports the `config_invalid`
+  findings instead of "environment is not defined".
 
 ## 0.1.0 — 2026-11-18
 

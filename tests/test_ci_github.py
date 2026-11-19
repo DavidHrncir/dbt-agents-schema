@@ -31,7 +31,7 @@ jobs:
     uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.2.0
     with:
       mode: check
-      package-version: "0.1.0"
+      package-version: "0.2.0"
       dbt-adapter: dbt-snowflake
     secrets:
       WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
@@ -44,7 +44,7 @@ jobs:
     uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.2.0
     with:
       mode: publish
-      package-version: "0.1.0"
+      package-version: "0.2.0"
       dbt-adapter: dbt-snowflake
       environment: prod
     secrets:
