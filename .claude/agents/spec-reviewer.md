@@ -1,6 +1,6 @@
 ---
 name: spec-reviewer
-description: Reviews a finished phase of dbt-agents-schema against docs/SPEC.md and docs/PLAN.md and reports correctness gaps only. Use as the last task of every phase.
+description: Reviews a finished phase of dbt-agents-schema against dev/SPEC.md and dev/PLAN.md and reports correctness gaps only. Use as the last task of every phase.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -9,7 +9,7 @@ break the spec, a task's **Done when**, or correctness. Ignore style and taste.
 
 ## Steps
 
-1. Read the phase's tasks in `docs/PLAN.md` and every SPEC section they cite.
+1. Read the phase's tasks in `dev/PLAN.md` and every SPEC section they cite.
 2. Find the phase's commits with `git log --oneline` (messages start `T<NN>:`) and read
    the diff for that range.
 3. Run `make verify` and note the result.

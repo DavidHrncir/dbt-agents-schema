@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # Run one build phase headless with Claude Code, logging every message.
-# Usage: scripts/run-phase.sh <phase 0-5>
+# Usage: dev/scripts/run-phase.sh <phase 0-5>
 # Optional env: MAX_BUDGET_USD (passed as --max-budget-usd), PERMISSION_MODE (default auto)
 set -euo pipefail
 
-phase="${1:?usage: scripts/run-phase.sh <phase 0-5>}"
-cd "$(dirname "$0")/.."
+phase="${1:?usage: dev/scripts/run-phase.sh <phase 0-5>}"
+cd "$(dirname "$0")/../.."
 
-# Pull the /goal line for this phase out of docs/GOALS.md.
+# Pull the /goal line for this phase out of dev/GOALS.md.
 goal="$(awk -v p="Phase ${phase}:" '
   $0 == p {found=1; next}
   found && /^\/goal / {print; exit}
-' docs/GOALS.md)"
+' dev/GOALS.md)"
 if [[ -z "${goal}" ]]; then
-  echo "No goal found for phase ${phase} in docs/GOALS.md" >&2
+  echo "No goal found for phase ${phase} in dev/GOALS.md" >&2
   exit 2
 fi
 
@@ -35,4 +35,4 @@ claude "${args[@]}" | tee "${log}" | jq -rj '
 
 echo
 echo "Phase ${phase} finished. Status:"
-grep -nE '^- \[( |!)\] \*\*T' docs/PLAN.md || echo "  no open or blocked tasks"
+grep -nE '^- \[( |!)\] \*\*T' dev/PLAN.md || echo "  no open or blocked tasks"

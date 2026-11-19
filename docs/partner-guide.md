@@ -32,18 +32,17 @@ completes the swap.
 
 ## Install
 
-Python 3.11 or later. Install the extra for your warehouse:
-
-```bash
-pip install "dbt-agents-schema[snowflake]==0.2.1"   # or [bigquery], [databricks], [duckdb]
-dbt-agents-schema --version
-```
-
-If your organisation installs from git rather than a package index:
+Python 3.11 or later. The package is not on PyPI; install it from git at a release tag,
+with the extra for your warehouse:
 
 ```bash
 pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.1"
+# or [bigquery], [databricks], [duckdb]
+dbt-agents-schema --version
 ```
+
+If you mirror the package into your own index, `pip install "dbt-agents-schema[snowflake]==0.2.1"`
+works the same way.
 
 If the extra is missing, the CLI exits 2 and prints the `pip install` command to run.
 The command is `dbt-agents-schema`. It does not clash with the dbt Labs `agents-schema`
@@ -524,6 +523,104 @@ Choose a job that runs on your production environment and generates docs or runs
 6. **Agents.** No change needed. The `ROOT` keys `overview`, `model`, `column`,
    `dependency` and `skill_use` are still present. To see one project only, agents can
    filter on `project`. The built-in analyst skill shows how.
+
+## What gets published
+
+Six tables in the agents schema. Table names are uppercase. Column names are lowercase,
+except on Snowflake, where both are stored uppercase so unquoted SQL such as
+`SELECT project FROM DBT_MODEL` works on every warehouse. `json` columns are `VARIANT`
+on Snowflake, `JSON` on BigQuery and DuckDB, and JSON text in a `STRING` on Databricks.
+
+Every table except `ROOT` has a `project` column, and a publish replaces only the rows
+for its own `project`. Filter on it to scope a query to one project, or leave it out to
+search all of them.
+
+**`DBT_PROJECT`**: one row per published project.
+
+| Column | Contents |
+| --- | --- |
+| `project` | The `project` key from `agents_schema.yml` (primary key) |
+| `dbt_project_name` | `name` from `dbt_project.yml` |
+| `owner`, `description` | From `agents_schema.yml` |
+| `environment` | The environment used for this publish, for example `prod` |
+| `repo_url`, `git_sha`, `git_branch` | Where the publish came from; `repo_url` drives the ownership guard (exit 4) |
+| `dbt_version`, `manifest_generated_at` | From the manifest |
+| `publisher_version`, `spec_version` | The dbt-agents-schema version and table layout version (`1`) |
+| `published_at` | UTC time of the publish |
+| `model_count`, `column_count`, `dependency_count`, `skill_count` | Rows written |
+
+**`DBT_MODEL`**: one row per published model. Key: `project`, `unique_id`.
+
+| Column | Contents |
+| --- | --- |
+| `unique_id`, `name`, `package_name` | dbt identifiers, for example `model.finance.fct_revenue` |
+| `database_name`, `schema_name`, `alias`, `relation_name` | Where the model is built; `relation_name` is the fully qualified name to query (null for ephemeral models) |
+| `materialization`, `access` | `table`, `view`, `incremental`, ...; `public`, `protected` or `private` |
+| `description` | Model description (empty string when missing) |
+| `file_path` | Path of the model's SQL file in the dbt project |
+| `tags`, `meta` | `json`: the tag array and the model's `meta` |
+
+**`DBT_COLUMN`**: one row per documented column. Key: `project`, `model_id`,
+`column_name`.
+
+| Column | Contents |
+| --- | --- |
+| `model_id` | The parent model's `unique_id` |
+| `column_name`, `data_type`, `description` | From the model's YAML (`data_type` and `description` are empty strings when missing) |
+| `meta` | `json`: the column's `meta` (dbt Fusion also copies the model's `meta` here) |
+
+**`DBT_DEPENDENCY`**: one row per lineage edge into a published model. Key: `project`,
+`upstream_id`, `downstream_id`.
+
+| Column | Contents |
+| --- | --- |
+| `upstream_id`, `downstream_id` | `unique_id`s; the downstream side is always a published model |
+| `upstream_type`, `downstream_type` | `model`, `source`, `seed`, `snapshot`, ...; `downstream_type` is always `model` |
+| `upstream_project` | This project when the upstream node is in the same manifest, else null |
+
+**`SKILL_USE`**: which models and schemas each skill uses (from the skill's `uses`
+front matter). Key: `project`, `skill_key`, `use_kind`, `object_ref`.
+
+| Column | Contents |
+| --- | --- |
+| `skill_key` | The skill's `ROOT` key, for example `skill/finance/revenue_overview` |
+| `use_kind`, `object_ref` | `table` or `schema`, and the reference as written in `uses` (for example `FINANCE_MARTS.FCT_PAYMENTS` or `finance_marts`) |
+| `provider` | Always `dbt` |
+
+**`ROOT`**: text documents for agents, keyed by `provider` (always `dbt` for this tool)
+and `key`; the text is in `content`.
+
+| `key` | Content |
+| --- | --- |
+| `overview`, `project`, `model`, `column`, `dependency`, `skill_use` | A description of each table, shared by every project |
+| `skill/dbt-agents-schema-analyst` | The built-in analyst skill for your warehouse's SQL dialect |
+| `project/<project>` | A markdown overview of one project, with an example query |
+| `skill/<project>/<path>` | One per skill file, `<path>` being its path under `skills_dir` without `.md` |
+
+Only models are published: those in the root project, plus models from installed
+packages when `include_packages` is true. Seeds, sources and snapshots appear only as
+upstream nodes in `DBT_DEPENDENCY`.
+
+Example queries:
+
+```sql
+-- Which projects are published, and when?
+SELECT project, owner, environment, published_at, model_count
+FROM DBT_PROJECT ORDER BY project;
+
+-- Find revenue models across every project
+SELECT project, name, relation_name, description
+FROM DBT_MODEL
+WHERE LOWER(name) LIKE '%revenue%' OR LOWER(description) LIKE '%revenue%';
+
+-- What feeds a model?
+SELECT upstream_id, upstream_type
+FROM DBT_DEPENDENCY
+WHERE project = 'finance' AND downstream_id = 'model.finance.fct_revenue';
+
+-- Read a skill
+SELECT content FROM ROOT WHERE provider = 'dbt' AND key = 'skill/finance/revenue_overview';
+```
 
 ## Warehouse permissions
 

@@ -3,9 +3,9 @@
 Publishes dbt project metadata into a warehouse "agents schema" so many dbt projects can
 share one schema without overwriting each other.
 
-- Contract: docs/SPEC.md — the source of truth. Read the sections a task cites.
-- Work list: docs/PLAN.md
-- Log: docs/PROGRESS.md (append only)
+- Contract: dev/SPEC.md — the source of truth. Read the sections a task cites.
+- Work list: dev/PLAN.md
+- Log: dev/PROGRESS.md (append only)
 
 ## Commands
 
@@ -17,7 +17,7 @@ share one schema without overwriting each other.
 
 ## Work loop (one task at a time)
 
-1. Open docs/PLAN.md and take the first `[ ]` task in the earliest unfinished phase.
+1. Open dev/PLAN.md and take the first `[ ]` task in the earliest unfinished phase.
    Skip `[H]` tasks and tasks that depend on a `[!]` task.
 2. Read the SPEC sections it cites. Write or extend the tests from its **Done when**
    first, run them, and see them fail.

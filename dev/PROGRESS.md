@@ -549,3 +549,9 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 - Why: `v0.2.0` (c69954d) predates the MIT LICENSE, so a partner pinning it got no license file. 0.2.1 is current `main`: LICENSE, README notice (personal, temporary, not an official Fivetran or dbt Labs product), the T33 review guide fixes, and the redaction in this file. No code changes.
 - Changed: version 0.2.1 in `pyproject.toml`, `__init__.py`, `uv.lock`; example callers, partner guide and README pin `v0.2.1`; CHANGELOG 0.2.1 entry. Tests that assert the current version or the example callers moved from `0.2.0` to `0.2.1` (test_cli.py x3, test_init.py::test_examples_match_init_templates, test_ci_github.py example-caller assertions, test_ci_gitlab.py::test_example_caller), with every assertion kept. Tests that pass `0.2.0` as an arbitrary input are unchanged.
 - Governance caller re-pinned from `@v0.2.0` to `@v0.2.1`.
+
+## Repository layout for public use
+- Moved the build kit out of the user-facing tree: `docs/SPEC.md`, `PLAN.md`, `PROGRESS.md`, `GOALS.md` → `dev/`; `scripts/run-phase.sh`, `scripts/run-all.sh` → `dev/scripts/`. Added `dev/README.md` (not needed to use the tool). `CLAUDE.md` and `.claude/` stay at the root because Claude Code loads them from there; their paths now point at `dev/`. Earlier entries in this log keep the old `docs/` paths.
+- README rewritten for users: what it does, quick start, documentation, local demo, development, license.
+- Partner guide: new "What gets published" section (the six tables, their columns and `ROOT` keys, with example queries) replacing SPEC 5 as the user reference; Install now leads with the git install, since the package is not on PyPI.
+- Evidence: `make verify` exit 0 (`812 passed, 18 deselected`). The new section's column names, `ROOT` keys and `SKILL_USE` values were checked against a DuckDB publish from `scripts/demo_duckdb.sh`, and its four example queries run there.

@@ -2,7 +2,7 @@
 
 This is the contract. Code, tests and docs must match it. If something here is wrong or
 impossible, do not silently diverge: record a **SPEC CHANGE PROPOSAL** in
-`docs/PROGRESS.md` and stop that task (see `CLAUDE.md`).
+`dev/PROGRESS.md` and stop that task (see `CLAUDE.md`).
 
 ---
 

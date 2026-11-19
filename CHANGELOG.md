@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/). The agents schema contract has its own
-integer `spec_version` (docs/SPEC.md section 11).
+integer `spec_version` (dev/SPEC.md section 11).
 
 ## 0.2.1 — 2026-11-19
 
@@ -100,6 +100,6 @@ First release. Spec version 1.
 
 ### Known deviations awaiting approval
 
-- SPEC CHANGE PROPOSALS A–D in `docs/PROGRESS.md`: the `schema` key for
+- SPEC CHANGE PROPOSALS A–D in `dev/PROGRESS.md`: the `schema` key for
   `write-parse-profile`, the GitLab File-type credentials variable, the GitLab `mode: auto`
   input, and uppercase Snowflake column names.

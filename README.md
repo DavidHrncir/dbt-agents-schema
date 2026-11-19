@@ -7,62 +7,84 @@
 > tag (such as `@v0.2.1`) and keep your own fork. Provided "as is" under the
 > [MIT License](LICENSE), with no warranty.
 
-Publishes dbt project metadata into a warehouse agents schema, so many dbt projects can
-share one schema without overwriting each other. Works with dbt v1, dbt v2 (Fusion) and
-dbt platform projects, from GitHub Actions or GitLab CI.
+Publishes dbt project metadata (models, columns, lineage and markdown skills) into an
+**agents schema** in your warehouse, so AI agents can find and query your data with
+plain SQL.
 
-**Using the tool?** Read the partner guide: [`docs/partner-guide.md`](docs/partner-guide.md).
-It covers install, configuration, GitHub and GitLab setup, the developer workflow, dbt
-platform projects, migrating from the dbt Labs tool, warehouse permissions and
-troubleshooting.
+Many dbt projects can share one agents schema. Every row carries a `project` key, and
+each publish replaces only its own project's rows, so finance, marketing and any other
+project publish side by side without overwriting each other. The table and column names
+match the dbt Labs `agents_schema` tool, so agents built for it keep working and now see
+every project.
 
-**This repository is also a build kit.** It holds the contract and plan that Claude Code
-works through to build the tool.
+- **Warehouses:** Snowflake, BigQuery, Databricks; DuckDB for local use and demos.
+- **dbt:** dbt v1 (dbt-core), dbt v2 (Fusion) and dbt platform projects. It reads only
+  `target/manifest.json`.
+- **CI:** a reusable GitHub Actions workflow and a GitLab CI template. Pull requests run
+  checks that annotate the diff; merges to `main` publish.
+- **Checks:** missing descriptions, sample data or row counts written into descriptions,
+  skills that reference tables that don't exist, and a manifest parsed against the wrong
+  target. Each rule's severity is configurable.
 
-| File | What it is |
-| --- | --- |
-| `docs/partner-guide.md` | Partner-facing guide: install, config reference, CI setup, troubleshooting |
-| `docs/SPEC.md` | The contract: config, credentials, tables, publish algorithm, CLI, checks, CI wrappers |
-| `docs/PLAN.md` | 29 tasks in 6 phases, each with testable **Done when** criteria |
-| `docs/GOALS.md` | One `/goal` line per phase, ready to paste |
-| `docs/PROGRESS.md` | Log Claude appends to after every task; read it between phases |
-| `CLAUDE.md` | Operating rules Claude Code loads every session |
-| `.claude/settings.json` | Pre-approved commands; blocks history rewrites, curl, and reading secrets |
-| `.claude/agents/spec-reviewer.md` | Fresh-context reviewer run at the end of each phase |
-| `.claude/skills/next-task/` | `/next-task`: do exactly one task and commit it |
-| `scripts/run-phase.sh`, `scripts/run-all.sh` | Headless runners with logs |
+## Quick start
 
-## Before you start
+Install from a release tag, with the extra for your warehouse:
 
-- Claude Code v2.1.259 or later (`claude --version`; `claude update`).
-- Python 3.11+, [`uv`](https://docs.astral.sh/uv/), `make`, `git`, and `jq` (for the
-  headless scripts).
-- Network access to PyPI (dependencies and dbt for fixtures).
-- Create the repo where it will live, push this folder, and work on a branch:
-  `git switch -c build/v0.1`.
+```bash
+pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.1"
+# or [bigquery], [databricks], [duckdb]
+```
 
-## Run it
+In your dbt project root (next to `dbt_project.yml`):
 
-1. Open the folder in VS Code and start Claude Code in the integrated terminal:
-   `claude`. Accept the workspace trust prompt (it enables the project settings,
-   skill and subagent).
-2. Switch to auto mode with `Shift+Tab` if it is not already on.
-3. Paste the Phase 0 line from `docs/GOALS.md`. Watch this phase: it sets up tooling and
-   fixtures, and is where environment problems surface.
-4. When it finishes, review `docs/PROGRESS.md` and `git log --oneline`. Then for each
-   later phase, run `/clear` and paste the next goal, or go fully unattended:
-   `bash scripts/run-all.sh 1 5`. That runs each phase in a fresh session and stops at
-   the first blocked task, spec proposal, or failing `make verify`.
+```bash
+dbt-agents-schema init --ci github    # writes agents_schema.yml, an example skill and the CI caller
+dbt parse
+dbt-agents-schema check               # validate config, manifest and skills
+dbt-agents-schema publish --env dev --dry-run
+dbt-agents-schema publish --env dev   # writes to your own <target schema>_AGENTS schema
+```
 
-Stop points worth reading before continuing:
+For CI, add a `parse_target` (your production database and schema) to the `prod`
+environment in `agents_schema.yml`, set the `WAREHOUSE_CREDENTIALS` secret, and commit.
+Pull requests then run the checks, and merges publish to the shared `prod` agents schema.
+The partner guide's GitHub and GitLab setup sections walk through both steps.
 
-- **After Phase 2.** `tests/acceptance/test_multi_project.py` proves that many projects
-  can share one schema, on DuckDB. This is the core promise to partners.
-- **After Phase 3.** Run the live warehouse tests yourself (task H1): set
-  `LIVE_SNOWFLAKE_CREDENTIALS` (and the BigQuery or Databricks equivalents) and run
-  `make test-live`.
-- **Any `[!]` task or SPEC CHANGE PROPOSAL.** Decide, edit `docs/SPEC.md` yourself,
-  change the task back to `[ ]`, and rerun the phase.
+## Documentation
 
-To cap spend on headless runs, set `MAX_BUDGET_USD=20 bash scripts/run-phase.sh 3`.
-Logs land in `logs/`.
+The **[partner guide](docs/partner-guide.md)** covers everything needed to run it:
+
+- install and configuration reference (`agents_schema.yml`)
+- GitHub and GitLab setup, and the production parse target
+- the developer workflow and dbt platform projects
+- what gets published: every table and column, with example queries
+- migrating from the dbt Labs tool, and warehouse permissions
+- troubleshooting by exit code
+
+Release notes are in [CHANGELOG.md](CHANGELOG.md).
+
+## Try it locally
+
+No warehouse needed. This publishes two example projects into a DuckDB file and queries
+them:
+
+```bash
+git clone https://github.com/DavidHrncir/dbt-agents-schema && cd dbt-agents-schema
+make install
+bash scripts/demo_duckdb.sh
+```
+
+## Development
+
+```bash
+make install   # create the environment (uv)
+make verify    # lint, typecheck, tests and CI-file validation
+```
+
+The [`dev/`](dev/README.md) folder, `CLAUDE.md` and `.claude/` hold the specification,
+plan and build log used to develop this project with Claude Code. They are not needed
+to use it.
+
+## License
+
+[MIT](LICENSE)
