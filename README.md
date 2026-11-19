@@ -65,14 +65,26 @@ Release notes are in [CHANGELOG.md](CHANGELOG.md).
 
 ## Try it locally
 
-No warehouse needed. This publishes two example projects into a DuckDB file and queries
-them:
+No warehouse needed. Two demos run against a local DuckDB file:
 
 ```bash
 git clone https://github.com/DavidHrncir/dbt-agents-schema && cd dbt-agents-schema
 make install
-bash scripts/demo_duckdb.sh
+bash scripts/demo_duckdb.sh          # publish two projects, then query them as an agent would
+bash scripts/demo_multi_project.sh   # check the sharing guarantees step by step
 ```
+
+`demo_duckdb.sh` publishes a finance and a marketing project to `prod`, and finance to a
+developer's own schema. It then reads the built-in analyst skill from the schema and runs
+three of its queries, including lineage that crosses both projects.
+
+`demo_multi_project.sh` walks through what makes sharing safe, and fails if any of it
+does not hold:
+
+1. A dry run connects to nothing.
+2. Republishing one project leaves the other's rows byte-identical.
+3. A second repository publishing under the same project key is refused (exit 4).
+4. Unpublishing one project leaves the rest untouched.
 
 ## Development
 

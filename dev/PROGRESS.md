@@ -559,3 +559,8 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 ## release: 0.2.2
 - Why: `v0.2.1` predates the repository layout change, the new README and the partner guide's "What gets published" section. 0.2.2 tags current `main`. No code changes.
 - Changed: version 0.2.2 in `pyproject.toml`, `__init__.py`, `uv.lock`; example callers, partner guide and README pin `v0.2.2`; CHANGELOG 0.2.2 entry. The same version assertions as 0.2.1 moved to `0.2.2` (test_cli.py x3, test_init.py::test_examples_match_init_templates, test_ci_github.py and test_ci_gitlab.py example-caller assertions), with every assertion kept.
+
+## Second demo: `scripts/demo_multi_project.sh`
+- Added: `scripts/demo_multi_project.sh` (dry run creates nothing; finance and marketing share `AGENTS`; republishing finance as finance_v2 leaves marketing byte-identical; another repository publishing as `finance` exits 4; unpublishing marketing leaves finance byte-identical) and `tests/test_demo_multi_project.py`. README "Try it locally" lists both demos; CHANGELOG has an Unreleased entry.
+- "Byte-identical" is an MD5 over every row a project owns in all six tables. The script sets `GITHUB_REPOSITORY` itself, so `repo_url` and the ownership guard behave the same in any checkout, fork or CI runner (with no remote, `repo_url` would be null and the guard would not fire).
+- Evidence: `tests/test_demo_multi_project.py::test_demo_exits_zero_and_every_guarantee_holds` and `::test_demo_leaves_the_checkout_clean` pass. A copy with step 3 changed to republish marketing exits 1 with "FAILED: marketing's rows changed", so the check does fail when the guarantee is broken.

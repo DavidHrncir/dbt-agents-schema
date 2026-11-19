@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/). The agents schema contract has its own
 integer `spec_version` (dev/SPEC.md section 11).
 
+## Unreleased
+
+### Added
+
+- `scripts/demo_multi_project.sh`: a second DuckDB demo that checks the sharing
+  guarantees with the real CLI. A dry run connects to nothing; republishing or
+  unpublishing one project leaves another's rows byte-identical (an MD5 fingerprint
+  over all six tables); another repository using the same project key is refused with
+  exit 4. It exits non-zero if any guarantee fails, and runs in `make verify`.
+
 ## 0.2.2 — 2026-11-19
 
 Spec version 1 (unchanged). Documentation and repository layout only; no code or
