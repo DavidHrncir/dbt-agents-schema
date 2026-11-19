@@ -268,7 +268,7 @@ updated. Each task cites the SPEC sections that proposal changes.
   fixture description now produces a warning that breaks an existing assertion, stop and
   log it in PROGRESS.md instead of editing the assertion.
 
-- [ ] **T34 GitHub reusable workflow and caller.** Per SPEC 10 and 10.1: `warehouse`,
+- [x] **T34 GitHub reusable workflow and caller.** Per SPEC 10 and 10.1: `warehouse`,
   `dbt-engine`, `dbt-fusion-version`, `package-spec`, `parse-env`, `PACKAGE_REPO_TOKEN`,
   the new profile, parse, check and dry-run steps; update
   `examples/github/agents-schema.yml` and `init --ci github` to the new caller.

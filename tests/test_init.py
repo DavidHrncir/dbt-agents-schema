@@ -155,11 +155,11 @@ def test_init_invalid_dbt_name_leaves_project_unset(
 
 
 def test_examples_match_init_templates() -> None:
-    for ci, example in (
-        ("github", ROOT / "examples/github/agents-schema.yml"),
-        ("gitlab", ROOT / "examples/gitlab/.gitlab-ci.yml"),
+    for ci, example, version in (
+        ("github", ROOT / "examples/github/agents-schema.yml", "0.2.0"),
+        ("gitlab", ROOT / "examples/gitlab/.gitlab-ci.yml", "0.1.0"),
     ):
-        assert render_caller(ci, version="0.1.0", adapter="dbt-snowflake") == example.read_text()
+        assert render_caller(ci, version=version, adapter="dbt-snowflake") == example.read_text()
 
 
 def test_pre_commit_hook_definition() -> None:

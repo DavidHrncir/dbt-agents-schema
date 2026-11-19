@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/). The agents schema contract has its own
 integer `spec_version` (docs/SPEC.md section 11).
 
+## 0.2.0 — unreleased
+
+### Changed
+
+- GitHub reusable workflow: dbt Fusion is the default engine (`dbt-engine: fusion`),
+  pinned to `dbt-fusion-version` (default `2.0.0`). Set `dbt-engine: core` for the v0.1
+  behaviour.
+
 ## 0.1.0 — 2026-11-18
 
 First release. Spec version 1.

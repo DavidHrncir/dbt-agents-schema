@@ -61,6 +61,7 @@ def render_caller(ci: str, *, version: str, adapter: str) -> str:
         _template(f"{ci}.yml")
         .replace("@PACKAGE_VERSION@", version)
         .replace("@DBT_ADAPTER@", adapter)
+        .replace("@WAREHOUSE@", adapter.removeprefix("dbt-"))
     )
 
 
