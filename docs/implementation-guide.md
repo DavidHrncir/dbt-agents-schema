@@ -16,8 +16,9 @@ any number of dbt projects (finance, marketing, ...) can publish into one agents
 
 - Warehouses: Snowflake, BigQuery, Databricks. (DuckDB also works, for trying it
   locally.)
-- dbt runtimes: dbt v1 (dbt-core), dbt v2 (Fusion) and dbt platform. The tool reads
-  only `manifest.json`.
+- dbt runtimes: dbt v1 (dbt-core), dbt v2 (Fusion) and dbt platform. CI runs
+  `dbt parse` to build a fresh `manifest.json` on every run, so the manifest never has
+  to be committed. Locally, run `dbt parse` yourself, or pass `check --parse`.
 - CI: a reusable GitHub Actions workflow and a GitLab CI template. Both are thin
   wrappers around the CLI.
 - A built-in analyst skill (`skill/dbt-agents-schema-analyst` in `ROOT`) teaches agents

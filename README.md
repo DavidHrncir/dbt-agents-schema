@@ -16,8 +16,9 @@ your project's metadata on every pull request, and publishes it to the agents sc
 every merge. You choose the warehouse and the schema name.
 
 - **Warehouses:** Snowflake, BigQuery or Databricks.
-- **dbt:** dbt v1 (dbt-core), dbt v2 (Fusion) and dbt platform projects. It reads only
-  `target/manifest.json`.
+- **dbt:** dbt v1 (dbt-core), dbt v2 (Fusion) and dbt platform projects. CI runs
+  `dbt parse` to build a fresh `manifest.json` on every run, so the manifest never has to
+  be committed to your repository.
 - **CI:** a reusable GitHub Actions workflow and a GitLab CI template. Pull requests run
   checks that annotate the diff; merges to `main` publish.
 - **Checks:** missing descriptions, sample data or row counts written into descriptions,
