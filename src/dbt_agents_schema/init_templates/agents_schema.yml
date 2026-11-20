@@ -1,4 +1,4 @@
-# dbt-agents-schema config. Every key is described in the partner guide.
+# dbt-agents-schema config. Every key is described in the implementation guide.
 # Validated by `dbt-agents-schema check` and before every publish.
 version: 1
 @PROJECT_LINE@

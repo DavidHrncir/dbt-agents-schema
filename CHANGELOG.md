@@ -14,6 +14,14 @@ integer `spec_version` (dev/SPEC.md section 11).
   over all six tables); another repository using the same project key is refused with
   exit 4. It exits non-zero if any guarantee fails, and runs in `make verify`.
 
+### Changed
+
+- The partner guide is now the implementation guide: `docs/implementation-guide.md`.
+- README and guide rewritten for teams adding an agents schema to their own dbt project.
+  The install explains that one package serves every warehouse, and the bracketed name
+  only adds that warehouse's driver. "Migrating from the dbt Labs tool" moved to the end
+  of the guide, marked optional.
+
 ## 0.2.2 — 2026-11-19
 
 Spec version 1 (unchanged). Documentation and repository layout only; no code or

@@ -1,4 +1,4 @@
-"""T27: the partner guide covers every CLI flag and config key, and its config reference
+"""T27: the implementation guide covers every CLI flag and config key, and its config reference
 is generated from the JSON Schema without drift."""
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import pytest
 from dbt_agents_schema.cli import build_parser
 
 ROOT = Path(__file__).resolve().parents[1]
-GUIDE = ROOT / "docs" / "partner-guide.md"
+GUIDE = ROOT / "docs" / "implementation-guide.md"
 README = ROOT / "README.md"
 SCHEMA = ROOT / "src" / "dbt_agents_schema" / "schemas" / "agents_schema.schema.json"
 GENERATOR = ROOT / "scripts" / "gen_config_reference.py"
@@ -68,7 +68,7 @@ def _schema_key_paths() -> list[str]:
 
 def test_guide_exists_and_readme_points_to_it() -> None:
     assert GUIDE.is_file()
-    assert "docs/partner-guide.md" in README.read_text(encoding="utf-8")
+    assert "docs/implementation-guide.md" in README.read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(

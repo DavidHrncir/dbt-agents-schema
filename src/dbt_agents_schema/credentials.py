@@ -88,7 +88,7 @@ def from_env(environ: Mapping[str, str]) -> Connection:
     if text is None or not text.strip():
         raise CredentialError(
             f"{ENV_VAR} is not set; set it to a YAML or JSON mapping with `type` and the "
-            "connection keys for your warehouse (see the partner guide), or use "
+            "connection keys for your warehouse (see the implementation guide), or use "
             "`credentials: dbt_profile` for this environment"
         )
     try:

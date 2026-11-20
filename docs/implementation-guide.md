@@ -1,21 +1,21 @@
-# dbt-agents-schema partner guide
+# dbt-agents-schema implementation guide
 
-This guide covers dbt-agents-schema 0.2.2 (spec v1). It is for teams that publish dbt
-project metadata so AI agents can use it.
+This guide covers dbt-agents-schema 0.2.2 (spec v1). It is for teams adding an agents
+schema to their own dbt project, so AI agents can find and query their data.
 
 ## What it does
 
 `dbt-agents-schema` reads a dbt project's `target/manifest.json` and its markdown skill
 files, then writes them into an **agents schema** in your warehouse: `ROOT`,
-`DBT_PROJECT`, `DBT_MODEL`, `DBT_COLUMN`, `DBT_DEPENDENCY` and `SKILL_USE`. Agents
-query those tables with plain SQL to find models, columns, lineage and skills.
+`DBT_PROJECT`, `DBT_MODEL`, `DBT_COLUMN`, `DBT_DEPENDENCY` and `SKILL_USE`. You choose
+the schema's name and the warehouse. Agents query those tables with plain SQL to find
+models, columns, lineage and skills.
 
 Every row has a `project` key. Each publish replaces **only its own project's rows**, so
-any number of dbt projects (finance, marketing, ...) can share one agents schema. The
-table and column names match the dbt Labs `agents_schema` tool, so existing agents and
-its analyst skill keep working. They just see every project.
+any number of dbt projects (finance, marketing, ...) can publish into one agents schema.
 
-- Warehouses: Snowflake, BigQuery, Databricks. DuckDB works for local use and demos.
+- Warehouses: Snowflake, BigQuery, Databricks. (DuckDB also works, for trying it
+  locally.)
 - dbt runtimes: dbt v1 (dbt-core), dbt v2 (Fusion) and dbt platform. The tool reads
   only `manifest.json`.
 - CI: a reusable GitHub Actions workflow and a GitLab CI template. Both are thin
@@ -32,21 +32,24 @@ completes the swap.
 
 ## Install
 
-Python 3.11 or later. The package is not on PyPI; install it from git at a release tag,
-with the extra for your warehouse:
+Python 3.11 or later. The package is not on PyPI; install it from git at a release tag.
+It is one package for every warehouse. The name in brackets adds the driver for the
+warehouse you publish to:
 
 ```bash
 pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.2"
-# or [bigquery], [databricks], [duckdb]
+# or [bigquery] or [databricks]; for more than one: [snowflake,bigquery]
 dbt-agents-schema --version
 ```
+
+You install it locally to set up your dbt project and to check and publish to your own
+development schema. CI installs it by itself; nothing on the runner needs setting up.
 
 If you mirror the package into your own index, `pip install "dbt-agents-schema[snowflake]==0.2.2"`
 works the same way.
 
-If the extra is missing, the CLI exits 2 and prints the `pip install` command to run.
-The command is `dbt-agents-schema`. It does not clash with the dbt Labs `agents-schema`
-command, so both can be installed side by side.
+If the driver for your warehouse is missing, the CLI exits 2 and prints the `pip install`
+command to run.
 
 To set up a project, run this in the dbt project root (next to `dbt_project.yml`):
 
@@ -157,8 +160,7 @@ fails when it is stale.
 config error. `target_schema` and `target_database` come from your dbt profile, so they
 only work with `credentials: dbt_profile`. On Snowflake, rendered values are uppercased.
 
-**Credentials: `env`.** Reads `WAREHOUSE_CREDENTIALS`, a YAML or JSON mapping. The
-shapes are the same as the dbt Labs tool, so existing CI secrets carry over:
+**Credentials: `env`.** Reads `WAREHOUSE_CREDENTIALS`, a YAML or JSON mapping:
 
 | Warehouse | Keys |
 | --- | --- |
@@ -503,27 +505,6 @@ host.
 Choose a job that runs on your production environment and generates docs or runs
 `dbt build`, so the manifest matches what is deployed.
 
-## Migrating from the dbt Labs tool
-
-1. **Credentials.** Keep your `WAREHOUSE_CREDENTIALS` secret. The shapes are identical.
-2. **Config.** Run `dbt-agents-schema init`, set `project` (defaults to the dbt project
-   name) and point the `prod` environment at your existing agents schema.
-3. **Skills.** Keep your skill files in `agents/skills/`. The front matter convention
-   (`uses.schemas`, `uses.tables`) is the same. Run `dbt-agents-schema check`. It now
-   fails on `uses` entries that match no published model (`skill_unresolved_uses`). Add
-   schemas dbt does not build to `check.external_schemas`.
-4. **First publish.** The first publish migrates the tables in place. It runs
-   `ALTER TABLE ... ADD COLUMN` for the new columns (`project`, `package_name`, `alias`,
-   ...) and creates `DBT_PROJECT`. It never drops a table or column. Rows the dbt Labs
-   tool wrote have `project IS NULL`. They are removed on the first publish, and the
-   report shows how many. Each project then re-publishes its own rows.
-5. **Switch every project.** Once a schema is migrated, stop running the dbt Labs tool
-   against it. That tool recreates the tables, which drops the new columns and every
-   other project's rows. Remove its CI job in the same change that adds this one.
-6. **Agents.** No change needed. The `ROOT` keys `overview`, `model`, `column`,
-   `dependency` and `skill_use` are still present. To see one project only, agents can
-   filter on `project`. The built-in analyst skill shows how.
-
 ## What gets published
 
 Six tables in the agents schema. Table names are uppercase. Column names are lowercase,
@@ -740,3 +721,27 @@ or a response that is not a manifest.
   [Migrating from the dbt Labs tool](#migrating-from-the-dbt-labs-tool).
 - **Databricks `ConcurrentAppendException` in logs.** Two publishes collided. The swap
   is retried automatically. Serialise publishes with `concurrency` or `resource_group`.
+
+## Migrating from the dbt Labs tool
+
+Skip this section unless a schema was already filled by the dbt Labs `agents_schema`
+tool. Starting fresh needs none of it.
+
+1. **Credentials.** Keep your `WAREHOUSE_CREDENTIALS` secret. The shapes are identical.
+2. **Config.** Run `dbt-agents-schema init`, set `project` (defaults to the dbt project
+   name) and point the `prod` environment at your existing agents schema.
+3. **Skills.** Keep your skill files in `agents/skills/`. The front matter convention
+   (`uses.schemas`, `uses.tables`) is the same. Run `dbt-agents-schema check`. It now
+   fails on `uses` entries that match no published model (`skill_unresolved_uses`). Add
+   schemas dbt does not build to `check.external_schemas`.
+4. **First publish.** The first publish migrates the tables in place. It runs
+   `ALTER TABLE ... ADD COLUMN` for the new columns (`project`, `package_name`, `alias`,
+   ...) and creates `DBT_PROJECT`. It never drops a table or column. Rows the dbt Labs
+   tool wrote have `project IS NULL`. They are removed on the first publish, and the
+   report shows how many. Each project then re-publishes its own rows.
+5. **Switch every project.** Once a schema is migrated, stop running the dbt Labs tool
+   against it. That tool recreates the tables, which drops the new columns and every
+   other project's rows. Remove its CI job in the same change that adds this one.
+6. **Agents.** No change needed. The `ROOT` keys `overview`, `model`, `column`,
+   `dependency` and `skill_use` are still present. To see one project only, agents can
+   filter on `project`. The built-in analyst skill shows how.

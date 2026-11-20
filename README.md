@@ -11,13 +11,11 @@ Publishes dbt project metadata (models, columns, lineage and markdown skills) in
 **agents schema** in your warehouse, so AI agents can find and query your data with
 plain SQL.
 
-Many dbt projects can share one agents schema. Every row carries a `project` key, and
-each publish replaces only its own project's rows, so finance, marketing and any other
-project publish side by side without overwriting each other. The table and column names
-match the dbt Labs `agents_schema` tool, so agents built for it keep working and now see
-every project.
+You add it to your existing dbt project. It sets up the config and the CI job, checks
+your project's metadata on every pull request, and publishes it to the agents schema on
+every merge. You choose the warehouse and the schema name.
 
-- **Warehouses:** Snowflake, BigQuery, Databricks; DuckDB for local use and demos.
+- **Warehouses:** Snowflake, BigQuery or Databricks.
 - **dbt:** dbt v1 (dbt-core), dbt v2 (Fusion) and dbt platform projects. It reads only
   `target/manifest.json`.
 - **CI:** a reusable GitHub Actions workflow and a GitLab CI template. Pull requests run
@@ -25,47 +23,56 @@ every project.
 - **Checks:** missing descriptions, sample data or row counts written into descriptions,
   skills that reference tables that don't exist, and a manifest parsed against the wrong
   target. Each rule's severity is configurable.
+- **Many projects, one schema:** each publish replaces only its own project's rows, so
+  several dbt projects can share one agents schema.
 
 ## Quick start
 
-Install from a release tag, with the extra for your warehouse:
+**1. Install.** One package for every warehouse. The name in brackets adds the driver
+for the warehouse you publish to:
 
 ```bash
 pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.2"
-# or [bigquery], [databricks], [duckdb]
+# or [bigquery] or [databricks]
 ```
 
-In your dbt project root (next to `dbt_project.yml`):
+**2. Set up your dbt project.** In the project root (next to `dbt_project.yml`):
 
 ```bash
-dbt-agents-schema init --ci github    # writes agents_schema.yml, an example skill and the CI caller
+dbt-agents-schema init --ci github    # or --ci gitlab; writes agents_schema.yml, an example skill and the CI job
 dbt parse
 dbt-agents-schema check               # validate config, manifest and skills
-dbt-agents-schema publish --env dev --dry-run
-dbt-agents-schema publish --env dev   # writes to your own <target schema>_AGENTS schema
 ```
 
-For CI, add a `parse_target` (your production database and schema) to the `prod`
-environment in `agents_schema.yml`, set the `WAREHOUSE_CREDENTIALS` secret, and commit.
-Pull requests then run the checks, and merges publish to the shared `prod` agents schema.
-The partner guide's GitHub and GitLab setup sections walk through both steps.
+**3. Try a publish to your own development schema** (optional):
+
+```bash
+dbt-agents-schema publish --env dev --dry-run   # shows what would be written; connects to nothing
+dbt-agents-schema publish --env dev
+```
+
+**4. Turn on CI.** In `agents_schema.yml`, pick the `prod` schema name (default `AGENTS`), add
+a `parse_target` (your production database and schema), add a `WAREHOUSE_CREDENTIALS`
+secret to the repository, and commit. Pull requests then run the checks, and merges to
+`main` publish. CI installs the package by itself.
 
 ## Documentation
 
-The **[partner guide](docs/partner-guide.md)** covers everything needed to run it:
+The **[implementation guide](docs/implementation-guide.md)** covers:
 
 - install and configuration reference (`agents_schema.yml`)
 - GitHub and GitLab setup, and the production parse target
 - the developer workflow and dbt platform projects
 - what gets published: every table and column, with example queries
-- migrating from the dbt Labs tool, and warehouse permissions
+- warehouse permissions
 - troubleshooting by exit code
 
 Release notes are in [CHANGELOG.md](CHANGELOG.md).
 
-## Try it locally
+## Try it without a warehouse
 
-No warehouse needed. Two demos run against a local DuckDB file:
+Optional. Two demos publish sample projects to a local DuckDB file, so you can see what
+the tool does before wiring it into your own project:
 
 ```bash
 git clone https://github.com/DavidHrncir/dbt-agents-schema && cd dbt-agents-schema

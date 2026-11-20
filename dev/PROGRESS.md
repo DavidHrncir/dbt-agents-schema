@@ -564,3 +564,17 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 - Added: `scripts/demo_multi_project.sh` (dry run creates nothing; finance and marketing share `AGENTS`; republishing finance as finance_v2 leaves marketing byte-identical; another repository publishing as `finance` exits 4; unpublishing marketing leaves finance byte-identical) and `tests/test_demo_multi_project.py`. README "Try it locally" lists both demos; CHANGELOG has an Unreleased entry.
 - "Byte-identical" is an MD5 over every row a project owns in all six tables. The script sets `GITHUB_REPOSITORY` itself, so `repo_url` and the ownership guard behave the same in any checkout, fork or CI runner (with no remote, `repo_url` would be null and the guard would not fire).
 - Evidence: `tests/test_demo_multi_project.py::test_demo_exits_zero_and_every_guarantee_holds` and `::test_demo_leaves_the_checkout_clean` pass. A copy with step 3 changed to republish marketing exits 1 with "FAILED: marketing's rows changed", so the check does fail when the guarantee is broken.
+
+## Docs: implementation guide and README for first-time users (2026-11-20)
+
+- Renamed `docs/partner-guide.md` to `docs/implementation-guide.md` and
+  `tests/test_partner_guide.py` to `tests/test_implementation_guide.py`. Only the path
+  and wording changed; every assertion is kept. Updated the path in the Makefile, the
+  config-reference generator, the credentials error message and the `init` template.
+- README: intro aimed at teams adding the tool to their own dbt project; no reference to
+  earlier agents schema tools; DuckDB moved out of the warehouse list into the optional
+  "Try it without a warehouse" section; the quick start is four numbered steps and says
+  one package serves every warehouse.
+- Guide: intro and install reworded the same way; "Migrating from the dbt Labs tool" kept
+  (a test requires the section) but moved to the end and marked optional.
+- Evidence: `make verify` exit 0, 814 passed, 18 deselected.

@@ -34,7 +34,7 @@ endif
 		echo "actionlint not installed; skipping"; \
 	fi
 
-# The config reference in docs/partner-guide.md is generated from the JSON Schema.
+# The config reference in docs/implementation-guide.md is generated from the JSON Schema.
 docs-check:
 	uv run python scripts/gen_config_reference.py --check
 
