@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dbt-agents-schema"
-version = "0.2.2"
+version = "0.2.3"
 description = "Publish dbt project metadata into a shared warehouse agents schema."
 readme = "README.md"
 license = "MIT"

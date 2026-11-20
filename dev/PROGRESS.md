@@ -578,3 +578,11 @@ Blocked tasks and spec proposals use these headings so they are easy to find:
 - Guide: intro and install reworded the same way; "Migrating from the dbt Labs tool" kept
   (a test requires the section) but moved to the end and marked optional.
 - Evidence: `make verify` exit 0, 814 passed, 18 deselected.
+
+## Release 0.2.3 (2026-11-20)
+
+- Version 0.2.3 in `pyproject.toml`, `__init__.py`, `uv.lock`, the example callers, the
+  README and the implementation guide; version tests bumped with every assertion kept.
+- CHANGELOG "Unreleased" became 0.2.3: the multi-project demo, the implementation guide
+  rename, and the README rewrite.
+- Evidence: `make verify` exit 0, 814 passed, 18 deselected.

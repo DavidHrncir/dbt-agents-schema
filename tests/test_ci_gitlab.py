@@ -228,8 +228,8 @@ def test_every_input_is_used() -> None:
 def test_example_caller() -> None:
     (caller,) = documents(CALLER)
     (include,) = caller["include"]
-    assert include["remote"].endswith("/v0.2.2/templates/gitlab/dbt-agents-schema.yml")
-    assert include["inputs"]["package_version"] == "0.2.2"
+    assert include["remote"].endswith("/v0.2.3/templates/gitlab/dbt-agents-schema.yml")
+    assert include["inputs"]["package_version"] == "0.2.3"
     assert include["inputs"]["warehouse"] == "snowflake"
     header, _ = template()
     assert set(include["inputs"]) <= set(header["spec"]["inputs"])

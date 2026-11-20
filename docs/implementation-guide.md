@@ -1,6 +1,6 @@
 # dbt-agents-schema implementation guide
 
-This guide covers dbt-agents-schema 0.2.2 (spec v1). It is for teams adding an agents
+This guide covers dbt-agents-schema 0.2.3 (spec v1). It is for teams adding an agents
 schema to their own dbt project, so AI agents can find and query their data.
 
 ## What it does
@@ -38,7 +38,7 @@ It is one package for every warehouse. The name in brackets adds the driver for 
 warehouse you publish to:
 
 ```bash
-pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.2"
+pip install "dbt-agents-schema[snowflake] @ git+https://github.com/DavidHrncir/dbt-agents-schema@v0.2.3"
 # or [bigquery] or [databricks]; for more than one: [snowflake,bigquery]
 dbt-agents-schema --version
 ```
@@ -46,7 +46,7 @@ dbt-agents-schema --version
 You install it locally to set up your dbt project and to check and publish to your own
 development schema. CI installs it by itself; nothing on the runner needs setting up.
 
-If you mirror the package into your own index, `pip install "dbt-agents-schema[snowflake]==0.2.2"`
+If you mirror the package into your own index, `pip install "dbt-agents-schema[snowflake]==0.2.3"`
 works the same way.
 
 If the driver for your warehouse is missing, the CLI exits 2 and prints the `pip install`
@@ -343,12 +343,12 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   agents-schema:
-    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.2.2
+    uses: DavidHrncir/dbt-agents-schema/.github/workflows/dbt-agents-schema.yml@v0.2.3
     with:
       mode: ${{ github.event_name == 'pull_request' && 'check' || 'publish' }}
       environment: prod
       warehouse: snowflake
-      package-version: "0.2.2"
+      package-version: "0.2.3"
     secrets:
       WAREHOUSE_CREDENTIALS: ${{ secrets.WAREHOUSE_CREDENTIALS }}
 ```
@@ -428,15 +428,15 @@ works, but it now parses with dbt Fusion; set `dbt-engine: core` to keep dbt-cor
 
 ```yaml
 include:
-  - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v0.2.2/templates/gitlab/dbt-agents-schema.yml
+  - remote: https://raw.githubusercontent.com/DavidHrncir/dbt-agents-schema/v0.2.3/templates/gitlab/dbt-agents-schema.yml
     inputs:
-      package_version: "0.2.2"
+      package_version: "0.2.3"
       warehouse: snowflake
       environment: prod
       # dbt_engine: core
 ```
 
-You can also use `include: project:` with `ref: v0.2.2` and
+You can also use `include: project:` with `ref: v0.2.3` and
 `file: templates/gitlab/dbt-agents-schema.yml`, or copy the template into your repository
 and use `include: local:`. The template does not use the GitLab CI/CD Catalog.
 
@@ -459,7 +459,7 @@ one publish runs at a time.
 ```yaml
 repos:
   - repo: https://github.com/DavidHrncir/dbt-agents-schema
-    rev: v0.2.2
+    rev: v0.2.3
     hooks:
       - id: dbt-agents-schema-check
         additional_dependencies: ["dbt-core>=1.8,<2", "dbt-snowflake"]

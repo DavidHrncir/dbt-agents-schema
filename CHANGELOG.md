@@ -4,7 +4,11 @@ All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/). The agents schema contract has its own
 integer `spec_version` (dev/SPEC.md section 11).
 
-## Unreleased
+## 0.2.3 — 2026-11-20
+
+Spec version 1 (unchanged). Documentation and demos only; no code or behaviour changes
+from 0.2.2 beyond the guide's new path in one error message and the `init` template
+comment.
 
 ### Added
 
@@ -21,6 +25,9 @@ integer `spec_version` (dev/SPEC.md section 11).
   The install explains that one package serves every warehouse, and the bracketed name
   only adds that warehouse's driver. "Migrating from the dbt Labs tool" moved to the end
   of the guide, marked optional.
+- README and guide: CI runs `dbt parse` to build a fresh `manifest.json`, so the
+  manifest never has to be committed.
+- Example callers and the implementation guide pin `v0.2.3`.
 
 ## 0.2.2 — 2026-11-19
 

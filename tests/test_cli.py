@@ -11,11 +11,11 @@ def test_version_flag_prints_version(capsys: pytest.CaptureFixture[str]) -> None
     with pytest.raises(SystemExit) as exc:
         main(["--version"])
     assert exc.value.code == 0
-    assert capsys.readouterr().out.strip() == "0.2.2"
+    assert capsys.readouterr().out.strip() == "0.2.3"
 
 
 def test_version_constant() -> None:
-    assert __version__ == "0.2.2"
+    assert __version__ == "0.2.3"
 
 
 def test_version_via_module() -> None:
@@ -25,4 +25,4 @@ def test_version_via_module() -> None:
         text=True,
         check=True,
     )
-    assert out.stdout.strip() == "0.2.2"
+    assert out.stdout.strip() == "0.2.3"
